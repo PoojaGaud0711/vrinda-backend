@@ -1,52 +1,203 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Vrinda Register</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vrinda Wellness — Register</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: {
+            forest: { 50:'#F0F7F4',100:'#D9EDE2',200:'#B3DBC5',300:'#7FC4A0',400:'#4BA87A',500:'#2D8A5E',600:'#1B6B47',700:'#1B4332',800:'#153628',900:'#0E2A1E' },
+            cream: '#FDF8F0',
+            gold: { 300:'#DDD0AA',400:'#C5A55A',500:'#B8952F',600:'#9A7B24' },
+          },
+          fontFamily: { display:['Playfair Display','Georgia','serif'], body:['Inter','system-ui','sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #FDF8F0; }
+    .input-field:focus { border-color: #1B4332; box-shadow: 0 0 0 3px rgba(27,67,50,.15); }
+  </style>
 </head>
-<body>
-    <h2>Vrinda Signup</h2>
-    <form id="myForm">
-        Name: <input type="text" id="name" required><br><br>
-        Email: <input type="email" id="email" required><br><br>
-        Password: <input type="password" id="password" required><br><br>
-        <button type="submit">Register</button>
-    </form>
-    <p id="msg"></p>
+<body class="min-h-screen flex items-center justify-center px-4 py-10">
 
-    <script>
-        document.getElementById("myForm").onsubmit = async function(e) {
-            e.preventDefault(); // Stop page refresh
-            
-            // Instantly prove the button works
-            document.getElementById("msg").innerText = "Button clicked! Sending to server...";
-            document.getElementById("msg").style.color = "blue";
+  <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+    
+    <!-- LEFT VISUAL PANEL -->
+    <div class="hidden md:flex md:w-1/2 bg-dark-hero text-white p-12 flex-col justify-center relative" style="background:linear-gradient(135deg,#1B4332 0%,#153628 50%,#0E2A1E 100%)">
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image:radial-gradient(circle at 1px 1px,white 1px,transparent 0);background-size:32px 32px"></div>
+      
+      <div class="relative z-10">
+        <div class="flex items-center gap-2.5 mb-8">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#1B6B47;border:1px solid rgba(255,255,255,.1)"><span class="font-display font-bold text-white text-lg">V</span></div>
+          <div><div class="font-display font-semibold text-white text-lg leading-tight">Vrinda</div><div class="text-[10px] font-medium tracking-widest uppercase" style="color:#7FC4A0">Wellness</div></div>
+        </div>
+        
+        <h1 class="font-display font-semibold text-4xl leading-tight mb-4">
+          Join the <br/><span style="color:#DDD0AA">healthy movement.</span>
+        </h1>
+        <p class="text-base leading-relaxed max-w-sm" style="color:rgba(255,255,255,.6)">
+          Create an account to order genuine medicines, beauty products, and healthy snacks directly to your doorstep.
+        </p>
+        
+        <div class="mt-10 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,.1)"><i class="fas fa-shield-alt text-xs" style="color:#C5A55A"></i></div>
+            <span class="text-sm" style="color:rgba(255,255,255,.7)">100% Genuine Products</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,.1)"><i class="fas fa-truck text-xs" style="color:#C5A55A"></i></div>
+            <span class="text-sm" style="color:rgba(255,255,255,.7)">Fast Local Delivery</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,.1)"><i class="fas fa-lock text-xs" style="color:#C5A55A"></i></div>
+            <span class="text-sm" style="color:rgba(255,255,255,.7)">Secure Health Data</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            // Send data
-            try {
-                let res = await fetch("http://localhost:5000/api/v1/user/register?_=" + Date.now(), {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        name: document.getElementById("name").value,
-                        email: document.getElementById("email").value,
-                        password: document.getElementById("password").value
-                    })
-                });
-                
-                let data = await res.json();
-                
-                if(data.success) {
-                    document.getElementById("msg").style.color = "green";
-                    document.getElementById("msg").innerText = "SUCCESS! User created!";
-                } else {
-                    document.getElementById("msg").style.color = "red";
-                    document.getElementById("msg").innerText = data.message;
-                }
-            } catch(error) {
-                document.getElementById("msg").style.color = "red";
-                document.getElementById("msg").innerText = "Failed to connect to server.";
-            }
-        };
-    </script>
+    <!-- RIGHT FORM PANEL -->
+    <div class="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center">
+      
+      <!-- Mobile Logo -->
+      <div class="md:hidden flex items-center gap-2.5 mb-8">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#1B4332"><span class="font-display font-bold text-white text-sm">V</span></div>
+        <div><div class="font-display font-semibold text-[15px] leading-tight" style="color:#1B4332">Vrinda</div><div class="text-[10px] font-medium tracking-widest uppercase -mt-0.5" style="color:#2D8A5E">Wellness</div></div>
+      </div>
+
+      <h2 class="font-display font-semibold text-3xl tracking-tight mb-2" style="color:#153628">Create Account</h2>
+      <p class="text-sm mb-8" style="color:rgba(0,0,0,.45)">Join 12,000+ happy families today.</p>
+
+            <form id="registerForm" class="space-y-5">
+        <!-- Name -->
+        <div>
+          <label class="text-xs font-semibold mb-1.5 block" style="color:#153628">Full Name</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(0,0,0,.3)"><i class="fas fa-user"></i></span>
+            <input type="text" id="name" placeholder="e.g. Pooja Gaud" required class="input-field w-full pl-11 pr-4 py-3 rounded-xl border text-sm focus:outline-none transition" style="border-color:rgba(0,0,0,.1);background:#FDF8F0;color:#153628"/>
+          </div>
+        </div>
+
+        <!-- Phone & Gender in one row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold mb-1.5 block" style="color:#153628">Mobile Number</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(0,0,0,.3)"><i class="fas fa-phone"></i></span>
+              <input type="tel" id="phone" placeholder="10 digits" maxlength="10" required class="input-field w-full pl-11 pr-4 py-3 rounded-xl border text-sm focus:outline-none transition" style="border-color:rgba(0,0,0,.1);background:#FDF8F0;color:#153628"/>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold mb-1.5 block" style="color:#153628">Gender</label>
+            <select id="gender" class="input-field w-full px-4 py-3 rounded-xl border text-sm focus:outline-none transition appearance-none" style="border-color:rgba(0,0,0,.1);background:#FDF8F0;color:#153628">
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="text-xs font-semibold mb-1.5 block" style="color:#153628">Email Address</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(0,0,0,.3)"><i class="fas fa-envelope"></i></span>
+            <input type="email" id="email" placeholder="you@example.com" required class="input-field w-full pl-11 pr-4 py-3 rounded-xl border text-sm focus:outline-none transition" style="border-color:rgba(0,0,0,.1);background:#FDF8F0;color:#153628"/>
+          </div>
+        </div>
+
+        <!-- DOB & Password in one row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold mb-1.5 block" style="color:#153628">Date of Birth</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(0,0,0,.3)"><i class="fas fa-calendar"></i></span>
+              <input type="date" id="dob" class="input-field w-full pl-11 pr-2 py-3 rounded-xl border text-sm focus:outline-none transition" style="border-color:rgba(0,0,0,.1);background:#FDF8F0;color:#153628"/>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold mb-1.5 block" style="color:#153628">Password</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(0,0,0,.3)"><i class="fas fa-lock"></i></span>
+              <input type="password" id="password" placeholder="Min 6 chars" required class="input-field w-full pl-11 pr-4 py-3 rounded-xl border text-sm focus:outline-none transition" style="border-color:rgba(0,0,0,.1);background:#FDF8F0;color:#153628"/>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl text-sm font-semibold text-white shadow-lg transition hover:opacity-90 flex items-center justify-center gap-2" style="background:#1B4332">
+          Create Account <i class="fas fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+
+      <div id="message" class="mt-4 text-sm text-center font-medium h-5"></div>
+
+      <p class="mt-6 text-center text-sm" style="color:rgba(0,0,0,.45)">
+        Already have an account? 
+        <a href="login.html" class="font-semibold hover:underline" style="color:#1B6B47">Sign In</a>
+      </p>
+      
+      <a href="home.html" class="mt-4 text-center text-xs flex items-center justify-center gap-1.5 hover:underline" style="color:rgba(0,0,0,.3)">
+        <i class="fas fa-arrow-left text-[10px]"></i> Back to Home
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const messageDiv = document.getElementById('message');
+      
+      // Loading state
+      const btn = document.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Account...';
+
+      try {
+        const response = await fetch('https://vrinda-backend-fq9q.onrender.com/api/v1/user/register?_=' + Date.now(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+       name, 
+       email, 
+       password, 
+       phone: document.getElementById('phone').value,
+       gender: document.getElementById('gender').value,
+       dob: document.getElementById('dob').value
+     })
+        });
+
+        const data = await response.json();
+
+        if(data.success) {
+          messageDiv.style.color = "#166534";
+          messageDiv.innerText = "✅ Registration Successful! Redirecting to Login...";
+          setTimeout(() => window.location.href = "login.html", 2000);
+        } else {
+          messageDiv.style.color = "#DC2626";
+          messageDiv.innerText = "⚠️ " + data.message;
+          btn.disabled = false;
+          btn.innerHTML = 'Create Account <i class="fas fa-arrow-right text-xs"></i>';
+        }
+      } catch (error) {
+        messageDiv.style.color = "#DC2626";
+        messageDiv.innerText = "Network error. Please try again.";
+        btn.disabled = false;
+        btn.innerHTML = 'Create Account <i class="fas fa-arrow-right text-xs"></i>';
+      }
+    });
+  </script>
 </body>
 </html>
