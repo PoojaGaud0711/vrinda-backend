@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors'); // <-- ADDED THIS BACK
 const productRoutes = require('./routes/product');
 const userRoutes = require('./routes/user');
+const orderRoutes = require('./routes/order');   // ← NEW
 
 const app = express();
 
@@ -20,10 +21,11 @@ mongoose.connect(process.env.MONGODB_URI)
 // Routes
 app.use('/api/v1', productRoutes);
 app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/orders', orderRoutes);           // ← NEW
 
-// Test route
+// Root — redirect visitors to the actual site
 app.get('/', (req, res) => {
-  res.send('🚀 Vrinda E-Commerce Backend is Running!');
+  res.redirect('/home.html');                     // ← CHANGED
 });
 
 const PORT = process.env.PORT || 5000;
