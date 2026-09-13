@@ -60,6 +60,7 @@
     .prod-card:hover .prod-atc{opacity:1;transform:translateY(0)}
     .prod-img{transition:transform .5s cubic-bezier(.22,1,.36,1)}
     .prod-atc{opacity:0;transform:translateY(8px);transition:all .3s ease}
+    @media (hover:none){.prod-atc{opacity:1;transform:translateY(0)}}
 
     .trust-item{transition:all .3s ease}
     .trust-item:hover{transform:translateY(-2px)}
@@ -112,6 +113,7 @@
     .testi-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(27,67,50,.08)}
     .testi-card:hover .testi-avatar{transform:scale(1.05)}
     .testi-avatar{transition:all .4s cubic-bezier(.22,1,.36,1)}
+    .testi-dot{cursor:pointer;transition:all .3s ease}
 
     /* ── Marquee ── */
     @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
@@ -139,7 +141,7 @@
     .zone-products-enter{animation:fadeUp .45s cubic-bezier(.22,1,.36,1) forwards}
   </style>
 </head>
-<body>
+<body data-page="home">
 
   <!-- TOP BAR -->
   <div class="bg-dark-top text-white">
@@ -170,15 +172,15 @@
         <div class="hidden md:flex flex-1 max-w-xl mx-8">
           <div class="search-box flex items-center w-full border rounded-xl px-4 h-11" style="border-color:rgba(0,0,0,.1);background:rgba(253,248,240,.6)">
             <i class="fas fa-search mr-3 text-sm" style="color:rgba(0,0,0,.25)"></i>
-            <input type="text" placeholder="Search medicines, beauty, snacks, needfuls..." class="flex-1 bg-transparent text-sm focus:outline-none" style="color:#153628"/>
+            <input type="text" id="site-search" placeholder="Search medicines, beauty, snacks, needfuls..." class="flex-1 bg-transparent text-sm focus:outline-none" style="color:#153628"/>
             <span class="text-[10px] border-l pl-3 ml-2 hidden lg:block" style="color:rgba(0,0,0,.25);border-color:rgba(0,0,0,.08)">Ctrl+K</span>
           </div>
         </div>
         <div class="flex items-center gap-1 md:gap-2">
-          <button class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-search"></i></button>
+          <a href="products.html" class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-search"></i></a>
           <a href="login.html" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-user text-sm"></i></a>
           <a href="#" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="far fa-heart text-sm"></i></a>
-          <a href="#" class="nav-icon-btn flex w-10 h-10 md:w-auto md:h-11 rounded-xl items-center justify-center md:px-4 gap-2 relative" style="color:#1B4332;background:rgba(27,67,50,.05)">
+          <a href="cart.html" class="nav-icon-btn flex w-10 h-10 md:w-auto md:h-11 rounded-xl items-center justify-center md:px-4 gap-2 relative" style="color:#1B4332;background:rgba(27,67,50,.05)">
             <i class="fas fa-shopping-bag text-sm"></i>
             <span class="hidden md:inline text-xs font-semibold">Cart</span>
             <span id="cart-count" class="absolute -top-1 -right-1 md:top-0 md:right-0 w-[18px] h-[18px] text-white text-[10px] font-bold rounded-full flex items-center justify-center" style="background:#C5A55A">0</span>
@@ -218,7 +220,7 @@
     </div>
   </header>
 
-  <!-- Mobile Drawer -->
+  <!-- Mobile Drawer (wired by layout.js) -->
   <div id="mob-overlay" class="mobile-overlay fixed inset-0 z-[60] bg-black/40 lg:hidden" style="backdrop-filter:blur(4px)"></div>
   <div id="mob-drawer" class="mobile-drawer fixed top-0 left-0 bottom-0 z-[70] w-[300px] bg-white shadow-2xl lg:hidden overflow-y-auto">
     <div class="p-5">
@@ -350,7 +352,7 @@
               <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight" style="color:#153628">Medicines</h2>
             </div>
           </div>
-          <a href="#" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
+          <a href="products.html?category=medicines" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
         </div>
         <p class="text-sm mb-6 max-w-lg -mt-1" style="color:rgba(0,0,0,.4)">Prescription drugs, OTC medicines, ayurvedic remedies, and daily supplements — all genuine, all verified.</p>
 
@@ -373,7 +375,7 @@
           <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#B8952F">Curated by Vrinda</span>
           <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight mt-1" style="color:#153628">Wellness Combos</h2>
         </div>
-        <a href="#" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
+        <a href="products.html" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
       </div>
       <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
         <div class="combo-card flex-shrink-0 w-[260px] md:w-[280px] bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
@@ -436,7 +438,7 @@
               <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight" style="color:#153628">Beauty Products</h2>
             </div>
           </div>
-          <a href="#" class="text-xs font-semibold flex items-center gap-1.5" style="color:#E11D48">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
+          <a href="products.html?category=beauty" class="text-xs font-semibold flex items-center gap-1.5" style="color:#E11D48">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
         </div>
         <p class="text-sm mb-6 max-w-lg -mt-1" style="color:rgba(0,0,0,.4)">Skincare, haircare, body care, and grooming essentials from brands you trust.</p>
 
@@ -465,7 +467,7 @@
               <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight" style="color:#153628">Healthy Snacks</h2>
             </div>
           </div>
-          <a href="#" class="text-xs font-semibold flex items-center gap-1.5" style="color:#D97706">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
+          <a href="products.html?category=snacks" class="text-xs font-semibold flex items-center gap-1.5" style="color:#D97706">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
         </div>
         <p class="text-sm mb-6 max-w-lg -mt-1" style="color:rgba(0,0,0,.4)">Guilt-free snacking — protein bites, dry fruits, herbal teas, and energy bars for your family.</p>
 
@@ -494,7 +496,7 @@
               <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight" style="color:#153628">Needfuls</h2>
             </div>
           </div>
-          <a href="#" class="text-xs font-semibold flex items-center gap-1.5" style="color:#2563EB">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
+          <a href="products.html?category=needfuls" class="text-xs font-semibold flex items-center gap-1.5" style="color:#2563EB">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
         </div>
         <p class="text-sm mb-6 max-w-lg -mt-1" style="color:rgba(0,0,0,.4)">Baby care, feminine hygiene, napkins, wipes, and everyday essentials you always need.</p>
 
@@ -582,11 +584,7 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center justify-center gap-2 mt-5">
-        <button class="testi-dot w-6 h-2 rounded-full" style="background:#1B4332" data-index="0"></button>
-        <button class="testi-dot w-2 h-2 rounded-full" style="background:rgba(0,0,0,.12)" data-index="1"></button>
-        <button class="testi-dot w-2 h-2 rounded-full" style="background:rgba(0,0,0,.12)" data-index="2"></button>
-      </div>
+      <div id="testi-dots" class="flex items-center justify-center gap-2 mt-5"></div>
     </section>
 
     <!-- BRAND MARQUEE -->
@@ -618,430 +616,173 @@
       </div>
     </section>
 
-    <!-- HEALTH TIPS -->
-    <section class="max-w-7xl mx-auto px-4 md:px-6 mb-14">
-      <div class="flex items-end justify-between mb-6">
-        <div><span class="text-[10px] font-bold uppercase tracking-widest" style="color:#2D8A5E">From Our Journal</span><h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight mt-1" style="color:#153628">Health Tips</h2></div>
-        <a href="#" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">All Articles <i class="fas fa-arrow-right text-[10px]"></i></a>
-      </div>
-      <div class="grid md:grid-cols-3 gap-5">
-        <article class="blog-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
-          <div class="relative h-48 overflow-hidden" style="background:#F0F7F4"><img src="https://picsum.photos/seed/blog-immunity-tips/600/400.jpg" alt="" class="blog-img w-full h-full object-cover"/><span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full text-white" style="background:#1B4332">Immunity</span></div>
-          <div class="p-5"><div class="flex items-center gap-3 mb-3"><span class="text-[11px]" style="color:rgba(0,0,0,.3)"><i class="far fa-calendar mr-1"></i>Jan 15, 2025</span><span class="text-[11px]" style="color:rgba(0,0,0,.3)"><i class="far fa-clock mr-1"></i>5 min</span></div><h3 class="text-[15px] font-semibold leading-snug mb-2" style="color:#153628">10 Ayurvedic Habits That Boost Immunity This Winter</h3><p class="text-xs mb-4" style="color:rgba(0,0,0,.4)">Tulsi kadha to golden milk — time-tested routines from Ayurveda that actually work.</p><span class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">Read More <i class="fas fa-arrow-right text-[10px]"></i></span></div>
-        </article>
-        <article class="blog-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
-          <div class="relative h-48 overflow-hidden" style="background:#FFF1F2"><img src="https://picsum.photos/seed/blog-skincare-myths/600/400.jpg" alt="" class="blog-img w-full h-full object-cover"/><span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full text-white" style="background:#E11D48">Beauty</span></div>
-          <div class="p-5"><div class="flex items-center gap-3 mb-3"><span class="text-[11px]" style="color:rgba(0,0,0,.3)"><i class="far fa-calendar mr-1"></i>Jan 10, 2025</span><span class="text-[11px]" style="color:rgba(0,0,0,.3)"><i class="far fa-clock mr-1"></i>4 min</span></div><h3 class="text-[15px] font-semibold leading-snug mb-2" style="color:#153628">7 Skincare Myths That Are Damaging Your Skin</h3><p class="text-xs mb-4" style="color:rgba(0,0,0,.4)">Natural doesn't always mean safe. Dermatologists bust common misconceptions.</p><span class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">Read More <i class="fas fa-arrow-right text-[10px]"></i></span></div>
-        </article>
-        <article class="blog-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
-          <div class="relative h-48 overflow-hidden" style="background:#FFFBEB"><img src="https://picsum.photos/seed/blog-snacking-right/600/400.jpg" alt="" class="blog-img w-full h-full object-cover"/><span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full text-white" style="background:#D97706">Nutrition</span></div>
-          <div class="p-5"><div class="flex items-center gap-3 mb-3"><span class="text-[11px]" style="color:rgba(0,0,0,.3)"><i class="far fa-calendar mr-1"></i>Jan 5, 2025</span><span class="text-[11px]" style="color:rgba(0,0,0,.3)"><i class="far fa-clock mr-1"></i>6 min</span></div><h3 class="text-[15px] font-semibold leading-snug mb-2" style="color:#153628">Healthy Snacking: The Indian Office Worker's Guide</h3><p class="text-xs mb-4" style="color:rgba(0,0,0,.4)">Swap samosa for these 8 delicious alternatives that keep you energized all day.</p><span class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">Read More <i class="fas fa-arrow-right text-[10px]"></i></span></div>
-        </article>
-      </div>
-    </section>
-
-    <!-- NEWSLETTER -->
-    <section class="max-w-7xl mx-auto px-4 md:px-6 mb-14">
-      <div class="rounded-3xl overflow-hidden relative" style="background:linear-gradient(135deg,#1B4332 0%,#153628 40%,#0E2A1E 100%)">
-        <div class="absolute inset-0 opacity-[0.04]" style="background-image:radial-gradient(circle at 1px 1px,white 1px,transparent 0);background-size:28px 28px"></div>
-        <div class="absolute top-0 right-0 w-72 h-72 rounded-full opacity-10" style="background:#C5A55A;filter:blur(80px)"></div>
-        <div class="relative z-10 px-8 py-14 md:px-16 md:py-20 text-center">
-          <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)"><i class="fas fa-envelope text-[10px]" style="color:#C5A55A"></i><span class="text-xs font-medium" style="color:rgba(255,255,255,.7)">Join 12,000+ healthy subscribers</span></div>
-          <h2 class="font-display font-semibold text-2xl md:text-4xl tracking-tight mb-4 max-w-lg mx-auto" style="color:#fff">Health tips, exclusive offers,<br/><span style="color:#DDD0AA">delivered weekly.</span></h2>
-          <p class="text-sm md:text-base max-w-md mx-auto mb-8" style="color:rgba(255,255,255,.55)">One curated email every week with health advice, new products, and member-only discounts.</p>
-          <form id="nl-form" class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
-            <input id="nl-email" type="email" placeholder="Enter your email address" required class="nl-input w-full sm:flex-1 h-12 px-5 rounded-xl text-sm border" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:#fff"/>
-            <button type="submit" class="w-full sm:w-auto h-12 px-7 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shrink-0" style="background:#C5A55A;color:white"><span>Subscribe</span><i class="fas fa-paper-plane text-xs"></i></button>
-          </form>
-          <p class="text-[11px] mt-4" style="color:rgba(255,255,255,.25)"><i class="fas fa-lock mr-1"></i> We respect your privacy. Unsubscribe anytime.</p>
-        </div>
-      </div>
-    </section>
-
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-dark-footer text-white">
-    <div class="max-w-7xl mx-auto px-4 md:px-6 pt-14 pb-8">
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-        <div class="col-span-2 md:col-span-2">
-          <div class="flex items-center gap-2.5 mb-4">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#1B6B47;border:1px solid rgba(255,255,255,.1)"><span class="font-display font-bold text-white text-base">V</span></div>
-            <div><div class="font-display font-semibold text-white text-lg leading-tight">Vrinda Wellness</div><div class="text-[10px] font-medium tracking-widest uppercase" style="color:#7FC4A0">Your Trusted Partner</div></div>
-          </div>
-          <p class="text-sm leading-relaxed max-w-xs mb-5" style="color:rgba(255,255,255,.5)">More than a pharmacy — your neighborhood wellness destination. Quality products and expert care, delivered to your doorstep.</p>
-          <div class="flex items-center gap-3">
-            <a href="#" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/10" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5)"><i class="fab fa-instagram text-sm"></i></a>
-            <a href="#" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/10" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5)"><i class="fab fa-facebook-f text-sm"></i></a>
-            <a href="#" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/10" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5)"><i class="fab fa-whatsapp text-sm"></i></a>
-            <a href="#" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/10" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5)"><i class="fab fa-youtube text-sm"></i></a>
-          </div>
-        </div>
-        <div>
-          <h4 class="text-[10px] font-bold uppercase tracking-widest mb-4" style="color:rgba(255,255,255,.5)">Shop</h4>
-          <ul class="space-y-2.5">
-            <li><a href="#zone-medicines" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Medicines</a></li>
-            <li><a href="#zone-beauty" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Beauty</a></li>
-            <li><a href="#zone-snacks" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Healthy Snacks</a></li>
-            <li><a href="#zone-needfuls" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Needfuls</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Combo Packs</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-[10px] font-bold uppercase tracking-widest mb-4" style="color:rgba(255,255,255,.5)">Features</h4>
-          <ul class="space-y-2.5">
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Upload Prescription</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Health Profile</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Refill Reminders</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Symptom Checker</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.45)">Offers</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-[10px] font-bold uppercase tracking-widest mb-4" style="color:rgba(255,255,255,.5)">Contact</h4>
-          <ul class="space-y-2.5">
-            <li class="flex items-center gap-2 text-sm" style="color:rgba(255,255,255,.45)"><i class="fas fa-map-marker-alt text-xs w-4" style="color:#C5A55A"></i>Mumbai, Maharashtra</li>
-            <li class="flex items-center gap-2 text-sm" style="color:rgba(255,255,255,.45)"><i class="fas fa-phone text-xs w-4" style="color:#C5A55A"></i>+91 99673 78987</li>
-            <li class="flex items-center gap-2 text-sm" style="color:rgba(255,255,255,.45)"><i class="fas fa-envelope text-xs w-4" style="color:#C5A55A"></i>hello@vrindawellness.com</li>
-            <li class="flex items-center gap-2 text-sm" style="color:rgba(255,255,255,.45)"><i class="fas fa-clock text-xs w-4" style="color:#C5A55A"></i>8AM – 10PM, All days</li>
-          </ul>
-        </div>
-      </div>
-      <div class="pt-6 flex flex-col md:flex-row items-center justify-between gap-3" style="border-top:1px solid rgba(255,255,255,.06)">
-        <span class="text-xs" style="color:rgba(255,255,255,.25)">© 2025 Vrinda Wellness. All rights reserved.</span>
-        <div class="flex items-center gap-5">
-          <a href="#" class="text-xs hover:text-white/50" style="color:rgba(255,255,255,.25)">Privacy Policy</a>
-          <a href="#" class="text-xs hover:text-white/50" style="color:rgba(255,255,255,.25)">Terms of Service</a>
-          <a href="#" class="text-xs hover:text-white/50" style="color:rgba(255,255,255,.25)">Refund Policy</a>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px]" style="color:rgba(255,255,255,.2)">We accept</span>
-          <i class="fab fa-cc-visa text-lg" style="color:rgba(255,255,255,.35)"></i>
-          <i class="fab fa-cc-mastercard text-lg" style="color:rgba(255,255,255,.35)"></i>
-          <i class="fab fa-google-pay text-lg" style="color:rgba(255,255,255,.35)"></i>
-          <span class="text-[10px] font-medium" style="color:rgba(255,255,255,.35)">UPI</span>
-        </div>
-      </div>
-    </div>
-  </footer>
+  <!-- SHARED FOOTER (injected by layout.js) -->
+  <div id="site-footer"></div>
 
   <!-- BACK TO TOP -->
-  <button id="back-to-top" class="back-to-top fixed bottom-6 right-6 z-50 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style="background:#1B4332;color:white"><i class="fas fa-arrow-up text-sm"></i></button>
+  <button id="back-to-top" class="back-to-top fixed bottom-6 right-6 z-50 w-11 h-11 rounded-xl text-white shadow-lg flex items-center justify-center" style="background:#1B4332"><i class="fas fa-arrow-up text-sm"></i></button>
 
-  <!-- TOAST -->
-  <div id="toast" class="toast fixed bottom-6 left-6 z-50 bg-white rounded-2xl shadow-xl border border-black/5 p-4 flex items-center gap-3 max-w-sm" style="display:none">
-    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#DCFCE7"><i class="fas fa-check text-sm" style="color:#166534"></i></div>
-    <div><div id="toast-title" class="text-sm font-semibold" style="color:#153628">Success!</div><div id="toast-msg" class="text-xs" style="color:rgba(0,0,0,.45)">Done.</div></div>
-    <button id="toast-close" class="ml-2 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 hover:bg-gray-100" style="color:rgba(0,0,0,.3)"><i class="fas fa-times text-xs"></i></button>
-  </div>
+  <!-- Shared: cart, toast, drawer wiring, search, footer -->
+  <script src="/layout.js"></script>
 
-  <!-- ══════════════════════════════════════════════ -->
-  <!-- ALL JAVASCRIPT                                 -->
-  <!-- ══════════════════════════════════════════════ -->
+  <!-- Page logic -->
   <script>
-    // ── Product Data ──
-    const ZONES = {
-      medicines: {
-        prescription: [
-          { name:'Paracetamol 500mg', brand:'Cipla', price:35, mrp:45, rating:4.5, reviews:2340, badge:'Rx', badgeBg:'#DC2626', img:'med-paracetamol' },
-          { name:'Amoxicillin 250mg Caps', brand:'Alkem', price:78, mrp:110, rating:4.3, reviews:890, badge:'Rx', badgeBg:'#DC2626', img:'med-amoxicillin' },
-          { name:'Metformin 500mg Tabs', brand:'USV', price:42, mrp:55, rating:4.6, reviews:3200, badge:'Rx', badgeBg:'#DC2626', img:'med-metformin' },
-          { name:'Omeprazole 20mg', brand:'Dr. Reddys', price:65, mrp:85, rating:4.4, reviews:1560, badge:'Rx', badgeBg:'#DC2626', img:'med-omeprazole' },
-        ],
-        otc: [
-          { name:'Dolo 650 Tablet', brand:'Micro Labs', price:30, mrp:38, rating:4.8, reviews:12400, badge:'OTC', badgeBg:'#1B4332', img:'med-dolo' },
-          { name:'Crocin Advance 500mg', brand:'GSK', price:25, mrp:32, rating:4.7, reviews:8900, badge:'OTC', badgeBg:'#1B4332', img:'med-crocin' },
-          { name:'Gelusil MPS Syrup', brand:'Pfizer', price:95, mrp:120, rating:4.3, reviews:670, badge:'OTC', badgeBg:'#1B4332', img:'med-gelusil' },
-          { name:'Vicks Action 500 Advance', brand:'P&G', price:42, mrp:52, rating:4.5, reviews:2100, badge:'OTC', badgeBg:'#1B4332', img:'med-vicks' },
-        ],
-        ayurvedic: [
-          { name:'Ashwagandha Tablets 60s', brand:'Himalaya', price:185, mrp:230, rating:4.2, reviews:1200, badge:'Ayur', badgeBg:'#1B4332', img:'med-ashwa' },
-          { name:'Chyawanprash 500g', brand:'Dabur', price:220, mrp:275, rating:4.6, reviews:4500, badge:'Ayur', badgeBg:'#1B4332', img:'med-chyawan' },
-          { name:'Triphala Capsules 60s', brand:'Organic India', price:195, mrp:245, rating:4.4, reviews:890, badge:'Ayur', badgeBg:'#1B4332', img:'med-triphala' },
-          { name:'Giloy Tablets', brand:'Baidyanath', price:130, mrp:170, rating:4.1, reviews:560, badge:'Ayur', badgeBg:'#1B4332', img:'med-giloy' },
-        ],
-        supplements: [
-          { name:'Vitamin D3 60000 IU', brand:'Cadila', price:145, mrp:180, rating:4.7, reviews:6700, badge:null, img:'med-vitd' },
-          { name:'Omega 3 Fish Oil 1000mg', brand:'HealthKart', price:499, mrp:699, rating:4.4, reviews:1200, badge:null, img:'med-omega' },
-          { name:'Vitamin B12 Tablets', brand:'Mankind', price:85, mrp:120, rating:4.5, reviews:3400, badge:null, img:'med-b12' },
-          { name:'Calcium + Vitamin D3', brand:'Shelcal', price:210, mrp:260, rating:4.6, reviews:5600, badge:null, img:'med-calcium' },
-        ],
-      },
-      beauty: {
-        skincare: [
-          { name:'Gentle Skin Cleanser 250ml', brand:'Cetaphil', price:420, mrp:499, rating:4.8, reviews:12000, badge:'Bestseller', badgeBg:'#C5A55A', img:'beauty-cleanser' },
-          { name:'Sunscreen SPF 50 Gel 50g', brand:'La Shield', price:345, mrp:420, rating:4.5, reviews:2300, badge:null, img:'beauty-sunscreen' },
-          { name:'Vitamin C Serum 30ml', brand:'Mamaearth', price:399, mrp:549, rating:4.3, reviews:4500, badge:'New', badgeBg:'#E11D48', img:'beauty-serum' },
-          { name:'Moisturizing Cream 200ml', brand:'Nivea', price:299, mrp:350, rating:4.6, reviews:8900, badge:null, img:'beauty-moisturizer' },
-        ],
-        haircare: [
-          { name:'Anti Hair Fall Shampoo 400ml', brand:'Dove', price:345, mrp:420, rating:4.4, reviews:6700, badge:null, img:'beauty-shampoo' },
-          { name:'Bhringraj Hair Oil 200ml', brand:'Himalaya', price:185, mrp:220, rating:4.5, reviews:3400, badge:'Ayur', badgeBg:'#1B4332', img:'beauty-hairoil' },
-          { name:'Protein Conditioner 300ml', brand:'L\'Oréal', price:395, mrp:475, rating:4.3, reviews:2100, badge:null, img:'beauty-conditioner' },
-          { name:'Hair Mask Deep Repair 250g', brand:'Matrix', price:450, mrp:580, rating:4.2, reviews:890, badge:null, img:'beauty-hairmask' },
-        ],
-        bodycare: [
-          { name:'Body Lotion Sheer Glow 400ml', brand:'Vaseline', price:249, mrp:299, rating:4.6, reviews:9800, badge:null, img:'beauty-bodylotion' },
-          { name:'Body Wash Cherry Blossom 250ml', brand:'Bath & Body Works', price:595, mrp:745, rating:4.7, reviews:3400, badge:null, img:'beauty-bodywash' },
-          { name:'Hand Cream 75ml', brand:'The Body Shop', price:295, mrp:350, rating:4.4, reviews:1200, badge:null, img:'beauty-handcream' },
-          { name:'Foot Cream Cracked Heels 100g', brand:'Scholl', price:230, mrp:280, rating:4.3, reviews:780, badge:null, img:'beauty-footcream' },
-        ],
-        grooming: [
-          { name:'Beard Oil Cedarwood 50ml', brand:'Ustraa', price:350, mrp:450, rating:4.4, reviews:2300, badge:null, img:'beauty-beardoil' },
-          { name:'Charcoal Face Wash 150ml', brand:'Man Matters', price:399, mrp:499, rating:4.5, reviews:5600, badge:'Trending', badgeBg:'#153628', img:'beauty-charcoal' },
-          { name:'After Shave Balm 100ml', brand:'Nivea Men', price:195, mrp:230, rating:4.3, reviews:3400, badge:null, img:'beauty-aftershave' },
-          { name:'Face Scrub 100g', brand:'Bombay Shaving Co.', price:349, mrp:449, rating:4.2, reviews:1800, badge:null, img:'beauty-scrub' },
-        ],
-      },
-      snacks: {
-        protein: [
-          { name:'Whey Protein Cookies 200g', brand:'MuscleBlaze', price:299, mrp:399, rating:4.3, reviews:890, badge:'High Protein', badgeBg:'#D97706', img:'snack-procookie' },
-          { name:'Roasted Chana Jor Garam 150g', brand:'NutriChoice', price:60, mrp:75, rating:4.2, reviews:450, badge:null, img:'snack-chana' },
-          { name:'Peanut Butter Crunchy 1kg', brand:'Pintola', price:449, mrp:599, rating:4.6, reviews:3400, badge:'Bestseller', badgeBg:'#C5A55A', img:'snack-peanutbutter' },
-          { name:'Protein Bar Chocolate 6 Pack', brand:'Yogabar', price:450, mrp:600, rating:4.4, reviews:2100, badge:null, img:'snack-probar' },
-        ],
-        dryfruits: [
-          { name:'California Almonds 250g', brand:'Nutraj', price:399, mrp:520, rating:4.7, reviews:7800, badge:'Premium', badgeBg:'#C5A55A', img:'snack-almonds' },
-          { name:'Goa Cashews W240 250g', brand:'Solimo', price:345, mrp:450, rating:4.5, reviews:3400, badge:null, img:'snack-cashews' },
-          { name:'Mixed Dry Fruits 500g', brand:'Tata Sampann', price:699, mrp:899, rating:4.6, reviews:5600, badge:'Value Pack', badgeBg:'#D97706', img:'snack-mixednuts' },
-          { name:'Medjool Dates 250g', brand:'Medjool', price:349, mrp:450, rating:4.8, reviews:1200, badge:null, img:'snack-dates' },
-        ],
-        teas: [
-          { name:'Green Tea Bags 25 Pack', brand:'Tetley', price:145, mrp:175, rating:4.4, reviews:8900, badge:null, img:'snack-greentea' },
-          { name:'Tulsi Green Tea 36 Bags', brand:'Organic India', price:185, mrp:230, rating:4.6, reviews:6700, badge:'Bestseller', badgeBg:'#C5A55A', img:'snack-tulsitea' },
-          { name:'Chamomile Tea 20 Bags', brand:'Twinings', price:295, mrp:350, rating:4.5, reviews:1200, badge:null, img:'snack-chamomile' },
-          { name:'Ashwagandha Herbal Tea 18 Bags', brand:'Vahdam', price:349, mrp:450, rating:4.3, reviews:890, badge:'Ayur', badgeBg:'#1B4332', img:'snack-ashwatea' },
-        ],
-        bars: [
-          { name:'Oats & Honey Granola Bar 6 Pack', brand:'Nature Valley', price:210, mrp:270, rating:4.4, reviews:4500, badge:null, img:'snack-granola' },
-          { name:'Fruit & Nut Muesli 500g', brand:'Kellogg\'s', price:299, mrp:380, rating:4.3, reviews:2300, badge:null, img:'snack-muesli' },
-          { name:'Quinoa Puffs Himalayan Salt 90g', brand:'Slurrp Farm', price:120, mrp:150, rating:4.2, reviews:670, badge:'Kids Love', badgeBg:'#D97706', img:'snack-quinoa' },
-          { name:'Dark Chocolate Oats Bar 5 Pack', brand:'Yogabar', price:275, mrp:350, rating:4.5, reviews:1800, badge:null, img:'snack-oatsbar' },
-        ],
-      },
-      needfuls: {
-        baby: [
-          { name:'Pants Style Diapers M 50 Pack', brand:'MamyPoko', price:799, mrp:999, rating:4.6, reviews:12000, badge:'Bestseller', badgeBg:'#C5A55A', img:'need-diaper' },
-          { name:'Baby Wipes 80 Sheets', brand:'Himalaya', price:149, mrp:180, rating:4.5, reviews:7800, badge:null, img:'need-babywipes' },
-          { name:'Baby Lotion 400ml', brand:'Johnson\'s', price:295, mrp:350, rating:4.4, reviews:5600, badge:null, img:'need-babylotion' },
-          { name:'Gentle Baby Soap 200g', brand:'Dove Baby', price:110, mrp:135, rating:4.5, reviews:3400, badge:null, img:'need-babysoap' },
-        ],
-        feminine: [
-          { name:'Sanitary Pads XL 30 Pads', brand:'Whisper', price:195, mrp:240, rating:4.7, reviews:18000, badge:'Bestseller', badgeBg:'#C5A55A', img:'need-pads' },
-          { name:'Panty Liners 50 Pack', brand:'Stayfree', price:145, mrp:180, rating:4.4, reviews:8900, badge:null, img:'need-liners' },
-          { name:'Intimate Wash 200ml', brand:'V Wash', price:220, mrp:280, rating:4.3, reviews:3400, badge:null, img:'need-intimate' },
-          { name:'Menstrual Cup Size M', brand:'Sirona', price:399, mrp:499, rating:4.2, reviews:1200, badge:'Eco', badgeBg:'#166534', img:'need-cup' },
-        ],
-        napkins: [
-          { name:'Facial Tissue 200 Pulls', brand:'Kleenex', price:85, mrp:100, rating:4.5, reviews:12000, badge:null, img:'need-tissue' },
-          { name:'Anti-Bacterial Wet Wipes 80s', brand:'Dettol', price:99, mrp:130, rating:4.6, reviews:8900, badge:null, img:'need-wetwipes' },
-          { name:'Kitchen Paper Rolls 6 Pack', brand:'Puretto', price:245, mrp:310, rating:4.3, reviews:2300, badge:'Value', badgeBg:'#2563EB', img:'need-kitchenroll' },
-          { name:'Paper Napkins 200 Pack', brand:'Sofy', price:65, mrp:80, rating:4.2, reviews:4500, badge:null, img:'need-napkins' },
-        ],
-        daily: [
-          { name:'Hand Sanitizer 500ml', brand:'Dettol', price:199, mrp:250, rating:4.6, reviews:15000, badge:null, img:'need-sanitizer' },
-          { name:'N95 Masks 10 Pack', brand:'Medpro', price:299, mrp:399, rating:4.4, reviews:6700, badge:null, img:'need-masks' },
-          { name:'Absorbent Cotton 500g', brand:'Romsons', price:145, mrp:180, rating:4.3, reviews:3400, badge:null, img:'need-cotton' },
-          { name:'Band-Aid Strips 20 Pack', brand:'Johnson & Johnson', price:55, mrp:70, rating:4.7, reviews:9800, badge:null, img:'need-bandaid' },
-        ],
-      },
+  (function () {
+    'use strict';
+
+    /* ═══ Products from MongoDB ═══ */
+    const ZONE_LIGHT = { medicines:'#F0F7F4', beauty:'#FFF1F2', snacks:'#FFFBEB', needfuls:'#EFF6FF' };
+
+    const grids = {
+      medicines: document.getElementById('products-medicines'),
+      beauty:    document.getElementById('products-beauty'),
+      snacks:    document.getElementById('products-snacks'),
+      needfuls:  document.getElementById('products-needfuls'),
     };
 
-    // ── State ──
-    let cartCount = 0;
-    const activeSub = { medicines:'prescription', beauty:'skincare', snacks:'protein', needfuls:'baby' };
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const inr = n => '₹' + Number(n).toLocaleString('en-IN');
 
-    // ── Render Products ──
-    function renderStars(rating) {
-      let s = '';
-      for (let i = 1; i <= 5; i++) {
-        if (i <= Math.floor(rating)) s += '<i class="fas fa-star text-[9px]" style="color:#C5A55A"></i>';
-        else if (i - rating < 1) s += '<i class="fas fa-star-half-alt text-[9px]" style="color:#C5A55A"></i>';
-        else s += '<i class="far fa-star text-[9px]" style="color:#C5A55A"></i>';
-      }
-      return s;
-    }
+    let allProducts = [];
 
-    function formatReviews(n) {
-      return n >= 1000 ? (n/1000).toFixed(1).replace('.0','') + 'k' : n;
-    }
-
-    function renderProducts(zoneKey, subKey) {
-      const container = document.getElementById('products-' + zoneKey);
-      const products = ZONES[zoneKey][subKey];
-      container.innerHTML = '';
-      container.classList.remove('zone-products-enter');
-      void container.offsetWidth; // force reflow
-      container.classList.add('zone-products-enter');
-
-      products.forEach(p => {
-        const disc = Math.round((1 - p.price/p.mrp) * 100);
-        const card = document.createElement('div');
-        card.className = 'prod-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer';
-        card.innerHTML = `
-          <div class="relative aspect-square overflow-hidden" style="background:rgba(253,248,240,.5)">
-            <img src="https://picsum.photos/seed/${p.img}/400/400.jpg" alt="${p.name}" class="prod-img w-full h-full object-cover" loading="lazy"/>
-            ${p.badge ? `<span class="absolute top-2.5 left-2.5 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md" style="background:${p.badgeBg}">${p.badge}</span>` : ''}
-            <button class="prod-atc absolute bottom-2.5 left-2.5 right-2.5 text-white text-xs font-semibold py-2.5 rounded-xl text-center" style="background:#1B4332">Add to Cart</button>
+    function cardHTML(p, zone) {
+      const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+      return `
+        <div class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
+          <div class="relative h-36 md:h-44 overflow-hidden" style="background:${ZONE_LIGHT[zone]}">
+            <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
+            ${p.tag ? `<span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(p.tag)}</span>` : ''}
+            ${p.requiresPrescription ? `<span class="absolute top-3 right-3 text-[10px] font-bold text-white px-2 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
           </div>
-          <div class="p-3.5">
-            <p class="text-[10px] font-medium uppercase tracking-wider mb-1" style="color:rgba(0,0,0,.35)">${p.brand}</p>
-            <h3 class="text-sm font-semibold leading-snug mb-2 line-clamp-2" style="color:#153628">${p.name}</h3>
-            <div class="flex items-center gap-2 mb-2">
-              <div class="flex items-center gap-0.5">${renderStars(p.rating)}</div>
-              <span class="text-[10px]" style="color:rgba(0,0,0,.3)">(${formatReviews(p.reviews)})</span>
+          <div class="p-3 md:p-4">
+            <h3 class="text-sm font-semibold truncate mb-0.5" style="color:#153628">${esc(p.name)}</h3>
+            <p class="text-[11px] truncate mb-3" style="color:rgba(0,0,0,.4)">${esc(p.brand)} · ${esc(p.pack || '')}</p>
+            <div class="flex items-end justify-between gap-2">
+              <div class="leading-tight">
+                <span class="text-base font-bold" style="color:#1B4332">${inr(p.price)}</span>
+                ${off ? `<span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>` : ''}
+              </div>
+              <button class="prod-atc flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:#1B4332" data-id="${p._id}">
+                <i class="fas fa-plus text-[10px]"></i> ADD
+              </button>
             </div>
-            <div class="flex items-center justify-between">
-              <div><span class="text-base font-bold" style="color:#1B4332">₹${p.price}</span><span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">₹${p.mrp}</span></div>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="color:#166534;background:#DCFCE7">${disc}% off</span>
-            </div>
-          </div>`;
-        container.appendChild(card);
-      });
+          </div>
+        </div>`;
+    }
 
-      // Wire up Add to Cart buttons
-      container.querySelectorAll('.prod-atc').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          cartCount++;
-          document.getElementById('cart-count').textContent = cartCount;
-          const name = btn.closest('.prod-card').querySelector('h3').textContent;
-          showToast('Added to Cart', name.substring(0,40) + (name.length > 40 ? '…' : ''));
+    const skeleton = `
+      <div class="bg-white rounded-2xl border border-black/5 overflow-hidden animate-pulse">
+        <div class="h-36 md:h-44" style="background:rgba(0,0,0,.05)"></div>
+        <div class="p-4"><div class="h-3 rounded mb-2" style="background:rgba(0,0,0,.06)"></div><div class="h-2 w-2/3 rounded" style="background:rgba(0,0,0,.06)"></div></div>
+      </div>`;
+
+    const emptyHTML = `<div class="col-span-2 md:col-span-4 py-10 text-center"><p class="text-sm" style="color:rgba(0,0,0,.35)">No products in this section yet.</p></div>`;
+    const errorHTML = `<div class="col-span-2 md:col-span-4 py-10 text-center"><p class="text-sm mb-3" style="color:rgba(0,0,0,.45)">Couldn't load products. Is the server running?</p><button class="retry-btn text-xs font-semibold px-5 py-2.5 rounded-xl text-white" style="background:#1B4332">Try Again</button></div>`;
+
+    function renderZone(zone, sub) {
+      const grid = grids[zone];
+      if (!grid) return;
+      const list = allProducts.filter(p => p.category === zone && (!sub || p.subcategory === sub));
+      grid.innerHTML = list.length ? list.map(p => cardHTML(p, zone)).join('') : emptyHTML;
+      grid.classList.remove('zone-products-enter');
+      void grid.offsetWidth;
+      grid.classList.add('zone-products-enter');
+    }
+
+    /* ADD buttons — event delegation */
+    Object.values(grids).forEach(grid => {
+      if (!grid) return;
+      grid.addEventListener('click', e => {
+        const btn = e.target.closest('.prod-atc');
+        if (!btn) return;
+        const p = allProducts.find(x => x._id === btn.dataset.id);
+        if (p) { VrindaCart.add(p); VrindaToast(p.name + ' added to cart'); }
+      });
+    });
+
+    /* Zone tabs */
+    document.querySelectorAll('.zone-tabs').forEach(tabs => {
+      const zone = tabs.dataset.zone, accent = tabs.dataset.accent;
+      const paint = btn => {
+        tabs.querySelectorAll('.zone-tab').forEach(b => { b.classList.remove('active'); b.style.background = ''; });
+        btn.classList.add('active');
+        btn.style.background = accent;
+      };
+      tabs.querySelectorAll('.zone-tab').forEach(btn =>
+        btn.addEventListener('click', () => { paint(btn); renderZone(zone, btn.dataset.sub); })
+      );
+      const active = tabs.querySelector('.zone-tab.active');
+      if (active) paint(active);
+    });
+
+    function loadProducts() {
+      Object.values(grids).forEach(g => { if (g) g.innerHTML = skeleton.repeat(4); });
+      fetch('/api/v1/products')
+        .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+        .then(data => {
+          allProducts = data.products || [];
+          document.querySelectorAll('.zone-tabs').forEach(t =>
+            renderZone(t.dataset.zone, t.querySelector('.zone-tab.active')?.dataset.sub)
+          );
+        })
+        .catch(() => {
+          Object.values(grids).forEach(g => { if (g) g.innerHTML = errorHTML; });
+          document.querySelectorAll('.retry-btn').forEach(b => b.addEventListener('click', loadProducts));
         });
+    }
+    loadProducts();
+
+    /* ═══ Side nav scrollspy ═══ */
+    const sideDots = document.querySelectorAll('.side-nav-dot');
+    const zoneSections = ['medicines','beauty','snacks','needfuls'].map(z => document.getElementById('zone-' + z));
+    function spy() {
+      const y = window.scrollY + window.innerHeight * 0.4;
+      let cur = 0;
+      zoneSections.forEach((s, i) => { if (s && s.offsetTop <= y) cur = i; });
+      sideDots.forEach((d, i) => d.classList.toggle('active', i === cur));
+    }
+    window.addEventListener('scroll', spy, { passive: true });
+    spy();
+
+    /* ═══ Testimonials slider ═══ */
+    const track = document.getElementById('testi-track');
+    const dotsWrap = document.getElementById('testi-dots');
+    let ti = 0, maxIndex = 0;
+
+    function perView() { return window.innerWidth >= 768 ? 2 : 1; }
+    function slide() {
+      const card = track.children[0];
+      const step = card.getBoundingClientRect().width + 20; /* gap-5 */
+      track.style.transform = 'translateX(' + (-ti * step) + 'px)';
+      dotsWrap.querySelectorAll('.testi-dot').forEach((d, i) => {
+        d.style.background = i === ti ? '#1B4332' : 'rgba(0,0,0,.12)';
+        d.style.width = i === ti ? '24px' : '8px';
       });
     }
-
-    // ── Init all zones ──
-    Object.keys(ZONES).forEach(zone => {
-      renderProducts(zone, activeSub[zone]);
-    });
-
-    // ── Zone Tabs ──
-    document.querySelectorAll('.zone-tabs').forEach(tabContainer => {
-      const zone = tabContainer.dataset.zone;
-      const accent = tabContainer.dataset.accent;
-
-      // Set initial active tab style
-      tabContainer.querySelectorAll('.zone-tab').forEach(tab => {
-        if (tab.classList.contains('active')) {
-          tab.style.background = accent;
-          tab.style.color = 'white';
-          tab.style.borderColor = accent;
-        }
-      });
-
-      tabContainer.querySelectorAll('.zone-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          tabContainer.querySelectorAll('.zone-tab').forEach(t => {
-            t.classList.remove('active');
-            t.style.background = 'white';
-            t.style.color = 'rgba(0,0,0,.45)';
-            t.style.borderColor = 'transparent';
-          });
-          tab.classList.add('active');
-          tab.style.background = accent;
-          tab.style.color = 'white';
-          tab.style.borderColor = accent;
-          activeSub[zone] = tab.dataset.sub;
-          renderProducts(zone, tab.dataset.sub);
-        });
-      });
-    });
-
-    // ── Mobile Drawer ──
-    const mobToggle = document.getElementById('mob-toggle');
-    const mobClose = document.getElementById('mob-close');
-    const mobDrawer = document.getElementById('mob-drawer');
-    const mobOverlay = document.getElementById('mob-overlay');
-    function openDrawer() { mobDrawer.classList.add('open'); mobOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
-    function closeDrawer() { mobDrawer.classList.remove('open'); mobOverlay.classList.remove('open'); document.body.style.overflow=''; }
-    mobToggle.addEventListener('click', openDrawer);
-    mobClose.addEventListener('click', closeDrawer);
-    mobOverlay.addEventListener('click', closeDrawer);
-    document.querySelectorAll('.mob-link').forEach(l => l.addEventListener('click', closeDrawer));
-
-    // ── Ctrl+K ──
-    document.addEventListener('keydown', e => {
-      if ((e.ctrlKey||e.metaKey) && e.key==='k') { e.preventDefault(); const s=document.querySelector('.search-box input'); if(s)s.focus(); }
-    });
-
-    // ── Header shadow ──
-    const header = document.querySelector('header');
-    window.addEventListener('scroll', () => {
-      header.style.boxShadow = window.scrollY > 20 ? '0 4px 20px rgba(0,0,0,.06)' : 'none';
-    });
-
-    // ── Scroll reveal ──
-    const revealObs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; revealObs.unobserve(e.target); } });
-    }, { threshold:0.05, rootMargin:'0px 0px -40px 0px' });
-    document.querySelectorAll('.zone-section, section:not(.zone-section):not(.bg-dark-hero)').forEach(s => {
-      s.style.opacity='0'; s.style.transform='translateY(20px)'; s.style.transition='opacity .6s cubic-bezier(.22,1,.36,1),transform .6s cubic-bezier(.22,1,.36,1)';
-      revealObs.observe(s);
-    });
-
-    // ── Side Nav active on scroll ──
-    const sideNavDots = document.querySelectorAll('.side-nav-dot');
-    const zoneSections = document.querySelectorAll('.zone-section');
-    const sideObs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if(e.isIntersecting) {
-          sideNavDots.forEach(d => d.classList.remove('active'));
-          const dot = document.querySelector(`.side-nav-dot[data-zone="${e.target.id.replace('zone-','')}"]`);
-          if(dot) dot.classList.add('active');
-        }
-      });
-    }, { threshold:0.3 });
-    zoneSections.forEach(s => sideObs.observe(s));
-
-    // ── Testimonial Carousel ──
-    const testiTrack = document.getElementById('testi-track');
-    const testiContainer = document.getElementById('testi-container');
-    const testiDots = document.querySelectorAll('.testi-dot');
-    let testiIdx = 0, testiTimer;
-    function getTestiW() { return window.innerWidth >= 768 ? testiContainer.offsetWidth/2 + 10 : testiContainer.offsetWidth + 20; }
-    function maxTestiIdx() { return window.innerWidth >= 768 ? testiTrack.children.length - 2 : testiTrack.children.length - 1; }
-    function updateTesti() {
-      testiTrack.style.transform = `translateX(-${testiIdx * getTestiW()}px)`;
-      testiDots.forEach((d,i) => { d.style.width = i===testiIdx?'24px':'8px'; d.style.background = i===testiIdx?'#1B4332':'rgba(0,0,0,.12)'; });
+    function buildDots() {
+      maxIndex = track.children.length - perView();
+      ti = Math.min(ti, maxIndex);
+      dotsWrap.innerHTML = '';
+      for (let i = 0; i <= maxIndex; i++) {
+        const d = document.createElement('button');
+        d.className = 'testi-dot h-2 rounded-full';
+        d.addEventListener('click', () => { ti = i; slide(); });
+        dotsWrap.appendChild(d);
+      }
+      slide();
     }
-    function nextTesti() { testiIdx = testiIdx >= maxTestiIdx() ? 0 : testiIdx+1; updateTesti(); }
-    function prevTesti() { testiIdx = testiIdx <= 0 ? maxTestiIdx() : testiIdx-1; updateTesti(); }
-    function startTesti() { testiTimer = setInterval(nextTesti, 5000); }
-    function resetTesti() { clearInterval(testiTimer); startTesti(); }
-    document.getElementById('testi-next').addEventListener('click', () => { nextTesti(); resetTesti(); });
-    document.getElementById('testi-prev').addEventListener('click', () => { prevTesti(); resetTesti(); });
-    testiDots.forEach(d => d.addEventListener('click', () => { testiIdx=+d.dataset.index; updateTesti(); resetTesti(); }));
-    let tsx=0; testiContainer.addEventListener('touchstart',e=>{tsx=e.changedTouches[0].screenX},{passive:true});
-    testiContainer.addEventListener('touchend',e=>{const d=tsx-e.changedTouches[0].screenX;if(Math.abs(d)>50){d>0?nextTesti():prevTesti();resetTesti()}},{passive:true});
-    startTesti();
-    window.addEventListener('resize',()=>{ testiIdx=Math.min(testiIdx,maxTestiIdx()); updateTesti(); });
+    document.getElementById('testi-prev').addEventListener('click', () => { ti = Math.max(0, ti - 1); slide(); });
+    document.getElementById('testi-next').addEventListener('click', () => { ti = Math.min(maxIndex, ti + 1); slide(); });
+    window.addEventListener('resize', buildDots);
+    buildDots();
 
-    // ── Newsletter ──
-    document.getElementById('nl-form').addEventListener('submit', e => {
-      e.preventDefault();
-      const em = document.getElementById('nl-email').value.trim();
-      if(em) { showToast('Subscribed!', `We'll send tips to ${em}`); document.getElementById('nl-email').value=''; }
-    });
-
-    // ── Toast ──
-    const toast = document.getElementById('toast');
-    let toastT;
-    function showToast(title, msg) {
-      document.getElementById('toast-title').textContent = title;
-      document.getElementById('toast-msg').textContent = msg;
-      toast.style.display = 'flex';
-      clearTimeout(toastT);
-      requestAnimationFrame(() => toast.classList.add('show'));
-      toastT = setTimeout(() => { toast.classList.remove('show'); setTimeout(()=>toast.style.display='none',400); }, 4000);
-    }
-    document.getElementById('toast-close').addEventListener('click', () => { toast.classList.remove('show'); setTimeout(()=>toast.style.display='none',400); });
-
-    // ── Back to top ──
+    /* ═══ Back to top ═══ */
     const btt = document.getElementById('back-to-top');
-    window.addEventListener('scroll', () => { btt.classList.toggle('visible', window.scrollY > 600); });
-    btt.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+    window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 600), { passive: true });
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  })();
   </script>
-<script src="/layout.js"></script>
 </body>
 </html>
