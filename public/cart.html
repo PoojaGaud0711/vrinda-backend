@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Cart — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+</head>
+<body data-page="cart" data-zone="medicines">
 
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">Cart</span></div>
+  <div class="flex items-end justify-between mb-8">
+    <div>
+      <span class="eyebrow">Your Selection</span>
+      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">Shopping Cart</h1>
+    </div>
+    <span id="cart-meta" class="text-xs muted"></span>
+  </div>
+
+  <div id="cart-root"></div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const root = document.getElementById('cart-root');
+  const meta = document.getElementById('cart-meta');
+  const FREE_DELIVERY = 499, DELIVERY_FEE = 40;
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  function render() {
+    const items = VrindaCart.get();
+
+    if (!items.length) {
+      meta.textContent = '';
+      root.innerHTML = `
+        <div class="text-center py-20">
+          <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:var(--accent-soft)">
+            <i class="fas fa-shopping-bag text-2xl" style="color:var(--accent)"></i>
+          </div>
+          <h2 class="font-display font-semibold text-xl mb-2" style="color:var(--ink)">Your cart is empty</h2>
+          <p class="text-sm muted mb-6">Browse our categories and find something for your family.</p>
+          <div class="flex flex-wrap justify-center gap-2 mb-7">
+            <a href="/products.html?category=medicines" class="chip">Medicines</a>
+            <a href="/products.html?category=beauty" class="chip">Beauty</a>
+            <a href="/products.html?category=snacks" class="chip">Healthy Snacks</a>
+            <a href="/products.html?category=needfuls" class="chip">Needfuls</a>
+          </div>
+          <a href="/products.html" class="btn btn-primary">Start Shopping</a>
+        </div>`;
+      return;
+    }
+
+    const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const savings = items.reduce((s, i) => s + (i.mrp && i.mrp > i.price ? (i.mrp - i.price) * i.qty : 0), 0);
+    const delivery = subtotal >= FREE_DELIVERY ? 0 : DELIVERY_FEE;
+    const total = subtotal + delivery;
+    const units = items.reduce((s, i) => s + i.qty, 0);
+    const hasRx = items.some(i => i.requiresPrescription);
+
+    meta.textContent = `${items.length} product${items.length > 1 ? 's' : ''} · ${units} item${units > 1 ? 's' : ''}`;
+
+    const rows = items.map(i => `
+      <div class="card p-4 flex gap-4 items-center mb-3">
+        <a href="/product.html?id=${i.id}" class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0" style="background:var(--accent-soft)">
+          ${i.image ? `<img src="${esc(i.image)}" alt="${esc(i.name)}" class="w-full h-full object-cover"/>` : ''}
+        </a>
+        <div class="flex-1 min-w-0">
+          <a href="/product.html?id=${i.id}" class="text-sm font-semibold block truncate hover:underline" style="color:var(--ink)">${esc(i.name)}</a>
+          <p class="text-[11px] truncate mb-2" style="color:rgba(0,0,0,.4)">${esc(i.brand || '')}${i.pack ? ' · ' + esc(i.pack) : ''}</p>
+          <div class="flex items-center gap-2 text-xs" style="color:rgba(0,0,0,.5)">
+            <span class="font-semibold">${inr(i.price)}</span>
+            ${i.mrp && i.mrp > i.price ? `<span class="line-through" style="color:rgba(0,0,0,.3)">${inr(i.mrp)}</span>` : ''}
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-2 flex-shrink-0">
+          <span class="text-sm font-bold" style="color:var(--forest)">${inr(i.price * i.qty)}</span>
+          <div class="flex items-center border rounded-lg overflow-hidden" style="border-color:rgba(0,0,0,.1)">
+            <button class="qty-btn w-8 h-8 flex items-center justify-center hover:bg-black/[.03] text-xs" style="color:var(--accent)" data-id="${i.id}" data-delta="-1"><i class="fas fa-minus text-[10px]"></i></button>
+            <span class="w-8 text-center text-xs font-bold" style="color:var(--ink)">${i.qty}</span>
+            <button class="qty-btn w-8 h-8 flex items-center justify-center hover:bg-black/[.03] text-xs" style="color:var(--accent)" data-id="${i.id}" data-delta="1"><i class="fas fa-plus text-[10px]"></i></button>
+          </div>
+          <button class="rm-btn text-[11px] font-semibold flex items-center gap-1" style="color:#E11D48" data-id="${i.id}"><i class="fas fa-trash-alt text-[10px]"></i> Remove</button>
+        </div>
+      </div>`).join('');
+
+    const progress = Math.min(100, Math.round(subtotal / FREE_DELIVERY * 100));
+
+    root.innerHTML = `
+      <div class="grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">${rows}
+          <a href="/products.html" class="inline-flex items-center gap-2 text-xs font-semibold mt-4" style="color:var(--accent)"><i class="fas fa-arrow-left text-[10px]"></i> Continue Shopping</a>
+        </div>
+
+        <aside class="card p-6 h-fit lg:sticky lg:top-32">
+          <h3 class="font-display font-semibold text-lg mb-5" style="color:var(--ink)">Order Summary</h3>
+
+          <div class="flex justify-between text-sm mb-2.5"><span style="color:rgba(0,0,0,.5)">Subtotal (${units} items)</span><span class="font-semibold" style="color:var(--ink)">${inr(subtotal)}</span></div>
+          ${savings > 0 ? `<div class="flex justify-between text-sm mb-2.5"><span style="color:rgba(0,0,0,.5)">You save</span><span class="font-semibold" style="color:#166534">−${inr(savings)}</span></div>` : ''}
+          <div class="flex justify-between text-sm mb-2.5"><span style="color:rgba(0,0,0,.5)">Delivery</span><span class="font-semibold" style="color:${delivery === 0 ? '#166534' : 'var(--ink)'}">${delivery === 0 ? 'FREE' : inr(delivery)}</span></div>
+
+          ${delivery > 0 ? `
+          <div class="mb-4">
+            <p class="text-[11px] mb-1.5" style="color:rgba(0,0,0,.45)">Add <strong style="color:var(--accent)">${inr(FREE_DELIVERY - subtotal)}</strong> more for FREE delivery</p>
+            <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(0,0,0,.06)">
+              <div class="h-full rounded-full" style="width:${progress}%;background:var(--accent);transition:width .4s ease"></div>
+            </div>
+          </div>` : `
+          <div class="flex items-center gap-2 mb-4 text-xs font-semibold p-2.5 rounded-xl" style="color:#166534;background:#F0FDF4"><i class="fas fa-check-circle text-xs"></i> You've unlocked FREE delivery!</div>`}
+
+          <div style="border-top:1px solid rgba(0,0,0,.08)"></div>
+          <div class="flex justify-between items-baseline my-4"><span class="font-display font-semibold" style="color:var(--ink)">Total</span><span class="text-xl font-bold" style="color:var(--forest)">${inr(total)}</span></div>
+
+          ${hasRx ? `
+          <div class="flex items-start gap-2.5 p-3 rounded-xl mb-4" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
+            <i class="fas fa-file-prescription mt-0.5 text-xs" style="color:#E11D48"></i>
+            <p class="text-[11px] leading-relaxed" style="color:rgba(0,0,0,.6)">Your cart has prescription items. Our pharmacist will verify your Rx before dispatch.</p>
+          </div>` : ''}
+
+          <a href="checkout.html" class="btn btn-primary w-full"><i class="fas fa-lock text-[10px]"></i> Proceed to Checkout</a>
+          <p class="text-[10px] text-center mt-3" style="color:rgba(0,0,0,.35)">100% genuine products · Secure checkout · Easy returns</p>
+        </aside>
+      </div>`;
+  }
+
+  /* interactions — delegated, survives re-renders */
+  root.addEventListener('click', e => {
+    const q = e.target.closest('.qty-btn');
+    if (q) {
+      const item = VrindaCart.get().find(i => i.id === q.dataset.id);
+      if (item) VrindaCart.setQty(q.dataset.id, item.qty + Number(q.dataset.delta));
+      return;
+    }
+    const r = e.target.closest('.rm-btn');
+    if (r) { VrindaCart.remove(r.dataset.id); VrindaToast('Removed from cart'); }
+  });
+
+  document.addEventListener('cart:updated', render);
+  render();
+})();
+</script>
+</body>
+</html>
