@@ -1,1 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Confirmed — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    @keyframes popIn{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+    .check-pop{animation:popIn .5s cubic-bezier(.22,1,.36,1) both}
+    @keyframes ring{from{box-shadow:0 0 0 0 rgba(27,67,50,.35)}to{box-shadow:0 0 0 28px rgba(27,67,50,0)}}
+    .check-ring{animation:ring 1.2s ease-out .35s both}
+    .tl-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;border:2px solid rgba(0,0,0,.15);background:#fff;color:rgba(0,0,0,.35);flex-shrink:0}
+    .tl-dot.done{background:var(--accent);border-color:var(--accent);color:#fff}
+    .tl-line{flex:1;height:2px;background:rgba(0,0,0,.08);margin:0 8px}
+  </style>
+</head>
+<body data-page="order-success" data-zone="medicines">
 
+<div id="site-header"></div>
+
+<main class="max-w-2xl mx-auto px-4 md:px-6 py-12 md:py-16">
+  <div id="success-root" class="text-center">
+    <div class="w-16 h-16 rounded-full mx-auto mb-6 animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+    <div class="h-7 w-52 mx-auto rounded mb-3 animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+    <div class="h-4 w-72 mx-auto rounded animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const root = document.getElementById('success-root');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  const eta = new Date(Date.now() + 86400000)
+    .toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const PAY = { cod: 'Cash on Delivery', upi: 'UPI', card: 'Card' };
+
+  function genericSuccess() {
+    root.innerHTML = `
+      <div class="w-16 h-16 rounded-full check-pop check-ring mx-auto mb-6 flex items-center justify-center" style="background:#1B4332">
+        <i class="fas fa-check text-white text-xl"></i>
+      </div>
+      <h1 class="font-display font-semibold text-2xl md:text-3xl mb-2" style="color:var(--ink)">Order Confirmed!</h1>
+      <p class="text-sm muted mb-6">Thank you for shopping with Vrinda.</p>
+      <a href="/products.html" class="btn btn-primary">Continue Shopping</a>`;
+  }
+
+  function renderOrder(o) {
+    const hasRx = o.items.some(i => i.requiresPrescription);
+    root.innerHTML = `
+      <div class="w-16 h-16 rounded-full check-pop check-ring mx-auto mb-6 flex items-center justify-center" style="background:#1B4332">
+        <i class="fas fa-check text-white text-xl"></i>
+      </div>
+
+      <h1 class="font-display font-semibold text-2xl md:text-3xl mb-2" style="color:var(--ink)">Order Confirmed!</h1>
+      <p class="text-sm muted mb-1">Thank you, ${esc(o.customer.name.split(' ')[0])}! Your order is on its way.</p>
+      <p class="text-sm mb-8"><span class="inline-block font-bold px-3 py-1 rounded-full" style="background:var(--accent-soft);color:var(--accent)">${esc(o.orderNumber)}</span></p>
+
+      <!-- timeline -->
+      <div class="card p-5 mb-4 flex items-center text-left">
+        <span class="tl-dot done"><i class="fas fa-check"></i></span><span class="tl-line"></span>
+        <span class="tl-dot"><i class="fas fa-box"></i></span><span class="tl-line"></span>
+        <span class="tl-dot"><i class="fas fa-truck"></i></span><span class="tl-line"></span>
+        <span class="tl-dot"><i class="fas fa-home"></i></span>
+      </div>
+      <div class="flex justify-between text-[10px] font-semibold mb-6 px-2" style="color:rgba(0,0,0,.45)">
+        <span style="color:var(--accent)">Placed</span><span>Packed</span><span>Out for delivery</span><span>Delivered</span>
+      </div>
+
+      <div class="card p-6 mb-4 text-left">
+        <div class="flex items-center gap-2.5 mb-3">
+          <i class="fas fa-truck text-sm" style="color:var(--accent)"></i>
+          <span class="text-sm font-semibold" style="color:var(--ink)">Arriving ${eta}</span>
+        </div>
+        <div class="flex items-start gap-2.5 text-xs leading-relaxed" style="color:rgba(0,0,0,.5)">
+          <i class="fas fa-map-marker-alt mt-0.5" style="color:var(--accent)"></i>
+          <span>${esc(o.address.line1)}, ${esc(o.address.city)}, ${esc(o.address.state)} — ${esc(o.address.pincode)}<br/><strong style="color:var(--ink)">${esc(o.customer.phone)}</strong></span>
+        </div>
+        ${hasRx ? `
+        <div class="flex items-start gap-2.5 p-3 rounded-xl mt-4" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
+          <i class="fas fa-file-prescription mt-0.5 text-xs" style="color:#E11D48"></i>
+          <p class="text-[11px] leading-relaxed" style="color:rgba(0,0,0,.6)">Prescription items included — keep your Rx ready for verification.</p>
+        </div>` : ''}
+      </div>
+
+      <div class="card p-6 mb-6 text-left">
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:var(--ink)">Items (${o.items.reduce((s, i) => s + i.qty, 0)})</h3>
+        ${o.items.map(i => `
+        <div class="flex items-center justify-between gap-3 py-2" style="border-bottom:1px solid rgba(0,0,0,.05)">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style="background:var(--accent-soft)">
+              ${i.image ? `<img src="${esc(i.image)}" alt="" class="w-full h-full object-cover"/>` : ''}
+            </div>
+            <div class="min-w-0"><p class="text-xs font-semibold truncate" style="color:var(--ink)">${esc(i.name)}</p><p class="text-[10px]" style="color:rgba(0,0,0,.4)">Qty ${i.qty} × ${inr(i.price)}</p></div>
+          </div>
+          <span class="text-xs font-semibold" style="color:var(--forest)">${inr(i.price * i.qty)}</span>
+        </div>`).join('')}
+        <div class="flex justify-between text-sm mt-4"><span style="color:rgba(0,0,0,.5)">Subtotal</span><span class="font-semibold" style="color:var(--ink)">${inr(o.subtotal)}</span></div>
+        <div class="flex justify-between text-sm mt-1"><span style="color:rgba(0,0,0,.5)">Delivery</span><span class="font-semibold" style="color:${o.deliveryFee === 0 ? '#166534' : 'var(--ink)'}">${o.deliveryFee === 0 ? 'FREE' : inr(o.deliveryFee)}</span></div>
+        <div class="flex justify-between items-baseline mt-3 pt-3" style="border-top:1px solid rgba(0,0,0,.08)">
+          <span class="font-display font-semibold" style="color:var(--ink)">Total · ${PAY[o.paymentMethod] || 'COD'}</span>
+          <span class="text-lg font-bold" style="color:var(--forest)">${inr(o.total)}</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/products.html" class="btn btn-primary">Continue Shopping</a>
+        <a href="/home.html" class="btn btn-outline">Back to Home</a>
+      </div>
+      <p class="text-[11px] mt-6" style="color:rgba(0,0,0,.35)">Save your order number <strong>${esc(o.orderNumber)}</strong> to track this order.</p>`;
+  }
+
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) { genericSuccess(); return; }
+
+  fetch('/api/v1/orders/' + encodeURIComponent(id))
+    .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+    .then(data => data.order ? renderOrder(data.order) : genericSuccess())
+    .catch(genericSuccess);   // order was very likely placed — cart's already cleared
+})();
+</script>
+</body>
+</html>
