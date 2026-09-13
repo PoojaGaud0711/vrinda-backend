@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 
-// POST /api/v1/product/new  (unchanged)
+// POST /api/v1/product/new
 router.post('/product/new', async (req, res) => {
   try {
     const product = await Product.create(req.body);
@@ -12,7 +12,7 @@ router.post('/product/new', async (req, res) => {
   }
 });
 
-// GET /api/v1/products — now supports ?category=&sub=&q=&sort=
+// GET /api/v1/products?category=&sub=&q=&sort=
 router.get('/products', async (req, res) => {
   try {
     const { category, sub, q, sort } = req.query;
@@ -35,7 +35,7 @@ router.get('/products', async (req, res) => {
   }
 });
 
-// GET /api/v1/products/:id — for the detail page
+// GET /api/v1/products/:id — for the detail page (file #7)
 router.get('/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
