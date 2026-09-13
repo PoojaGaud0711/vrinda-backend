@@ -1,1 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    .pay-card{display:flex;align-items:center;gap:14px;padding:16px;border:1.5px solid rgba(0,0,0,.1);border-radius:14px;background:#fff;cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1)}
+    .pay-card:hover{border-color:var(--accent)}
+    .pay-card.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px rgba(27,67,50,.08)}
+    .pay-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pay-card input{position:absolute;opacity:0;pointer-events:none}
+  </style>
+</head>
+<body data-page="checkout" data-zone="medicines">
 
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><a href="cart.html">Cart</a><i class="fas fa-chevron-right"></i><span class="current">Checkout</span></div>
+
+  <div class="flex items-end justify-between mb-8 gap-4">
+    <div>
+      <span class="eyebrow">Almost there</span>
+      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">Checkout</h1>
+    </div>
+    <span class="text-xs flex items-center gap-1.5" style="color:rgba(0,0,0,.4)"><i class="fas fa-lock text-[10px]" style="color:var(--accent)"></i> Secure checkout</span>
+  </div>
+
+  <div id="checkout-root"></div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const root = document.getElementById('checkout-root');
+  const FREE_DELIVERY = 499, DELIVERY_FEE = 40;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  const eta = new Date(Date.now() + 86400000)
+    .toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  let paymentMethod = 'cod';
+
+  function render() {
+    const items = VrindaCart.get();
+
+    if (!items.length) {
+      root.innerHTML = `
+        <div class="text-center py-20">
+          <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:var(--accent-soft)">
+            <i class="fas fa-shopping-bag text-2xl" style="color:var(--accent)"></i>
+          </div>
+          <h2 class="font-display font-semibold text-xl mb-2" style="color:var(--ink)">Nothing to check out</h2>
+          <p class="text-sm muted mb-6">Your cart is empty — add a few items first.</p>
+          <a href="/products.html" class="btn btn-primary">Start Shopping</a>
+        </div>`;
+      return;
+    }
+
+    const subtotal  = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const delivery  = subtotal >= FREE_DELIVERY ? 0 : DELIVERY_FEE;
+    const total     = subtotal + delivery;
+    const units     = items.reduce((s, i) => s + i.qty, 0);
+    const hasRx     = items.some(i => i.requiresPrescription);
+
+    root.innerHTML = `
+    <form id="checkout-form" class="grid lg:grid-cols-3 gap-8" novalidate>
+
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- 1. Contact -->
+        <section class="card p-6 md:p-7">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center" style="background:var(--accent)">1</span>
+            <h2 class="font-display font-semibold text-lg" style="color:var(--ink)">Contact Details</h2>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="field">
+              <label class="field-label" for="f-name">Full Name *</label>
+              <input id="f-name" class="input" type="text" required placeholder="Priya Sharma" autocomplete="name"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-phone">Mobile Number *</label>
+              <input id="f-phone" class="input" type="tel" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile" autocomplete="tel" inputmode="numeric"/>
+            </div>
+            <div class="field sm:col-span-2">
+              <label class="field-label" for="f-email">Email (optional)</label>
+              <input id="f-email" class="input" type="email" placeholder="you@email.com" autocomplete="email"/>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Address -->
+        <section class="card p-6 md:p-7">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center" style="background:var(--accent)">2</span>
+            <h2 class="font-display font-semibold text-lg" style="color:var(--ink)">Delivery Address</h2>
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-line1">Flat / Building / Street *</label>
+            <textarea id="f-line1" class="textarea" required placeholder="Flat 4B, Sunrise Apartments, Linking Road"></textarea>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div class="field">
+              <label class="field-label" for="f-city">City</label>
+              <input id="f-city" class="input" type="text" value="Mumbai"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-state">State</label>
+              <input id="f-state" class="input" type="text" value="Maharashtra"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-pincode">Pincode *</label>
+              <input id="f-pincode" class="input" type="text" required pattern="[0-9]{6}" maxlength="6" placeholder="400001" inputmode="numeric"/>
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5 text-xs p-3 rounded-xl" style="background:var(--accent-soft);color:var(--ink)">
+            <i class="fas fa-truck" style="color:var(--accent)"></i>
+            Estimated delivery: <strong>${eta}</strong>
+          </div>
+        </section>
+
+        <!-- 3. Payment -->
+        <section class="card p-6 md:p-7">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center" style="background:var(--accent)">3</span>
+            <h2 class="font-display font-semibold text-lg" style="color:var(--ink)">Payment Method</h2>
+          </div>
+          <div class="space-y-3">
+            <label class="pay-card active" data-method="cod">
+              <input type="radio" name="pay" value="cod" checked/>
+              <span class="pay-icon" style="background:#DCFCE7;color:#166534"><i class="fas fa-money-bill-wave"></i></span>
+              <span class="flex-1"><span class="block text-sm font-semibold" style="color:var(--ink)">Cash on Delivery</span><span class="block text-xs" style="color:rgba(0,0,0,.4)">Pay when your order arrives</span></span>
+              <i class="fas fa-check-circle text-sm" style="color:var(--accent)"></i>
+            </label>
+            <label class="pay-card" data-method="upi" style="opacity:.55;cursor:not-allowed">
+              <input type="radio" name="pay" value="upi" disabled/>
+              <span class="pay-icon" style="background:#DBEAFE;color:#2563EB"><i class="fas fa-mobile-alt"></i></span>
+              <span class="flex-1"><span class="block text-sm font-semibold" style="color:var(--ink)">UPI</span><span class="block text-xs" style="color:rgba(0,0,0,.4)">GPay · PhonePe · Paytm</span></span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#FEF3C7;color:#92400E">Coming soon</span>
+            </label>
+            <label class="pay-card" data-method="card" style="opacity:.55;cursor:not-allowed">
+              <input type="radio" name="pay" value="card" disabled/>
+              <span class="pay-icon" style="background:#FCE7F3;color:#BE185D"><i class="fas fa-credit-card"></i></span>
+              <span class="flex-1"><span class="block text-sm font-semibold" style="color:var(--ink)">Debit / Credit Card</span><span class="block text-xs" style="color:rgba(0,0,0,.4)">Visa · Mastercard · RuPay</span></span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#FEF3C7;color:#92400E">Coming soon</span>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <!-- Summary -->
+      <aside class="card p-6 h-fit lg:sticky lg:top-32">
+        <h3 class="font-display font-semibold text-lg mb-5" style="color:var(--ink)">Order Summary</h3>
+
+        <div class="space-y-3 mb-5 max-h-64 overflow-y-auto pr-1">
+          ${items.map(i => `
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0" style="background:var(--accent-soft)">
+              ${i.image ? `<img src="${esc(i.image)}" alt="" class="w-full h-full object-cover"/>` : ''}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold truncate" style="color:var(--ink)">${esc(i.name)}</p>
+              <p class="text-[10px]" style="color:rgba(0,0,0,.4)">Qty ${i.qty} × ${inr(i.price)}</p>
+            </div>
+            <span class="text-xs font-semibold" style="color:var(--forest)">${inr(i.price * i.qty)}</span>
+          </div>`).join('')}
+        </div>
+
+        <div class="flex justify-between text-sm mb-2"><span style="color:rgba(0,0,0,.5)">Subtotal (${units} items)</span><span class="font-semibold" style="color:var(--ink)">${inr(subtotal)}</span></div>
+        <div class="flex justify-between text-sm mb-3"><span style="color:rgba(0,0,0,.5)">Delivery</span><span class="font-semibold" style="color:${delivery === 0 ? '#166534' : 'var(--ink)'}">${delivery === 0 ? 'FREE' : inr(delivery)}</span></div>
+
+        <div style="border-top:1px solid rgba(0,0,0,.08)"></div>
+        <div class="flex justify-between items-baseline my-4"><span class="font-display font-semibold" style="color:var(--ink)">Total</span><span class="text-xl font-bold" style="color:var(--forest)">${inr(total)}</span></div>
+
+        ${hasRx ? `
+        <div class="flex items-start gap-2.5 p-3 rounded-xl mb-4" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
+          <i class="fas fa-file-prescription mt-0.5 text-xs" style="color:#E11D48"></i>
+          <p class="text-[11px] leading-relaxed" style="color:rgba(0,0,0,.6)">Cart has prescription items — our pharmacist will call you to verify before dispatch.</p>
+        </div>` : ''}
+
+        <button type="submit" id="btn-place" class="btn btn-primary w-full"><i class="fas fa-lock text-[10px]"></i> Place Order · ${inr(total)}</button>
+        <p class="text-[10px] text-center mt-3" style="color:rgba(0,0,0,.35)">By placing this order you agree to our terms</p>
+      </aside>
+    </form>`;
+
+    wireForm();
+  }
+
+  function wireForm() {
+    const form = document.getElementById('checkout-form');
+    if (!form) return;
+
+    // payment card highlight (COD only for now)
+    const codCard = document.querySelector('.pay-card[data-method="cod"]');
+    if (codCard) codCard.addEventListener('click', () => { paymentMethod = 'cod'; });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.querySelectorAll(':invalid')[0]?.focus();
+        VrindaToast('Please fill the required fields correctly');
+        return;
+      }
+
+      const items = VrindaCart.get().map(i => ({
+        productId: i.id, name: i.name, brand: i.brand, pack: i.pack,
+        image: i.image, price: i.price, qty: i.qty,
+      }));
+
+      const payload = {
+        items,
+        customer: {
+          name:  document.getElementById('f-name').value.trim(),
+          phone: document.getElementById('f-phone').value.trim(),
+          email: document.getElementById('f-email').value.trim(),
+        },
+        address: {
+          line1:   document.getElementById('f-line1').value.trim(),
+          city:    document.getElementById('f-city').value.trim() || 'Mumbai',
+          state:   document.getElementById('f-state').value.trim() || 'Maharashtra',
+          pincode: document.getElementById('f-pincode').value.trim(),
+        },
+        paymentMethod,
+      };
+
+      const btn = document.getElementById('btn-place');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Placing order...';
+
+      try {
+        const res = await fetch('/api/v1/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'Could not place order');
+
+        VrindaCart.save([]);   // empty the cart
+        location.href = 'order-success.html?id=' + data.order._id;
+      } catch (err) {
+        VrindaToast(err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-lock text-[10px]"></i> Place Order · Try Again';
+      }
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
