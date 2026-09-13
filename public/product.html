@@ -1,1 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+</head>
+<body data-page="product" data-zone="medicines">
 
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+
+  <div id="crumbs" class="crumbs mb-6"></div>
+
+  <!-- skeleton while loading -->
+  <div id="pdp">
+    <div class="grid md:grid-cols-2 gap-8 lg:gap-14">
+      <div class="rounded-3xl h-[300px] md:h-[460px] animate-pulse" style="background:rgba(0,0,0,.05)"></div>
+      <div>
+        <div class="h-3 w-24 rounded mb-4 animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+        <div class="h-7 w-3/4 rounded mb-3 animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+        <div class="h-4 w-1/2 rounded mb-6 animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+        <div class="h-9 w-44 rounded-xl mb-4 animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+        <div class="h-12 rounded-xl animate-pulse" style="background:rgba(0,0,0,.06)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- similar products -->
+  <section id="similar-wrap" class="hidden mt-16 md:mt-20">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <span class="eyebrow">You may also like</span>
+        <h2 class="sec-title text-xl md:text-2xl tracking-tight">Similar Products</h2>
+      </div>
+    </div>
+    <div id="similar" class="flex gap-4 overflow-x-auto no-scrollbar pb-2"></div>
+  </section>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const id = new URLSearchParams(location.search).get('id');
+  const CAT = {
+    medicines: { label:'Medicines',       icon:'fa-pills' },
+    beauty:    { label:'Beauty Products', icon:'fa-spa' },
+    snacks:    { label:'Healthy Snacks',  icon:'fa-apple-alt' },
+    needfuls:  { label:'Needfuls',        icon:'fa-box-open' },
+  };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  const pdp = document.getElementById('pdp');
+  let product = null;
+  let qty = 1;
+
+  function notFound(msg) {
+    document.getElementById('similar-wrap').classList.add('hidden');
+    pdp.innerHTML = `
+      <div class="text-center py-20">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:var(--accent-soft)">
+          <i class="fas fa-box-open text-2xl" style="color:var(--accent)"></i>
+        </div>
+        <h2 class="font-display font-semibold text-xl mb-2" style="color:var(--ink)">${esc(msg)}</h2>
+        <p class="text-sm muted mb-6">It may have been removed or the link is incorrect.</p>
+        <a href="/products.html" class="btn btn-primary">Continue Shopping</a>
+      </div>`;
+  }
+
+  function render() {
+    const p = product;
+    document.title = p.name + ' — Vrinda Wellness';
+    document.body.dataset.zone = p.category;   // accent follows the product's zone
+
+    const cat = CAT[p.category] || { label:'Products', icon:'fa-box' };
+    const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+
+    document.getElementById('crumbs').innerHTML =
+      `<a href="/home.html">Home</a><i class="fas fa-chevron-right"></i>` +
+      `<a href="/products.html?category=${p.category}">${cat.label}</a><i class="fas fa-chevron-right"></i>` +
+      `<span class="current">${esc(p.name)}</span>`;
+
+    pdp.innerHTML = `
+    <div class="grid md:grid-cols-2 gap-8 lg:gap-14">
+
+      <!-- image -->
+      <div>
+        <div class="rounded-3xl overflow-hidden relative border border-black/5" style="background:var(--accent-soft)">
+          <img src="${esc(p.image)}" alt="${esc(p.name)}" class="w-full h-[300px] md:h-[460px] object-cover"/>
+          ${p.tag ? `<span class="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(p.tag)}</span>` : ''}
+          ${p.requiresPrescription ? `<span class="absolute top-4 right-4 text-[10px] font-bold text-white px-2.5 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
+        </div>
+        <div class="grid grid-cols-4 gap-3 mt-4">
+          <div class="card p-3 text-center"><i class="fas fa-shield-alt text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">100% Genuine</p></div>
+          <div class="card p-3 text-center"><i class="fas fa-certificate text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">Licensed</p></div>
+          <div class="card p-3 text-center"><i class="fas fa-truck text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">Same-day*</p></div>
+          <div class="card p-3 text-center"><i class="fas fa-undo text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">Easy Returns</p></div>
+        </div>
+      </div>
+
+      <!-- info -->
+      <div>
+        <span class="eyebrow"><i class="fas ${cat.icon} mr-1.5"></i>${cat.label}</span>
+        <h1 class="font-display font-semibold text-2xl md:text-[2rem] leading-tight tracking-tight mt-1 mb-2" style="color:var(--ink)">${esc(p.name)}</h1>
+        <p class="text-sm mb-5" style="color:rgba(0,0,0,.45)">${esc(p.brand)}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-3xl font-bold" style="color:var(--forest)">${inr(p.price)}</span>
+          ${off ? `<span class="text-sm line-through" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>
+                   <span class="text-[10px] font-bold px-2.5 py-1 rounded-full" style="color:#166534;background:#DCFCE7">${off}% OFF</span>` : ''}
+        </div>
+        <p class="text-xs mb-5" style="color:rgba(0,0,0,.4)"><i class="fas fa-truck mr-1.5" style="color:var(--accent)"></i>Same-day delivery in Mumbai · Order before 6 PM · <span style="color:#166534;font-weight:600">Free delivery above ₹499</span></p>
+
+        ${p.requiresPrescription ? `
+        <div class="flex items-start gap-3 p-4 rounded-2xl mb-6" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
+          <i class="fas fa-file-prescription mt-0.5" style="color:#E11D48"></i>
+          <p class="text-xs leading-relaxed" style="color:rgba(0,0,0,.6)"><strong style="color:#BE185D">Prescription required.</strong> Our pharmacist will call you to verify your prescription before dispatch.</p>
+        </div>` : ''}
+
+        <!-- qty + actions -->
+        <div class="flex flex-wrap items-center gap-4 mb-3">
+          <div class="flex items-center border rounded-xl overflow-hidden" style="border-color:rgba(0,0,0,.1)">
+            <button id="q-minus" class="w-11 h-12 flex items-center justify-center hover:bg-black/[.03]" style="color:var(--accent)"><i class="fas fa-minus text-xs"></i></button>
+            <span id="q-val" class="w-12 text-center text-sm font-bold" style="color:var(--ink)">1</span>
+            <button id="q-plus" class="w-11 h-12 flex items-center justify-center hover:bg-black/[.03]" style="color:var(--accent)"><i class="fas fa-plus text-xs"></i></button>
+          </div>
+          <button id="btn-add" class="btn btn-primary flex-1 min-w-[180px]"><i class="fas fa-shopping-bag text-xs"></i> Add to Cart</button>
+        </div>
+        <button id="btn-buy" class="btn btn-gold w-full md:w-auto"><i class="fas fa-bolt text-xs"></i> Buy Now</button>
+      </div>
+    </div>`;
+
+    /* qty stepper */
+    const qv = document.getElementById('q-val');
+    document.getElementById('q-minus').addEventListener('click', () => { qty = Math.max(1, qty - 1); qv.textContent = qty; });
+    document.getElementById('q-plus').addEventListener('click',  () => { qty = Math.min(99, qty + 1); qv.textContent = qty; });
+
+    document.getElementById('btn-add').addEventListener('click', () => {
+      VrindaCart.add(p, qty);
+      VrindaToast(p.name + (qty > 1 ? ` (×${qty})` : '') + ' added to cart');
+    });
+    document.getElementById('btn-buy').addEventListener('click', () => {
+      VrindaCart.add(p, qty);
+      location.href = 'cart.html';
+    });
+  }
+
+  function miniCard(p) {
+    const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+    return `
+    <a href="/product.html?id=${p._id}" class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 block flex-shrink-0 w-[170px] md:w-[210px]">
+      <div class="relative h-28 md:h-36 overflow-hidden" style="background:var(--accent-soft)">
+        <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
+        ${p.requiresPrescription ? `<span class="absolute top-2 right-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full" style="background:#E11D48">Rx</span>` : ''}
+      </div>
+      <div class="p-3">
+        <h3 class="text-xs font-semibold truncate mb-0.5" style="color:var(--ink)">${esc(p.name)}</h3>
+        <p class="text-[10px] truncate mb-2" style="color:rgba(0,0,0,.4)">${esc(p.brand)} · ${esc(p.pack || '')}</p>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm font-bold" style="color:var(--forest)">${inr(p.price)}</span>
+          ${off ? `<span class="text-[10px] line-through" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>` : ''}
+        </div>
+      </div>
+    </a>`;
+  }
+
+  function loadSimilar(p) {
+    fetch('/api/v1/products?category=' + encodeURIComponent(p.category) + '&sub=' + encodeURIComponent(p.subcategory))
+      .then(r => r.json())
+      .then(data => {
+        const list = (data.products || []).filter(x => x._id !== p._id).slice(0, 8);
+        if (!list.length) return;
+        document.getElementById('similar').innerHTML = list.map(miniCard).join('');
+        document.getElementById('similar-wrap').classList.remove('hidden');
+      })
+      .catch(() => {}); // similar products are a bonus — fail silently
+  }
+
+  if (!id) { notFound('No product selected'); return; }
+
+  fetch('/api/v1/products/' + encodeURIComponent(id))
+    .then(res => {
+      if (res.status === 404) throw new Error('NOT_FOUND');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(data => {
+      product = data.product;
+      if (!product) { notFound('Product not found'); return; }
+      render();
+      loadSimilar(product);
+    })
+    .catch(err => {
+      if (err.message === 'NOT_FOUND') notFound('Product not found');
+      else notFound('Couldn\'t load this product');
+    });
+})();
+</script>
+</body>
+</html>
