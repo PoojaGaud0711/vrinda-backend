@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    .adm-nav{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer;transition:all .25s ease;border:none;background:none;font-family:inherit;text-align:left}
+    .adm-nav i{width:18px;text-align:center}
+    .adm-nav:hover{color:#fff;background:rgba(255,255,255,.06)}
+    .adm-nav.active{color:#fff;background:rgba(197,165,90,.18)}
+    .pill{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;text-transform:capitalize}
+    .tbl{width:100%;border-collapse:collapse;font-size:13px}
+    .tbl th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(0,0,0,.4);padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap}
+    .tbl td{padding:12px;border-bottom:1px solid rgba(0,0,0,.05);vertical-align:middle}
+    .mini-btn{font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap}
+    .modal-bg{position:fixed;inset:0;background:rgba(14,42,30,.5);backdrop-filter:blur(4px);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+    .adm-tab-btn{padding:8px 18px;border-radius:100px;font-size:12px;font-weight:600;border:1.5px solid rgba(0,0,0,.1);background:#fff;color:rgba(0,0,0,.45);cursor:pointer}
+    .adm-tab-btn.active{background:#1B4332;color:#fff;border-color:transparent}
+  </style>
+</head>
+<body class="bg-cream">
+
+<div class="flex min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-[250px] flex-shrink-0 flex flex-col p-4 -translate-x-full lg:translate-x-0 transition-transform duration-300" style="background:#153628">
+    <div class="flex items-center gap-2.5 px-2 py-3 mb-6">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#C5A55A"><span class="font-display font-bold text-white text-sm">V</span></div>
+      <div>
+        <div class="font-display font-semibold text-white text-[15px] leading-tight">Vrinda</div>
+        <div class="text-[10px] font-medium tracking-widest uppercase" style="color:#7FC4A0">Control Room</div>
+      </div>
+    </div>
+
+    <nav class="space-y-1 flex-1">
+      <button class="adm-nav active" data-tab="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</button>
+      <button class="adm-nav" data-tab="orders"><i class="fas fa-box"></i> Orders</button>
+      <button class="adm-nav" data-tab="products"><i class="fas fa-pills"></i> Products</button>
+      <button class="adm-nav" data-tab="stock"><i class="fas fa-warehouse"></i> Stock</button>
+      <button class="adm-nav" data-tab="users"><i class="fas fa-users"></i> Users</button>
+      <button class="adm-nav hidden" data-tab="admins" id="nav-admins"><i class="fas fa-shield-halved"></i> Admins</button>
+    </nav>
+
+    <div class="mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,.08)">
+      <div class="flex items-center gap-3 px-2 mb-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.1)"><i class="fas fa-user-shield text-white text-xs"></i></div>
+        <div class="min-w-0">
+          <div id="me-name" class="text-white text-sm font-semibold truncate">...</div>
+          <div id="me-role" class="text-[10px] font-bold uppercase tracking-widest" style="color:#C5A55A">...</div>
+        </div>
+      </div>
+      <a href="home.html" class="adm-nav"><i class="fas fa-store"></i> View Store</a>
+      <button class="adm-nav" id="btn-logout"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div id="side-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="flex-1 min-w-0">
+    <header class="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 md:px-8 h-16 border-b border-black/5" style="background:rgba(253,248,240,.95);backdrop-filter:blur(10px)">
+      <div class="flex items-center gap-3">
+        <button id="side-toggle" class="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-bars"></i></button>
+        <h1 id="page-title" class="font-display font-semibold text-lg md:text-xl" style="color:#153628">Dashboard</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="adm-tab-btn hidden" data-goto="dashboard">Dashboard</button>
+        <button class="adm-tab-btn hidden" data-goto="orders">Orders</button>
+        <button class="adm-tab-btn hidden" data-goto="products">Products</button>
+      </div>
+    </header>
+
+    <main class="p-4 md:p-8 max-w-6xl">
+
+      <!-- DASHBOARD -->
+      <section id="tab-dashboard" class="adm-section">
+        <div id="stat-cards" class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6"></div>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="card p-6">
+            <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628"><i class="fas fa-triangle-exclamation mr-1.5" style="color:#D97706"></i>Low Stock (≤5)</h3>
+            <div id="low-stock" class="space-y-2"></div>
+          </div>
+          <div class="card p-6">
+            <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628"><i class="fas fa-clock-rotate-left mr-1.5" style="color:#1B6B47"></i>Recent Orders</h3>
+            <div id="recent-orders" class="space-y-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ORDERS -->
+      <section id="tab-orders" class="adm-section hidden">
+        <div id="orders-list" class="space-y-3"></div>
+      </section>
+
+      <!-- PRODUCTS -->
+      <section id="tab-products" class="adm-section hidden">
+        <div class="flex justify-end mb-4">
+          <button id="btn-add-product" class="btn btn-primary btn-sm"><i class="fas fa-plus text-[10px]"></i> Add Product</button>
+        </div>
+        <div class="card overflow-x-auto p-2"><table class="tbl" id="products-tbl"></table></div>
+      </section>
+
+      <!-- STOCK -->
+      <section id="tab-stock" class="adm-section hidden">
+        <div class="card overflow-x-auto p-2"><table class="tbl" id="stock-tbl"></table></div>
+      </section>
+
+      <!-- USERS -->
+      <section id="tab-users" class="adm-section hidden">
+        <div class="card overflow-x-auto p-2"><table class="tbl" id="users-tbl"></table></div>
+      </section>
+
+      <!-- ADMINS (superadmin only) -->
+      <section id="tab-admins" class="adm-section hidden">
+        <div class="card p-6 mb-6">
+          <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628">Create Staff Account</h3>
+          <form id="admin-form" class="grid sm:grid-cols-2 gap-4">
+            <div class="field"><label class="field-label">Name *</label><input id="af-name" class="input" required/></div>
+            <div class="field"><label class="field-label">Email *</label><input id="af-email" type="email" class="input" required/></div>
+            <div class="field"><label class="field-label">Phone *</label><input id="af-phone" class="input" maxlength="10" required/></div>
+            <div class="field"><label class="field-label">Password *</label><input id="af-pass" class="input" required/></div>
+            <div class="field"><label class="field-label">Role</label>
+              <select id="af-role" class="select">
+                <option value="admin">Admin</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </div>
+            <div class="field flex items-end"><button type="submit" class="btn btn-primary btn-sm w-full">Create Account</button></div>
+          </form>
+        </div>
+        <div class="card overflow-x-auto p-2"><table class="tbl" id="admins-tbl"></table></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══ PRODUCT MODAL ═══ -->
+<div id="p-modal" class="modal-bg hidden">
+  <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 md:p-8">
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="pm-title" class="font-display font-semibold text-lg" style="color:#153628">Add Product</h3>
+      <button id="pm-close" class="w-9 h-9 rounded-xl hover:bg-black/5" style="color:rgba(0,0,0,.4)"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="p-form" class="grid grid-cols-2 gap-4">
+      <input type="hidden" id="pf-id"/>
+      <div class="field col-span-2"><label class="field-label">Name *</label><input id="pf-name" class="input" required/></div>
+      <div class="field"><label class="field-label">Brand</label><input id="pf-brand" class="input"/></div>
+      <div class="field"><label class="field-label">Pack (e.g. 15 tablets)</label><input id="pf-pack" class="input"/></div>
+      <div class="field"><label class="field-label">Price (₹) *</label><input id="pf-price" type="number" min="0" step="0.01" class="input" required/></div>
+      <div class="field"><label class="field-label">MRP (₹)</label><input id="pf-mrp" type="number" min="0" step="0.01" class="input"/></div>
+      <div class="field col-span-2"><label class="field-label">Image URL</label><input id="pf-image" class="input" placeholder="https://..."/></div>
+      <div class="field"><label class="field-label">Category *</label>
+        <select id="pf-cat" class="select" required></select>
+      </div>
+      <div class="field"><label class="field-label">Subcategory *</label>
+        <select id="pf-sub" class="select" required></select>
+      </div>
+      <div class="field"><label class="field-label">Stock</label><input id="pf-stock" type="number" min="0" value="0" class="input"/></div>
+      <div class="field"><label class="field-label">Tag</label>
+        <select id="pf-tag" class="select"><option value="">None</option><option>Bestseller</option><option>New</option></select>
+      </div>
+      <label class="col-span-2 flex items-center gap-2.5 text-sm cursor-pointer" style="color:#153628">
+        <input id="pf-rx" type="checkbox" class="w-4 h-4 accent-[#1B4332]"/> Requires prescription
+      </label>
+      <button type="submit" class="btn btn-primary col-span-2" id="pm-save">Save Product</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+  const dShort = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+  const CATS = ['medicines', 'beauty', 'snacks', 'needfuls'];
+  const SUBS = {
+    medicines: { prescription:'Prescription', otc:'OTC', ayurvedic:'Ayurvedic', supplements:'Supplements' },
+    beauty:    { skincare:'Skincare', haircare:'Haircare', bodycare:'Body Care', grooming:"Men's Grooming" },
+    snacks:    { protein:'Protein Snacks', dryfruits:'Dry Fruits', teas:'Herbal Teas', bars:'Energy Bars' },
+    needfuls:  { baby:'Baby Care', feminine:'Feminine Hygiene', napkins:'Napkins & Wipes', daily:'Daily Essentials' },
+  };
+  const STATUS = {
+    placed:    ['#B45309', '#FEF3C7'], confirmed: ['#1D4ED8', '#DBEAFE'],
+    packed:    ['#7C3AED', '#EDE9FE'], shipped:  ['#0E7490', '#CFFAFE'],
+    delivered: ['#166534', '#DCFCE7'], cancelled:['#B91C1C', '#FEE2E2'],
+  };
+  const NEXT = {
+    placed:    [['Accept', 'confirmed', true], ['Reject', 'cancelled', false]],
+    confirmed: [['Mark Packed', 'packed', true]],
+    packed:    [['Mark Shipped', 'shipped', true]],
+    shipped:   [['Mark Delivered', 'delivered', true]],
+  };
+
+  const token = localStorage.getItem('vrinda_token');
+  const H = { Authorization: 'Bearer ' + token };
+  let ME = null;
+
+  function toast(msg) {
+    let t = $('vrinda-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'vrinda-toast';
+      t.className = 'toast fixed bottom-6 right-6 z-[90] px-5 py-3 rounded-xl text-sm font-semibold text-white shadow-2xl';
+      t.style.background = '#1B4332'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  async function api(path, method = 'GET', body) {
+    const res = await fetch('/api/v1/admin' + path, {
+      method,
+      headers: body ? { ...H, 'Content-Type': 'application/json' } : H,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Request failed');
+    return data;
+  }
+
+  function pill(status) {
+    const [fg, bg] = STATUS[status] || ['#333', '#eee'];
+    return `<span class="pill" style="color:${fg};background:${bg}">${status}</span>`;
+  }
+  const btn = (label, cls, attrs) => `<button class="mini-btn ${cls}" ${attrs}>${label}</button>`;
+
+  /* ═══ Boot: verify session + role ═══ */
+  (async function init() {
+    if (!token) return location.href = 'login.html';
+    try {
+      const r = await fetch('/api/v1/user/profile', { headers: H });
+      const d = await r.json();
+      if (!d.success || !['admin', 'superadmin'].includes(d.user.role)) return location.href = 'home.html';
+      ME = d.user;
+      $('me-name').textContent = ME.name;
+      $('me-role').textContent = ME.role === 'superadmin' ? 'Super Admin' : 'Admin';
+      if (ME.role === 'superadmin') $('nav-admins').classList.remove('hidden');
+      loadDashboard();
+    } catch { location.href = 'login.html'; }
+  })();
+
+  $('btn-logout').addEventListener('click', () => {
+    localStorage.removeItem('vrinda_token');
+    localStorage.removeItem('vrinda_user');
+    location.href = 'login.html';
+  });
+
+  /* ═══ Tabs ═══ */
+  const TITLES = { dashboard:'Dashboard', orders:'Orders', products:'Products', stock:'Warehouse Stock', users:'Users', admins:'Admin Management' };
+  function goto(tab) {
+    document.querySelectorAll('.adm-section').forEach(s => s.classList.add('hidden'));
+    $('tab-' + tab).classList.remove('hidden');
+    document.querySelectorAll('.adm-nav').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+    $('page-title').textContent = TITLES[tab];
+    closeSidebar();
+    if (tab === 'dashboard') loadDashboard();
+    if (tab === 'orders') loadOrders();
+    if (tab === 'products') loadProducts();
+    if (tab === 'stock') loadStock();
+    if (tab === 'users') loadUsers();
+    if (tab === 'admins') loadAdmins();
+  }
+  document.querySelectorAll('.adm-nav, [data-goto]').forEach(n =>
+    n.addEventListener('click', () => goto(n.dataset.tab || n.dataset.goto)));
+
+  const sidebar = $('sidebar'), overlay = $('side-overlay');
+  function closeSidebar() { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }
+  $('side-toggle').addEventListener('click', () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); });
+  overlay.addEventListener('click', closeSidebar);
+
+  /* ═══ Dashboard ═══ */
+  async function loadDashboard() {
+    try {
+      const { stats, lowStock, recent } = await api('/stats');
+      const cards = [
+        ['Total Orders', stats.totalOrders, 'fa-box', '#1B4332', '#F0F7F4'],
+        ["Today's Orders", stats.todayOrders, 'fa-calendar-day', '#D97706', '#FFFBEB'],
+        ['Revenue', inr(stats.revenue), 'fa-indian-rupee-sign', '#166534', '#DCFCE7'],
+        ['Products', stats.productCount, 'fa-pills', '#2563EB', '#EFF6FF'],
+        ['Customers', stats.customerCount, 'fa-users', '#E11D48', '#FFF1F2'],
+      ];
+      $('stat-cards').innerHTML = cards.map(([l, v, i, c, bg]) => `
+        <div class="card p-4 md:p-5">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style="background:${bg};color:${c}"><i class="fas ${i} text-sm"></i></div>
+          <div class="text-xl md:text-2xl font-bold" style="color:#153628">${v}</div>
+          <div class="text-[11px] font-medium" style="color:rgba(0,0,0,.4)">${l}</div>
+        </div>`).join('');
+      $('low-stock').innerHTML = lowStock.length
+        ? lowStock.map(p => `
+          <div class="flex items-center justify-between gap-3 text-sm py-1.5" style="border-bottom:1px solid rgba(0,0,0,.05)">
+            <span class="truncate" style="color:#153628">${esc(p.name)}</span>
+            <span class="pill flex-shrink-0" style="color:${p.stock === 0 ? '#B91C1C' : '#B45309'};background:${p.stock === 0 ? '#FEE2E2' : '#FEF3C7'}">${p.stock} left</span>
+          </div>`).join('')
+        : '<p class="text-xs" style="color:rgba(0,0,0,.4)">All stocked up 👍</p>';
+      $('recent-orders').innerHTML = recent.length
+        ? recent.map(o => `
+          <div class="flex items-center justify-between gap-3 text-sm py-1.5" style="border-bottom:1px solid rgba(0,0,0,.05)">
+            <div class="min-w-0"><span class="font-semibold" style="color:#153628">${esc(o.orderNumber)}</span>
+            <span class="text-xs ml-2" style="color:rgba(0,0,0,.4)">${esc(o.customer.name)} · ${dShort(o.createdAt)}</span></div>
+            <div class="flex items-center gap-2 flex-shrink-0">${pill(o.status)}<span class="font-semibold text-xs" style="color:#153628">${inr(o.total)}</span></div>
+          </div>`).join('')
+        : '<p class="text-xs" style="color:rgba(0,0,0,.4)">No orders yet.</p>';
+    } catch (e) { toast(e.message); }
+  }
+
+  /* ═══ Orders ═══ */
+  async function loadOrders() {
+    $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading orders...</div>';
+    try {
+      const { orders } = await api('/orders');
+      if (!orders.length) { $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No orders yet.</div>'; return; }
+      $('orders-list').innerHTML = orders.map(o => `
+        <div class="card p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+            <div>
+              <div class="flex items-center gap-2.5 mb-1">
+                <span class="font-bold text-sm" style="color:#153628">${esc(o.orderNumber)}</span>
+                ${pill(o.status)}
+                <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${new Date(o.createdAt).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
+              </div>
+              <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-user mr-1" style="color:#1B6B47"></i>${esc(o.customer.name)} · ${esc(o.customer.phone)}
+                <span class="mx-1.5 opacity-30">|</span><i class="fas fa-location-dot mr-1" style="color:#1B6B47"></i>${esc(o.address.line1)}, ${esc(o.address.pincode)}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-bold" style="color:#1B4332">${inr(o.total)}</div>
+              <div class="text-[10px] font-bold uppercase" style="color:rgba(0,0,0,.4)">${o.paymentMethod}</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3" style="border-top:1px solid rgba(0,0,0,.06)">
+            <div class="text-xs" style="color:rgba(0,0,0,.5)">${o.items.length} item${o.items.length > 1 ? 's' : ''}: ${o.items.slice(0, 3).map(i => esc(i.name)).join(', ')}${o.items.length > 3 ? ' +' + (o.items.length - 3) : ''}</div>
+            <div class="flex gap-2 order-actions" data-id="${o._id}">
+              ${(NEXT[o.status] || []).map(([l, s, good]) =>
+                btn(l, good ? 'text-white' : 'bg-white', `style="background:${good ? '#1B4332' : '#fff'};color:${good ? '#fff' : '#B91C1C'};border:1px solid ${good ? 'transparent' : '#FECACA'}" data-set="${s}"`)
+              ).join('')}
+            </div>
+          </div>
+        </div>`).join('');
+    } catch (e) { $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:#DC2626">' + esc(e.message) + '</div>'; }
+  }
+
+  $('tab-orders').addEventListener('click', async e => {
+    const b = e.target.closest('[data-set]');
+    if (!b) return;
+    b.disabled = true;
+    try {
+      await api('/orders/' + b.closest('.order-actions').dataset.id + '/status', 'PUT', { status: b.dataset.set });
+      toast('Order ' + b.dataset.set);
+      loadOrders();
+    } catch (err) { toast(err.message); b.disabled = false; }
+  });
+
+  /* ═══ Products ═══ */
+  async function loadProducts() {
+    $('products-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
+    try {
+      const { products } = await api('/products');
+      $('products-tbl').innerHTML = `
+        <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+        <tbody>${products.map(p => `
+          <tr>
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style="background:#F0F7F4">
+                  ${p.image ? `<img src="${esc(p.image)}" class="w-full h-full object-cover" alt=""/>` : ''}
+                </div>
+                <div><div class="font-semibold" style="color:#153628">${esc(p.name)}</div>
+                <div class="text-[11px]" style="color:rgba(0,0,0,.4)">${esc(p.brand)}${p.requiresPrescription ? ' · <span style="color:#E11D48;font-weight:700">Rx</span>' : ''}</div></div>
+              </div>
+            </td>
+            <td style="color:rgba(0,0,0,.6)">${esc(p.category)} / ${esc(p.subcategory)}</td>
+            <td class="font-semibold" style="color:#1B4332">${inr(p.price)}</td>
+            <td><span class="pill" style="color:${p.stock === 0 ? '#B91C1C' : p.stock <= 5 ? '#B45309' : '#166534'};background:${p.stock === 0 ? '#FEE2E2' : p.stock <= 5 ? '#FEF3C7' : '#DCFCE7'}">${p.stock}</span></td>
+            <td class="text-right whitespace-nowrap">
+              <button class="mini-btn pe-btn text-white" style="background:#1B6B47" data-id="${p._id}">Edit</button>
+              <button class="mini-btn pd-btn text-white" style="background:#DC2626" data-id="${p._id}">Delete</button>
+            </td>
+          </tr>`).join('')}</tbody>`;
+    } catch (e) { toast(e.message); }
+  }
+
+  // fill category select once
+  $('pf-cat').innerHTML = '<option value="">Select</option>' + CATS.map(c => `<option>${c}</option>`).join('');
+  $('pf-cat').addEventListener('change', () => {
+    const subs = SUBS[$('pf-cat').value] || {};
+    $('pf-sub').innerHTML = '<option value="">Select</option>' + Object.entries(subs).map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
+  });
+
+  function openModal(p) {
+    $('pm-title').textContent = p ? 'Edit Product' : 'Add Product';
+    $('pf-id').value = p ? p._id : '';
+    $('pf-name').value = p?.name || '';
+    $('pf-brand').value = p?.brand || '';
+    $('pf-pack').value = p?.pack || '';
+    $('pf-price').value = p?.price ?? '';
+    $('pf-mrp').value = p?.mrp ?? '';
+    $('pf-image').value = p?.image || '';
+    $('pf-stock').value = p?.stock ?? 0;
+    $('pf-tag').value = p?.tag || '';
+    $('pf-rx').checked = !!p?.requiresPrescription;
+    $('pf-cat').value = p?.category || '';
+    $('pf-cat').dispatchEvent(new Event('change'));
+    $('pf-sub').value = p?.subcategory || '';
+    $('p-modal').classList.remove('hidden');
+  }
+  $('btn-add-product').addEventListener('click', () => openModal(null));
+  $('pm-close').addEventListener('click', () => $('p-modal').classList.add('hidden'));
+  $('p-modal').addEventListener('click', e => { if (e.target === $('p-modal')) $('p-modal').classList.add('hidden'); });
+
+  $('p-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = {
+      name: $('pf-name').value.trim(), brand: $('pf-brand').value.trim(), pack: $('pf-pack').value.trim(),
+      price: $('pf-price').value, mrp: $('pf-mrp').value || undefined, image: $('pf-image').value.trim(),
+      category: $('pf-cat').value, subcategory: $('pf-sub').value,
+      tag: $('pf-tag').value, requiresPrescription: $('pf-rx').checked, stock: Number($('pf-stock').value) || 0,
+    };
+    const id = $('pf-id').value;
+    try {
+      await api(id ? '/products/' + id : '/products', id ? 'PUT' : 'POST', body);
+      toast(id ? 'Product updated' : 'Product added');
+      $('p-modal').classList.add('hidden');
+      loadProducts();
+    } catch (err) { toast(err.message); }
+  });
+
+  $('tab-products').addEventListener('click', async e => {
+    const ed = e.target.closest('.pe-btn');
+    if (ed) {
+      const { products } = await api('/products');
+      openModal(products.find(p => p._id === ed.dataset.id));
+    }
+    const del = e.target.closest('.pd-btn');
+    if (del && confirm('Delete this product permanently?')) {
+      try { await api('/products/' + del.dataset.id, 'DELETE'); toast('Product deleted'); loadProducts(); }
+      catch (err) { toast(err.message); }
+    }
+  });
+
+  /* ═══ Stock ═══ */
+  async function loadStock() {
+    $('stock-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
+    try {
+      const { products } = await api('/products');
+      $('stock-tbl').innerHTML = `
+        <thead><tr><th>Product</th><th>Current</th><th>Status</th><th>Set New Quantity</th></tr></thead>
+        <tbody>${products.map(p => `
+          <tr>
+            <td class="font-semibold" style="color:#153628">${esc(p.name)}<div class="text-[11px] font-normal" style="color:rgba(0,0,0,.4)">${esc(p.brand)}</div></td>
+            <td class="font-bold" style="color:#1B4332">${p.stock}</td>
+            <td><span class="pill" style="color:${p.stock === 0 ? '#B91C1C' : p.stock <= 5 ? '#B45309' : '#166534'};background:${p.stock === 0 ? '#FEE2E2' : p.stock <= 5 ? '#FEF3C7' : '#DCFCE7'}">${p.stock === 0 ? 'out of stock' : p.stock <= 5 ? 'low' : 'ok'}</span></td>
+            <td>
+              <div class="flex items-center gap-2">
+                <input type="number" min="0" class="input stk-input" data-id="${p._id}" value="${p.stock}" style="width:90px;height:38px;padding:0 12px"/>
+                <button class="mini-btn sv-btn text-white" style="background:#1B4332" data-id="${p._id}">Save</button>
+                <button class="mini-btn pl-btn text-white" style="background:#1B6B47" data-id="${p._id}">+10</button>
+              </div>
+            </td>
+          </tr>`).join('')}</tbody>`;
+    } catch (e) { toast(e.message); }
+  }
+
+  $('tab-stock').addEventListener('click', async e => {
+    const sv = e.target.closest('.sv-btn');
+    if (sv) {
+      const val = document.querySelector(`.stk-input[data-id="${sv.dataset.id}"]`).value;
+      try { await api('/stock/' + sv.dataset.id, 'PUT', { stock: Number(val) }); toast('Stock updated'); loadStock(); }
+      catch (err) { toast(err.message); }
+    }
+    const pl = e.target.closest('.pl-btn');
+    if (pl) {
+      const input = document.querySelector(`.stk-input[data-id="${pl.dataset.id}"]`);
+      try { await api('/stock/' + pl.dataset.id, 'PUT', { stock: Number(input.value) + 10 }); toast('+10 added'); loadStock(); }
+      catch (err) { toast(err.message); }
+    }
+  });
+
+  /* ═══ Users ═══ */
+  async function loadUsers() {
+    $('users-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
+    try {
+      const { users } = await api('/users');
+      $('users-tbl').innerHTML = `
+        <thead><tr><th>Customer</th><th>Joined</th><th>Orders</th><th>Status</th><th></th></tr></thead>
+        <tbody>${users.map(u => `
+          <tr>
+            <td><div class="font-semibold" style="color:#153628">${esc(u.name)}</div>
+            <div class="text-[11px]" style="color:rgba(0,0,0,.4)">${esc(u.email)} · ${esc(u.phone)}</div></td>
+            <td style="color:rgba(0,0,0,.6)">${dShort(u.joined)}</td>
+            <td class="font-semibold" style="color:#1B6B47">${u.orderCount}</td>
+            <td>${u.isBlocked ? '<span class="pill" style="color:#B91C1C;background:#FEE2E2">blocked</span>' : '<span class="pill" style="color:#166534;background:#DCFCE7">active</span>'}</td>
+            <td class="text-right whitespace-nowrap">
+              <button class="mini-btn blk-btn ${u.isBlocked ? 'text-white' : ''}" style="${u.isBlocked ? 'background:#166534' : 'background:#fff;color:#B91C1C;border:1px solid #FECACA'}" data-id="${u.id}" data-block="${u.isBlocked ? 'false' : 'true'}">${u.isBlocked ? 'Unblock' : 'Block'}</button>
+              ${ME.role === 'superadmin' ? `<button class="mini-btn prom-btn text-white" style="background:#1B6B47" data-id="${u.id}">Make Admin</button>` : ''}
+            </td>
+          </tr>`).join('')}</tbody>`;
+    } catch (e) { toast(e.message); }
+  }
+
+  $('tab-users').addEventListener('click', async e => {
+    const blk = e.target.closest('.blk-btn');
+    if (blk) {
+      try { await api('/users/' + blk.dataset.id + '/block', 'PUT', { blocked: blk.dataset.block === 'true' }); toast('Updated'); loadUsers(); }
+      catch (err) { toast(err.message); }
+    }
+    const prom = e.target.closest('.prom-btn');
+    if (prom && confirm('Promote this customer to Admin?')) {
+      try { await api('/admins/' + prom.dataset.id + '/role', 'PUT', { role: 'admin' }); toast('Promoted to Admin'); loadUsers(); }
+      catch (err) { toast(err.message); }
+    }
+  });
+
+  /* ═══ Admins (superadmin) ═══ */
+  async function loadAdmins() {
+    $('admins-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
+    try {
+      const { admins } = await api('/admins');
+      $('admins-tbl').innerHTML = `
+        <thead><tr><th>Staff Account</th><th>Role</th><th>Joined</th><th></th></tr></thead>
+        <tbody>${admins.map(a => {
+          const self = a.id === ME.id;
+          const locked = a.role === 'superadmin';
+          return `
+          <tr>
+            <td><div class="font-semibold" style="color:#153628">${esc(a.name)}${self ? ' <span class="text-[10px] font-bold" style="color:#C5A55A">(you)</span>' : ''}</div>
+            <div class="text-[11px]" style="color:rgba(0,0,0,.4)">${esc(a.email)} · ${esc(a.phone)}</div></td>
+            <td><span class="pill" style="color:${a.role === 'superadmin' ? '#92400E' : '#1D4ED8'};background:${a.role === 'superadmin' ? '#FEF3C7' : '#DBEAFE'}">${a.role}</span></td>
+            <td style="color:rgba(0,0,0,.6)">${dShort(a.joined)}</td>
+            <td class="text-right whitespace-nowrap">
+              ${self || locked ? `<span class="text-[10px]" style="color:rgba(0,0,0,.3)">${locked && !self ? 'protected' : ''}</span>` : `
+                ${a.role === 'admin' ? `<button class="mini-btn dem-btn text-white" style="background:#D97706" data-id="${a.id}">Demote</button>` : ''}
+                <button class="mini-btn rm-btn text-white" style="background:#DC2626" data-id="${a.id}">Remove</button>`}
+            </td>
+          </tr>`;
+        }).join('')}</tbody>`;
+    } catch (e) { toast(e.message); }
+  }
+
+  $('admin-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      await api('/admins', 'POST', {
+        name: $('af-name').value.trim(), email: $('af-email').value.trim(),
+        password: $('af-pass').value, phone: $('af-phone').value.trim(), role: $('af-role').value,
+      });
+      toast('Account created');
+      $('admin-form').reset();
+      loadAdmins();
+    } catch (err) { toast(err.message); }
+  });
+
+  $('tab-admins').addEventListener('click', async e => {
+    const dem = e.target.closest('.dem-btn');
+    if (dem && confirm('Demote this admin back to customer?')) {
+      try { await api('/admins/' + dem.dataset.id + '/role', 'PUT', { role: 'customer' }); toast('Demoted to customer'); loadAdmins(); }
+      catch (err) { toast(err.message); }
+    }
+    const rm = e.target.closest('.rm-btn');
+    if (rm && confirm('Delete this staff account permanently?')) {
+      try { await api('/admins/' + rm.dataset.id, 'DELETE'); toast('Account deleted'); loadAdmins(); }
+      catch (err) { toast(err.message); }
+    }
+  });
+})();
+</script>
+</body>
+</html>

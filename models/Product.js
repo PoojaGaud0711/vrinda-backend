@@ -1,40 +1,17 @@
 const mongoose = require('mongoose');
 
-// This is the "Blueprint" for your product
 const productSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, "Please enter product name"],
-        trim: true
-    },
-    description: {
-        type: String,
-        required: [true, "Please enter product description"]
-    },
-    price: {
-        type: Number,
-        required: [true, "Please enter product price"],
-        maxLength: [8, "Price cannot exceed 8 characters"]
-    },
-    image: {
-        type: String,
-        required: true
-    },
-    category: {
-        type: String,
-        required: [true, "Please enter product category"]
-    },
-    stock: {
-        type: Number,
-        required: [true, "Please enter product stock"],
-        maxLength: [4, "Stock cannot exceed 4 characters"],
-        default: 1
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+  name:       { type: String, required: true, trim: true },
+  brand:      { type: String, default: '' },
+  pack:       { type: String, default: '' },
+  price:      { type: Number, required: true, min: 0 },
+  mrp:        { type: Number, min: 0 },
+  image:      { type: String, default: '' },
+  category:   { type: String, required: true, enum: ['medicines','beauty','snacks','needfuls'], index: true },
+  subcategory:{ type: String, required: true },
+  tag:        { type: String },
+  requiresPrescription: { type: Boolean, default: false },
+  stock:      { type: Number, default: 0, min: 0, index: true },   // ← NEW
+}, { timestamps: true });
 
-// Export the model
-module.exports = mongoose.model("Product", productSchema);
+module.exports = mongoose.model('Product', productSchema);

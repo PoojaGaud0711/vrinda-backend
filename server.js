@@ -1,31 +1,29 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // <-- ADDED THIS BACK
+const cors = require('cors');
 const productRoutes = require('./routes/product');
 const userRoutes = require('./routes/user');
-const orderRoutes = require('./routes/order');   // ← NEW
+const orderRoutes = require('./routes/order');
+const adminRoutes = require('./routes/admin');      // ← the missing line
 
 const app = express();
 
-// Middleware
 app.use(express.json());
-app.use(cors()); // <-- ADDED THIS BACK (The permission slip!)
+app.use(cors());
 app.use(express.static('public'));
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB Database!'))
   .catch((err) => console.log('❌ Database Error:', err));
 
-// Routes
 app.use('/api/v1', productRoutes);
 app.use('/api/v1/user', userRoutes);
-app.use('/api/v1/orders', orderRoutes);           // ← NEW
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/admin', adminRoutes);             // ← the other missing line
 
-// Root — redirect visitors to the actual site
 app.get('/', (req, res) => {
-  res.redirect('/home.html');                     // ← CHANGED
+  res.redirect('/home.html');
 });
 
 const PORT = process.env.PORT || 5000;
