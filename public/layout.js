@@ -1,12 +1,21 @@
 (function () {
   'use strict';
 
-  /* Single source of truth for the 4 zones */
+  /* ── Session ── */
+  let SESSION_USER = null;
+  try { SESSION_USER = JSON.parse(localStorage.getItem('vrinda_user') || 'null'); } catch (e) {}
+  const SESSION_TOKEN = localStorage.getItem('vrinda_token');
+  const isAuthed = !!(SESSION_TOKEN && SESSION_USER);
+  const isStaff = isAuthed && ['admin', 'superadmin'].includes(SESSION_USER.role);
+  const accountHref = !isAuthed ? 'login.html' : (isStaff ? 'admin.html' : 'account.html');
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
   const ZONES = {
-    medicines: { label:'Medicines',       icon:'fa-pills',     color:'#1B4332' },
-    beauty:    { label:'Beauty Products', icon:'fa-spa',       color:'#E11D48' },
-    snacks:    { label:'Healthy Snacks',  icon:'fa-apple-alt', color:'#D97706' },
-    needfuls:  { label:'Needfuls',        icon:'fa-box-open',  color:'#2563EB' },
+    medicines: { label:'Medicines',        icon:'fa-pills',     color:'#1B4332' },
+    beauty:    { label:'Beauty Products',  icon:'fa-spa',       color:'#E11D48' },
+    snacks:    { label:'Healthy Snacks',   icon:'fa-apple-alt', color:'#D97706' },
+    needfuls:  { label:'Needfuls',          icon:'fa-box-open',  color:'#2563EB' },
   };
 
   const page = document.body.dataset.page || '';
@@ -14,7 +23,7 @@
   const onHome = page === 'home';
   const zoneHref = k => onHome ? '#zone-' + k : '/products.html?category=' + k;
 
-  /* ── Shared cart (localStorage) ── */
+  /* ── Cart ── */
   const Cart = {
     KEY: 'vrinda_cart',
     get() { try { return JSON.parse(localStorage.getItem(this.KEY)) || []; } catch (e) { return []; } },
@@ -75,6 +84,24 @@
   const homeLink = onHome ? '' :
     `<a href="/home.html" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Home</a>`;
 
+  const drawerWelcome = isAuthed ? `
+      <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#F0F7F4">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#1B4332"><span class="text-white text-sm font-bold">${esc((SESSION_USER.name || 'U')[0].toUpperCase())}</span></div>
+        <div class="min-w-0">
+          <div class="text-sm font-semibold truncate" style="color:#153628">${esc(SESSION_USER.name)}</div>
+          <a href="${accountHref}" class="text-xs font-medium" style="color:#2D8A5E">My Account →</a>
+        </div>
+      </div>` : `
+      <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#F0F7F4">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#1B4332"><i class="fas fa-user text-white text-sm"></i></div>
+        <div><div class="text-sm font-semibold" style="color:#153628">Welcome!</div><a href="login.html" class="text-xs" style="color:#2D8A5E">Login / Sign Up</a></div>
+      </div>`;
+
+  const drawerAuthLinks = isAuthed ? `
+        ${isStaff ? `<a href="admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-shield-halved text-xs w-5 text-center"></i> Admin Panel</a>` : ''}
+        <a href="account.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-circle-user text-xs w-5 text-center" style="color:#1B6B47"></i> My Orders &amp; Profile</a>
+        <button id="drawer-logout" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-red-50 w-full" style="color:#DC2626"><i class="fas fa-arrow-right-from-bracket text-xs w-5 text-center"></i> Logout</button>` : '';
+
   const headerHTML = `
   <div class="bg-dark-top text-white">
     <div class="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between h-9">
@@ -108,7 +135,7 @@
         </div>
         <div class="flex items-center gap-1 md:gap-2">
           <a href="/products.html" class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-search"></i></a>
-          <a href="login.html" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-user text-sm"></i></a>
+          <a href="${accountHref}" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-user text-sm"></i></a>
           <a href="cart.html" class="nav-icon-btn flex w-10 h-10 md:w-auto md:h-11 rounded-xl items-center justify-center md:px-4 gap-2 relative" style="color:#1B4332;background:rgba(27,67,50,.05)">
             <i class="fas fa-shopping-bag text-sm"></i>
             <span class="hidden md:inline text-xs font-semibold">Cart</span>
@@ -151,23 +178,18 @@
         </div>
         <button id="mob-close" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100" style="color:rgba(0,0,0,.4)"><i class="fas fa-times"></i></button>
       </div>
-      <div class="mb-6">
-        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#F0F7F4">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#1B4332"><i class="fas fa-user text-white text-sm"></i></div>
-          <div><div class="text-sm font-semibold" style="color:#153628">Welcome!</div><a href="login.html" class="text-xs" style="color:#2D8A5E">Login / Sign Up</a></div>
-        </div>
-      </div>
+      <div class="mb-6">${drawerWelcome}</div>
       <nav class="space-y-1">
         ${drawerLinks}
         <div class="my-3" style="border-top:1px solid rgba(0,0,0,.06)"></div>
         <a href="prescription.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-xs w-5 text-center" style="color:#C5A55A"></i> Upload Prescription</a>
         <a href="cart.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-shopping-bag text-xs w-5 text-center" style="color:#C5A55A"></i> My Cart</a>
+        ${drawerAuthLinks}
       </nav>
     </div>
   </div>`;
 
-  /* ── Footer (matches your .bg-dark-footer / .foot-link / .nl-input classes —
-     your original paste cut off before the footer, so swap in your real one later if you prefer) ── */
+  /* ── Footer ── */
   const shopLinks = Object.keys(ZONES).map(k =>
     `<li><a href="/products.html?category=${k}" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">${ZONES[k].label}</a></li>`).join('');
 
@@ -237,6 +259,12 @@
     document.getElementById('mob-close')?.addEventListener('click', close);
     drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
   }
+
+  document.getElementById('drawer-logout')?.addEventListener('click', () => {
+    localStorage.removeItem('vrinda_token');
+    localStorage.removeItem('vrinda_user');
+    location.href = 'login.html';
+  });
 
   const search = document.getElementById('site-search');
   if (search) search.addEventListener('keydown', e => {

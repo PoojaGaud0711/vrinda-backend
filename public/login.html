@@ -151,10 +151,19 @@
 
         const data = await response.json();
 
-        if (data.success) {
-          // ── The session: token + user live in localStorage ──
-          localStorage.setItem('vrinda_token', data.token);
-          localStorage.setItem('vrinda_user', JSON.stringify(data.user));
+if (data.success) {
+  try {
+    localStorage.setItem('vrinda_token', data.token);
+    localStorage.setItem('vrinda_user', JSON.stringify(data.user));
+  } catch (e) { /* storage full/blocked — proceed anyway */ }
+
+  // Verify both saved before leaving — prevents the bounce-back loop
+  const saved = localStorage.getItem('vrinda_token');
+  if (!saved) {
+    messageDiv.style.color = '#DC2626';
+    messageDiv.innerText = '⚠️ Could not save session. Try again.';
+    return;
+  }
 
           messageDiv.style.color = '#166534';
           messageDiv.innerText = '✅ Login Successful! Redirecting...';

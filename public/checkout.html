@@ -241,11 +241,15 @@
       btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Placing order...';
 
       try {
-        const res = await fetch('/api/v1/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+       const headers = { 'Content-Type': 'application/json' };
+const tok = localStorage.getItem('vrinda_token');
+if (tok) headers.Authorization = 'Bearer ' + tok;   // links order to the account
+
+const res = await fetch('/api/v1/orders', {
+  method: 'POST',
+  headers,
+  body: JSON.stringify(payload),
+});
         const data = await res.json();
         if (!res.ok || !data.success) throw new Error(data.message || 'Could not place order');
 

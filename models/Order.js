@@ -27,6 +27,7 @@ const orderSchema = new mongoose.Schema({
     state:   { type: String, default: 'Maharashtra', trim: true },
     pincode: { type: String, required: true, trim: true },
   },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },   // ← NEW
   paymentMethod: { type: String, enum: ['cod','upi','card'], default: 'cod' },
   status:        { type: String, enum: ['placed','confirmed','packed','shipped','delivered','cancelled'], default: 'placed' },
 }, { timestamps: true });

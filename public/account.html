@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Account — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    .pill{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;text-transform:capitalize}
+    .det-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+  </style>
+</head>
+<body data-page="account" data-zone="medicines">
+
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">My Account</span></div>
+
+  <div class="flex items-end justify-between mb-8 gap-4">
+    <div>
+      <span class="eyebrow">Your Space</span>
+      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">My Account</h1>
+    </div>
+    <button id="btn-logout" class="btn btn-outline btn-sm"><i class="fas fa-arrow-right-from-bracket text-[10px]"></i> Logout</button>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+
+    <!-- LEFT: profile + details -->
+    <div>
+      <div class="card p-6 mb-6 text-center">
+        <div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:var(--accent)">
+          <span id="me-initial" class="text-white text-2xl font-display font-bold">?</span>
+        </div>
+        <h2 id="me-name" class="font-display font-semibold text-xl tracking-tight" style="color:var(--ink)">Loading...</h2>
+        <p id="me-email" class="text-xs mb-3" style="color:rgba(0,0,0,.4)"></p>
+        <span id="me-role" class="pill hidden"></span>
+        <p id="me-since" class="text-[11px] mt-3" style="color:rgba(0,0,0,.35)"></p>
+        <a id="me-admin-link" href="admin.html" class="btn btn-gold btn-sm mt-4 hidden"><i class="fas fa-shield-halved text-[10px]"></i> Open Admin Panel</a>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-xs font-bold uppercase tracking-widest" style="color:var(--ink)">Personal Details</h3>
+          <button id="btn-edit" class="btn btn-outline btn-sm">Edit</button>
+        </div>
+
+        <div id="details-view">
+          <div class="py-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>
+        </div>
+
+        <form id="details-form" class="hidden mt-2">
+          <div class="field"><label class="field-label">Full Name</label><input id="ef-name" class="input" required/></div>
+          <div class="field"><label class="field-label">Mobile Number</label><input id="ef-phone" class="input" maxlength="10" pattern="[0-9]{10}" required inputmode="numeric"/></div>
+          <div class="field"><label class="field-label">Gender</label>
+            <select id="ef-gender" class="select">
+              <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label class="field-label">Date of Birth</label><input id="ef-dob" type="date" class="input"/></div>
+          <button type="submit" class="btn btn-primary w-full">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- RIGHT: orders -->
+    <div class="lg:col-span-2">
+      <div class="card p-6">
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:var(--ink)">Order History</h3>
+        <div id="orders-list">
+          <div class="py-10 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading your orders...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+  const dateFmt = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const STATUS = {
+    placed: ['#B45309','#FEF3C7'], confirmed: ['#1D4ED8','#DBEAFE'], packed: ['#7C3AED','#EDE9FE'],
+    shipped: ['#0E7490','#CFFAFE'], delivered: ['#166534','#DCFCE7'], cancelled: ['#B91C1C','#FEE2E2'],
+  };
+  const pill = s => { const [fg,bg] = STATUS[s] || ['#333','#eee']; return `<span class="pill" style="color:${fg};background:${bg}">${s}</span>`; };
+
+  const token = localStorage.getItem('vrinda_token');
+  if (!token) { location.href = 'login.html'; return; }
+  const H = { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' };
+
+  let ME = null;
+
+  const row = (label, value) => `
+    <div class="det-row">
+      <span class="text-xs" style="color:rgba(0,0,0,.45)">${label}</span>
+      <span class="text-sm font-semibold text-right" style="color:var(--ink)">${value}</span>
+    </div>`;
+
+  async function load() {
+    try {
+      const r = await fetch('/api/v1/user/profile', { headers: H });
+      const d = await r.json();
+      if (!d.success) { location.href = 'login.html'; return; }
+      ME = d.user;
+      renderProfile();
+      loadOrders();
+    } catch {
+      $('me-name').textContent = 'Something went wrong';
+    }
+  }
+
+  function renderProfile() {
+    $('me-initial').textContent = (ME.name || 'U').trim()[0].toUpperCase();
+    $('me-name').textContent = ME.name;
+    $('me-email').textContent = ME.email;
+    $('me-since').textContent = 'Member since ' + dateFmt(ME.createdAt);
+
+    const staff = ['admin','superadmin'].includes(ME.role);
+    if (staff) {
+      const rb = $('me-role');
+      rb.textContent = ME.role === 'superadmin' ? 'Super Admin' : 'Admin';
+      rb.style.cssText = 'color:#92400E;background:#FEF3C7';
+      rb.classList.remove('hidden');
+      $('me-admin-link').classList.remove('hidden');
+    }
+
+    $('details-view').innerHTML =
+      row('Full Name', esc(ME.name)) +
+      row('Email', esc(ME.email)) +
+      row('Mobile Number', esc(ME.phone)) +
+      row('Gender', esc(ME.gender || '—')) +
+      row('Date of Birth', ME.dob ? dateFmt(ME.dob) : '—');
+  }
+
+  async function loadOrders() {
+    const list = $('orders-list');
+    try {
+      const r = await fetch('/api/v1/user/myorders', { headers: H });
+      const d = await r.json();
+      if (!d.success) throw new Error();
+      const orders = d.orders;
+
+      if (!orders.length) {
+        list.innerHTML = `
+          <div class="text-center py-12">
+            <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:var(--accent-soft)"><i class="fas fa-box-open text-xl" style="color:var(--accent)"></i></div>
+            <p class="text-sm font-semibold mb-1" style="color:var(--ink)">No orders yet</p>
+            <p class="text-xs muted mb-5">When you place an order, it will show up here.</p>
+            <a href="/products.html" class="btn btn-primary btn-sm">Start Shopping</a>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = orders.map(o => `
+        <a href="order-success.html?id=${o._id}" class="block p-4 rounded-xl mb-3 hover:bg-black/[.02]" style="border:1px solid rgba(0,0,0,.06)">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2.5 mb-1">
+                <span class="text-sm font-bold" style="color:var(--ink)">${esc(o.orderNumber)}</span>
+                ${pill(o.status)}
+              </div>
+              <div class="text-xs" style="color:rgba(0,0,0,.45)">${dateFmt(o.createdAt)} · ${o.items.reduce((s,i)=>s+i.qty,0)} item(s)</div>
+              <div class="text-xs truncate mt-0.5" style="color:rgba(0,0,0,.4)">${o.items.slice(0,3).map(i => esc(i.name)).join(', ')}${o.items.length > 3 ? ' +' + (o.items.length - 3) : ''}</div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <div class="text-base font-bold" style="color:var(--forest)">${inr(o.total)}</div>
+              <div class="text-[10px] font-semibold" style="color:var(--accent)">View →</div>
+            </div>
+          </div>
+        </a>`).join('');
+    } catch {
+      list.innerHTML = '<p class="text-sm py-6 text-center" style="color:rgba(0,0,0,.45)">Couldn\'t load orders. Is the server running?</p>';
+    }
+  }
+
+  /* ── Edit toggle ── */
+  $('btn-edit').addEventListener('click', () => {
+    const form = $('details-form'), view = $('details-view'), btn = $('btn-edit');
+    const editing = form.classList.contains('hidden');
+
+    if (editing) {
+      $('ef-name').value = ME.name;
+      $('ef-phone').value = ME.phone;
+      $('ef-gender').value = ME.gender || '';
+      $('ef-dob').value = ME.dob ? new Date(ME.dob).toISOString().slice(0, 10) : '';
+      form.classList.remove('hidden');
+      view.classList.add('hidden');
+      btn.textContent = 'Cancel';
+    } else {
+      form.classList.add('hidden');
+      view.classList.remove('hidden');
+      btn.textContent = 'Edit';
+    }
+  });
+
+  /* ── Save ── */
+  $('details-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      const r = await fetch('/api/v1/user/update', {
+        method: 'PUT', headers: H,
+        body: JSON.stringify({
+          name: $('ef-name').value.trim(),
+          phone: $('ef-phone').value.trim(),
+          gender: $('ef-gender').value,
+          dob: $('ef-dob').value || undefined,
+        }),
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.message);
+
+      const saved = JSON.parse(localStorage.getItem('vrinda_user') || '{}');
+      saved.name = d.user.name;
+      localStorage.setItem('vrinda_user', JSON.stringify(saved));
+
+      VrindaToast('Profile updated ✓');
+      setTimeout(() => location.reload(), 900);
+    } catch (err) {
+      VrindaToast(err.message);
+    }
+  });
+
+  /* ── Logout ── */
+  $('btn-logout').addEventListener('click', () => {
+    localStorage.removeItem('vrinda_token');
+    localStorage.removeItem('vrinda_user');
+    location.href = 'login.html';
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
