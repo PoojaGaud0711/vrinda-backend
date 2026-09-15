@@ -1,1 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+</head>
+<body data-page="products" data-zone="medicines">
 
+<script>
+  /* set accent colour from ?category= before the page paints */
+  (function () {
+    const cat = new URLSearchParams(location.search).get('category');
+    if (['medicines','beauty','snacks','needfuls'].includes(cat)) document.body.dataset.zone = cat;
+  })();
+</script>
+
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+
+  <div id="crumbs" class="crumbs mb-5"></div>
+
+  <div class="flex items-end justify-between mb-2 gap-4">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:var(--accent)">
+        <i id="zone-icon-i" class="fas fa-th-large text-white text-lg"></i>
+      </div>
+      <div>
+        <span class="eyebrow" id="zone-eyebrow">Shop</span>
+        <h1 class="sec-title text-2xl md:text-3xl tracking-tight" id="zone-title">All Products</h1>
+      </div>
+    </div>
+    <select id="sort" class="select text-xs font-semibold" style="width:auto">
+      <option value="">Featured</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+
+  <p class="text-sm muted mb-6 max-w-xl" id="zone-desc">Everything we carry, in one place.</p>
+
+  <div id="sub-chips" class="flex gap-2 mb-7 overflow-x-auto no-scrollbar"></div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5" id="product-grid"></div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const params   = new URLSearchParams(location.search);
+  let category = params.get('category') || '';
+  let sub      = params.get('sub') || '';
+  let sort     = params.get('sort') || '';
+  const q      = params.get('q') || '';
+
+  let all = [];
+
+  const ZONE_META = {
+    medicines: { label:'Medicines', icon:'fa-pills', desc:'Prescription drugs, OTC medicines, ayurvedic remedies, and daily supplements — all genuine, all verified.' },
+    beauty:    { label:'Beauty Products', icon:'fa-spa', desc:'Skincare, haircare, body care, and grooming essentials from brands you trust.' },
+    snacks:    { label:'Healthy Snacks', icon:'fa-apple-alt', desc:'Guilt-free snacking — protein bites, dry fruits, herbal teas, and energy bars.' },
+    needfuls:  { label:'Needfuls', icon:'fa-box-open', desc:'Baby care, feminine hygiene, napkins, wipes, and everyday essentials.' },
+  };
+  const SUBS = {
+    medicines: { prescription:'Prescription', otc:'OTC', ayurvedic:'Ayurvedic', supplements:'Supplements' },
+    beauty:    { skincare:'Skincare', haircare:'Haircare', bodycare:'Body Care', grooming:"Men's Grooming" },
+    snacks:    { protein:'Protein Snacks', dryfruits:'Dry Fruits', teas:'Herbal Teas', bars:'Energy Bars' },
+    needfuls:  { baby:'Baby Care', feminine:'Feminine Hygiene', napkins:'Napkins & Wipes', daily:'Daily Essentials' },
+  };
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  /* ── breadcrumb + head + chips ── */
+  function paintHead() {
+    const meta = category ? ZONE_META[category] : null;
+
+    if (q) {
+      document.getElementById('zone-eyebrow').textContent = 'Search';
+      document.getElementById('zone-title').textContent = '“' + q + '”';
+      document.getElementById('zone-desc').textContent = 'Products matching your search.';
+      document.getElementById('zone-icon-i').className = 'fas fa-search text-white text-lg';
+    } else if (meta) {
+      document.getElementById('zone-eyebrow').textContent = 'Category';
+      document.getElementById('zone-title').textContent = meta.label;
+      document.getElementById('zone-desc').textContent = meta.desc;
+      document.getElementById('zone-icon-i').className = 'fas ' + meta.icon + ' text-white text-lg';
+    }
+
+    let crumbs = '<a href="/home.html">Home</a><i class="fas fa-chevron-right"></i>';
+    if (meta) crumbs += `<a href="/products.html?category=${category}">${meta.label}</a><i class="fas fa-chevron-right"></i>`;
+    crumbs += `<span class="current">${q ? 'Search' : (SUBS[category]?.[sub] || 'Products')}</span>`;
+    document.getElementById('crumbs').innerHTML = crumbs;
+
+    const chips = document.getElementById('sub-chips');
+    if (meta && SUBS[category] && !q) {
+      chips.style.display = 'flex';
+      chips.innerHTML =
+        `<button class="chip${sub === '' ? ' active' : ''}" data-sub="">All</button>` +
+        Object.entries(SUBS[category]).map(([k, label]) =>
+          `<button class="chip${sub === k ? ' active' : ''}" data-sub="${k}">${label}</button>`).join('');
+    } else {
+      chips.style.display = 'none';
+    }
+  }
+
+  function cardHTML(p) {
+    const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+    return `
+    <a href="/product.html?id=${p._id}" class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 block">
+      <div class="relative h-36 md:h-44 overflow-hidden" style="background:var(--accent-soft)">
+        <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
+        ${p.tag ? `<span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(p.tag)}</span>` : ''}
+        ${p.requiresPrescription ? `<span class="absolute top-3 right-3 text-[10px] font-bold text-white px-2 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
+      </div>
+      <div class="p-3 md:p-4">
+        <h3 class="text-sm font-semibold truncate mb-0.5" style="color:var(--ink)">${esc(p.name)}</h3>
+        <p class="text-[11px] truncate mb-3" style="color:rgba(0,0,0,.4)">${esc(p.brand || '')}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+        <div class="flex items-end justify-between gap-2">
+          <div class="leading-tight">
+            <span class="text-base font-bold" style="color:var(--forest)">${inr(p.price)}</span>
+            ${off ? `<span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>` : ''}
+          </div>
+          <button class="prod-atc flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:var(--accent)" data-id="${p._id}">
+            <i class="fas fa-plus text-[10px]"></i> ADD
+          </button>
+        </div>
+      </div>
+    </a>`;
+  }
+
+  const skeleton = `
+    <div class="bg-white rounded-2xl border border-black/5 overflow-hidden animate-pulse">
+      <div class="h-36 md:h-44" style="background:rgba(0,0,0,.05)"></div>
+      <div class="p-4"><div class="h-3 rounded mb-2" style="background:rgba(0,0,0,.06)"></div><div class="h-2 w-2/3 rounded" style="background:rgba(0,0,0,.06)"></div></div>
+    </div>`;
+
+  const grid = document.getElementById('product-grid');
+
+  function load() {
+    grid.innerHTML = skeleton.repeat(8);
+    const url = new URL('/api/v1/products', location.origin);
+    if (category) url.searchParams.set('category', category);
+    if (sub)      url.searchParams.set('sub', sub);
+    if (q)        url.searchParams.set('q', q);
+    if (sort)     url.searchParams.set('sort', sort);
+
+    fetch(url)
+      .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(data => {
+        all = data.products || [];
+        grid.innerHTML = all.length
+          ? all.map(cardHTML).join('')
+          : `<div class="col-span-2 md:col-span-4 py-16 text-center">
+               <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:var(--accent-soft)"><i class="fas fa-box-open text-xl" style="color:var(--accent)"></i></div>
+               <p class="text-sm font-semibold mb-1" style="color:var(--ink)">Nothing found</p>
+               <p class="text-xs muted mb-5">Try clearing filters or searching for something else.</p>
+               <a href="/products.html" class="btn btn-outline btn-sm">View all products</a>
+             </div>`;
+      })
+      .catch(() => {
+        grid.innerHTML = `<div class="col-span-2 md:col-span-4 py-16 text-center">
+               <p class="text-sm mb-4" style="color:rgba(0,0,0,.45)">Couldn't load products. Is the server running?</p>
+               <button id="retry" class="btn btn-primary btn-sm">Try Again</button>
+             </div>`;
+        document.getElementById('retry').addEventListener('click', load);
+      });
+  }
+
+  /* ── interactions ── */
+
+  // ADD buttons — card is an <a>, so block navigation
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.prod-atc');
+    if (!btn) return;
+    e.preventDefault();
+    const p = all.find(x => x._id === btn.dataset.id);
+    if (p) { VrindaCart.add(p); VrindaToast(p.name + ' added to cart'); }
+  });
+
+  // subcategory chips
+  document.getElementById('sub-chips').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    sub = chip.dataset.sub;
+    document.querySelectorAll('#sub-chips .chip').forEach(c => c.classList.toggle('active', c === chip));
+    updateURL(); load();
+  });
+
+  // sort
+  const sortSel = document.getElementById('sort');
+  sortSel.value = sort;
+  sortSel.addEventListener('change', () => { sort = sortSel.value; updateURL(); load(); });
+
+  // prefill the header search box with current query
+  const siteSearch = document.getElementById('site-search');
+  if (siteSearch && q) siteSearch.value = q;
+
+  function updateURL() {
+    const u = new URL(location);
+    if (category) u.searchParams.set('category', category); else u.searchParams.delete('category');
+    if (sub)      u.searchParams.set('sub', sub);           else u.searchParams.delete('sub');
+    if (sort)     u.searchParams.set('sort', sort);         else u.searchParams.delete('sort');
+    history.replaceState(null, '', u);
+  }
+
+  paintHead();
+  load();
+})();
+</script>
+</body>
+</html>
