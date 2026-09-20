@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwindcss.config = {
+    tailwind.config = {
       theme: {
         extend: {
           colors: {
@@ -112,7 +112,7 @@
 
       <p class="mt-6 text-center text-sm" style="color:rgba(0,0,0,.45)">
         New to Vrinda?
-        <a href="register.html" class="font-semibold hover:underline" style="color:#1B6B47">Create an account</a>
+        <a href="register.html" id="goto-register" class="font-semibold hover:underline" style="color:#1B6B47">Create an account</a>
       </p>
 
       <a href="home.html" class="mt-4 text-center text-xs flex items-center justify-center gap-1.5 hover:underline" style="color:rgba(0,0,0,.3)">
@@ -122,6 +122,14 @@
   </div>
 
   <script>
+    // pass the ?redirect= trip on to the register page
+(function () {
+  const wanted = new URLSearchParams(location.search).get('redirect');
+  const a = document.getElementById('goto-register');
+  if (a && wanted && wanted.startsWith('/')) {
+    a.href = 'register.html?redirect=' + encodeURIComponent(wanted);
+  }
+})();
     // Password visibility toggle
     document.getElementById('toggle-pass').addEventListener('click', function () {
       const input = document.getElementById('password');
@@ -155,26 +163,22 @@ if (data.success) {
   try {
     localStorage.setItem('vrinda_token', data.token);
     localStorage.setItem('vrinda_user', JSON.stringify(data.user));
-  } catch (e) { /* storage full/blocked — proceed anyway */ }
+  } catch (e) { }
 
-  // Verify both saved before leaving — prevents the bounce-back loop
-  const saved = localStorage.getItem('vrinda_token');
-  if (!saved) {
-    messageDiv.style.color = '#DC2626';
-    messageDiv.innerText = '⚠️ Could not save session. Try again.';
-    return;
-  }
+  messageDiv.style.color = '#166534';
+  messageDiv.innerText = '✅ Login Successful! Redirecting...';
 
-          messageDiv.style.color = '#166534';
-          messageDiv.innerText = '✅ Login Successful! Redirecting...';
+  // Where to go after login:
+  // 1. back to where they were (?redirect=), if it's a safe internal path
+  // 2. staff → admin panel, customers → home
+  const wanted = new URLSearchParams(location.search).get('redirect');
+  const safe = wanted && wanted.startsWith('/') && !wanted.startsWith('//');
+  const dest = safe
+    ? wanted
+    : (['admin', 'superadmin'].includes(data.user.role) ? 'admin.html' : 'home.html');
 
-          // Role-based redirect: staff go to the control room
-          const dest = ['admin', 'superadmin'].includes(data.user.role)
-            ? 'admin.html'
-            : 'home.html';
-
-          setTimeout(() => window.location.href = dest, 800);
-        } else {
+  setTimeout(() => window.location.href = dest, 800);
+}else {
           messageDiv.style.color = '#DC2626';
           messageDiv.innerText = '⚠️ ' + data.message;
           btn.disabled = false;

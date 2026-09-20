@@ -184,7 +184,8 @@
         if(data.success) {
           messageDiv.style.color = "#166534";
           messageDiv.innerText = "✅ Registration Successful! Redirecting to Login...";
-          setTimeout(() => window.location.href = "login.html", 2000);
+          const wanted = new URLSearchParams(location.search).get('redirect');
+setTimeout(() => window.location.href = "login.html" + (wanted ? "?redirect=" + encodeURIComponent(wanted) : ""), 2000);
         } else {
           messageDiv.style.color = "#DC2626";
           messageDiv.innerText = "⚠️ " + data.message;

@@ -7,9 +7,9 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwind.com"></script>
   <script>
-    tailwindcss.config = {
+    tailwind.config = {
       theme: {
         extend: {
           colors: {
@@ -697,7 +697,7 @@
         const btn = e.target.closest('.prod-atc');
         if (!btn) return;
         const p = allProducts.find(x => x._id === btn.dataset.id);
-        if (p) { VrindaCart.add(p); VrindaToast(p.name + ' added to cart'); }
+        if (p && VrindaCart.add(p)) VrindaToast(p.name + ' added to cart');
       });
     });
 
