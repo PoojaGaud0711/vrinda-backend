@@ -12,7 +12,6 @@ function makeOrderNumber() {
 }
 
 // Quietly identifies the logged-in user if a token is present.
-// Guest checkout still works — no token, no link.
 async function currentUser(req) {
   try {
     const header = req.headers.authorization || '';
@@ -59,7 +58,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/v1/orders
+// GET /api/v1/orders — recent 50 (admin-facing)
 router.get('/', async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).limit(50);
@@ -69,7 +68,40 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/v1/orders/:id — by _id OR order number
+// GET /api/v1/orders/track/:number — PUBLIC, safe fields only.
+// Must be defined BEFORE /:id, or "track" gets treated as an id.
+router.get('/track/:number', async (req, res) => {
+  try {
+    const number = String(req.params.number || '').trim().toUpperCase();
+    const order = await Order.findOne({ orderNumber: number });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found — check the number (looks like VRN-123456)' });
+    }
+
+    // SAFE FIELDS ONLY: no address line, no phone, no full name, no item names.
+    res.status(200).json({
+      success: true,
+      order: {
+        orderNumber: order.orderNumber,
+        status: order.status,
+        placedAt: order.createdAt,
+        paymentMethod: order.paymentMethod,
+        subtotal: order.subtotal,
+        deliveryFee: order.deliveryFee,
+        total: order.total,
+        itemCount: order.items.reduce((s, i) => s + i.qty, 0),
+        firstName: order.customer.name.split(' ')[0],
+        city: order.address.city,
+        pincode: order.address.pincode,
+      }
+    });
+  } catch (error) {
+    res.status(404).json({ success: false, message: 'Order not found' });
+  }
+});
+
+// GET /api/v1/orders/:id — full details by _id OR order number
 router.get('/:id', async (req, res) => {
   try {
     const order = await Order.findOne({

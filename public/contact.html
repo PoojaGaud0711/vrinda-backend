@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    details{border:1px solid rgba(0,0,0,.06);border-radius:14px;background:#fff;margin-bottom:10px;overflow:hidden}
+    summary{padding:16px 20px;font-size:14px;font-weight:600;color:#153628;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    summary::-webkit-details-marker{display:none}
+    summary i{transition:transform .3s ease;color:#1B6B47;font-size:12px}
+    details[open] summary i{transform:rotate(45deg)}
+    details p{padding:0 20px 16px;font-size:13px;line-height:1.7;color:rgba(0,0,0,.5)}
+  </style>
+</head>
+<body data-page="contact" data-zone="medicines">
+
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">Contact</span></div>
+
+  <span class="eyebrow">We're listening</span>
+  <h1 class="sec-title text-2xl md:text-3xl tracking-tight mb-2">Get in Touch</h1>
+  <p class="text-sm muted mb-8 max-w-xl">Questions about an order, a medicine, or anything else — we usually reply within an hour during working hours.</p>
+
+  <div class="grid lg:grid-cols-3 gap-8 mb-14">
+
+    <!-- form -->
+    <div class="lg:col-span-2">
+      <div class="card p-6 md:p-8">
+        <form id="contact-form">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="field"><label class="field-label">Your Name *</label><input id="cf-name" class="input" required/></div>
+            <div class="field"><label class="field-label">Mobile Number *</label><input id="cf-phone" class="input" required maxlength="10" inputmode="numeric"/></div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="field"><label class="field-label">Email (optional)</label><input id="cf-email" type="email" class="input"/></div>
+            <div class="field"><label class="field-label">Topic</label>
+              <select id="cf-topic" class="select">
+                <option>Order enquiry</option><option>Medicine availability</option>
+                <option>Prescription help</option><option>Delivery issue</option>
+                <option>Feedback</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label class="field-label">Message *</label><textarea id="cf-msg" class="textarea" required placeholder="Tell us what you need help with..."></textarea></div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane text-xs"></i> Send Message</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- info cards -->
+    <aside class="space-y-4">
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:#F0F7F4;color:#1B6B47"><i class="fas fa-phone"></i></div>
+        <h3 class="text-sm font-semibold mb-1" style="color:#153628">Call or WhatsApp</h3>
+        <p class="text-sm font-semibold" style="color:#1B6B47">+91 99673 78987</p>
+        <p class="text-xs mt-1" style="color:rgba(0,0,0,.4)">8AM – 10PM, all days</p>
+      </div>
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:#FFF1F2;color:#E11D48"><i class="fas fa-envelope"></i></div>
+        <h3 class="text-sm font-semibold mb-1" style="color:#153628">Email us</h3>
+        <p class="text-sm font-semibold" style="color:#1B6B47">care@vrindawellness.in</p>
+        <p class="text-xs mt-1" style="color:rgba(0,0,0,.4)">Replies within a few hours</p>
+      </div>
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:#FFFBEB;color:#D97706"><i class="fas fa-location-dot"></i></div>
+        <h3 class="text-sm font-semibold mb-1" style="color:#153628">Our Pharmacy</h3>
+        <p class="text-xs leading-relaxed" style="color:rgba(0,0,0,.5)">Licensed pharmacy serving all Mumbai localities — Andheri to Thane, Bandra to Powai.</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- FAQ -->
+  <section id="faq" class="max-w-3xl mx-auto scroll-mt-24">
+    <div class="text-center mb-8">
+      <span class="eyebrow">Quick answers</span>
+      <h2 class="sec-title text-2xl md:text-3xl tracking-tight">Frequently Asked Questions</h2>
+    </div>
+
+    <details open><summary>How fast is delivery? <i class="fas fa-plus"></i></summary><p>Orders placed before 6 PM are delivered the same day across Mumbai. After 6 PM, delivery arrives the next morning. Prescription verification may add a short delay for Rx orders.</p></details>
+    <details><summary>Do I need a prescription? <i class="fas fa-plus"></i></summary><p>Only for prescription (Rx) medicines — marked with a red Rx badge on the product. OTC products, wellness items, snacks and daily essentials don't need one. You can upload your prescription <a href="prescription.html" style="color:#1B6B47;font-weight:600">here</a> and we'll handle the rest.</p></details>
+    <details><summary>Are the medicines genuine? <i class="fas fa-plus"></i></summary><p>100%. We're a government-certified licensed pharmacy and source every product directly from licensed distributors. Cold-chain items like insulin are shipped in proper temperature-controlled packaging.</p></details>
+    <details><summary>What payment methods do you accept? <i class="fas fa-plus"></i></summary><p>Cash on Delivery is live now. UPI and card payments are coming very soon.</p></details>
+    <details><summary>What if I receive a damaged or wrong item? <i class="fas fa-plus"></i></summary><p>Reach out within 48 hours — we replace damaged or incorrect items free of charge, no questions asked. Call or WhatsApp us and we'll sort it out.</p></details>
+    <details><summary>Can I return medicines? <i class="fas fa-plus"></i></summary><p>By law, medicines can't be resold once delivered — but damaged, expired or wrong items are always replaced. Non-medicine items (snacks, beauty) follow standard return rules.</p></details>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  // prefill if logged in
+  try {
+    const u = JSON.parse(localStorage.getItem('vrinda_user') || 'null');
+    if (u) {
+      document.getElementById('cf-name').value = u.name || '';
+      document.getElementById('cf-phone').value = u.phone || '';
+      document.getElementById('cf-email').value = u.email || '';
+    }
+  } catch (e) {}
+
+  document.getElementById('contact-form').addEventListener('submit', e => {
+    e.preventDefault();
+    VrindaToast('Message sent! We\u2019ll get back to you shortly \u2713');
+    e.target.reset();
+  });
+})();
+</script>
+</body>
+</html>

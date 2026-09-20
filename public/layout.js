@@ -216,10 +216,11 @@
         <div>
           <h4 class="text-[10px] font-bold uppercase tracking-widest mb-4" style="color:#C5A55A">Company</h4>
           <ul class="space-y-2.5">
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">About Us</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">Health Blog</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">Contact</a></li>
-            <li><a href="#" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">FAQs</a></li>
+          <li><a href="track.html" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">Track Order</a></li>
+            <li><a href="about.html" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">About Us</a></li>
+<li><a href="about.html#tips" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">Wellness Tips</a></li>
+<li><a href="contact.html" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">Contact</a></li>
+<li><a href="contact.html#faq" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">FAQs</a></li>
           </ul>
         </div>
         <div>

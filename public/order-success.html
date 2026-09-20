@@ -116,10 +116,10 @@
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="/products.html" class="btn btn-primary">Continue Shopping</a>
-        <a href="/home.html" class="btn btn-outline">Back to Home</a>
-      </div>
-      <p class="text-[11px] mt-6" style="color:rgba(0,0,0,.35)">Save your order number <strong>${esc(o.orderNumber)}</strong> to track this order.</p>`;
+  <a href="track.html?number=${esc(o.orderNumber)}" class="btn btn-primary"><i class="fas fa-truck text-xs"></i> Track Order</a>
+  <a href="/products.html" class="btn btn-outline">Continue Shopping</a>
+</div>
+      <p class="text-[11px] mt-6" style="color:rgba(0,0,0,.35)">Save your order number <strong>${esc(o.orderNumber)}</strong> — <a href="track.html?number=${esc(o.orderNumber)}" style="color:var(--accent);font-weight:600">track your order anytime</a>.</p>`;
   }
 
   const id = new URLSearchParams(location.search).get('id');

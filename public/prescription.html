@@ -1,1 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Prescription — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    .dropzone{border:2px dashed #B3DBC5;border-radius:20px;transition:all .3s ease;cursor:pointer}
+    .dropzone:hover,.dropzone.drag{border-color:#1B4332;background:rgba(27,67,50,.03)}
+  </style>
+</head>
+<body data-page="prescription" data-zone="medicines">
 
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">Upload Prescription</span></div>
+
+  <div class="flex items-end justify-between mb-2">
+    <div>
+      <span class="eyebrow">Fast &amp; Easy</span>
+      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">Upload Your Prescription</h1>
+    </div>
+  </div>
+  <p class="text-sm muted mb-8 max-w-xl">Snap a photo or scan your prescription — our pharmacist verifies it, sources every medicine, and calls you to confirm. No searching item by item.</p>
+
+  <div class="grid lg:grid-cols-3 gap-8">
+
+    <!-- LEFT: upload + form -->
+    <div class="lg:col-span-2">
+      <div class="card p-6 md:p-8" id="rx-card">
+
+        <div id="dropzone" class="dropzone p-8 md:p-10 text-center mb-6">
+          <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:#F0F7F4"><i class="fas fa-cloud-upload-alt text-2xl" style="color:#2D8A5E"></i></div>
+          <p class="text-sm font-semibold mb-1" style="color:#153628">Drag &amp; drop your prescription here</p>
+          <p class="text-xs mb-4" style="color:rgba(0,0,0,.4)">or <span class="font-semibold" style="color:#1B6B47">browse from your device</span></p>
+          <span class="text-[11px] px-3 py-1 rounded-full" style="background:#F0F7F4;color:#1B6B47">JPG · PNG · PDF — Max 5MB</span>
+          <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.pdf"/>
+        </div>
+
+        <!-- file preview -->
+        <div id="file-preview" class="hidden mb-6 flex items-center gap-4 p-4 rounded-2xl" style="background:#F0F7F4">
+          <div class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 bg-white">
+            <img id="preview-img" class="w-full h-full object-cover hidden" alt=""/>
+            <i id="preview-icon" class="fas fa-file-pdf text-2xl hidden" style="color:#DC2626"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p id="preview-name" class="text-sm font-semibold truncate" style="color:#153628"></p>
+            <p id="preview-size" class="text-xs" style="color:rgba(0,0,0,.4)"></p>
+          </div>
+          <button id="remove-file" class="w-9 h-9 rounded-xl hover:bg-white flex items-center justify-center" style="color:#DC2626"><i class="fas fa-trash-alt text-sm"></i></button>
+        </div>
+
+        <form id="rx-form">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="field"><label class="field-label">Your Name *</label><input id="rx-name" class="input" required placeholder="e.g. Priya Sharma"/></div>
+            <div class="field"><label class="field-label">Mobile Number *</label><input id="rx-phone" class="input" required maxlength="10" inputmode="numeric" placeholder="We'll call on this number"/></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Notes for the pharmacist (optional)</label>
+            <textarea id="rx-notes" class="textarea" placeholder="e.g. Need 2 months' supply, prefer generic brands, deliver after 6 PM..."></textarea>
+          </div>
+          <button type="submit" id="rx-submit" class="btn btn-primary w-full"><i class="fas fa-paper-plane text-xs"></i> Submit Prescription</button>
+          <p class="text-[11px] text-center mt-3" style="color:rgba(0,0,0,.35)"><i class="fas fa-lock mr-1"></i>Your prescription is private — only our licensed pharmacist sees it.</p>
+        </form>
+      </div>
+
+      <!-- success state -->
+      <div id="rx-success" class="card p-8 md:p-12 text-center hidden">
+        <div class="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center" style="background:#DCFCE7"><i class="fas fa-check text-2xl" style="color:#166534"></i></div>
+        <h2 class="font-display font-semibold text-2xl mb-2" style="color:#153628">Prescription Received!</h2>
+        <p class="text-sm muted mb-2">Our pharmacist will call <strong id="succ-phone" style="color:#153628"></strong> within 30 minutes (8AM–10PM).</p>
+        <p class="text-[11px] mb-8" style="color:rgba(0,0,0,.35)">Reference: <span id="succ-ref" class="font-mono font-semibold"></span></p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/products.html" class="btn btn-primary btn-sm">Browse Products</a>
+          <a href="/home.html" class="btn btn-outline btn-sm">Back to Home</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: how it works -->
+    <aside>
+      <div class="card p-6 mb-4">
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-5" style="color:#153628">How it works</h3>
+        <div class="space-y-5">
+          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">1</span><div><p class="text-sm font-semibold" style="color:#153628">Upload your prescription</p><p class="text-xs" style="color:rgba(0,0,0,.4)">Photo, scan or PDF — whatever is clear.</p></div></div>
+          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">2</span><div><p class="text-sm font-semibold" style="color:#153628">Pharmacist calls you</p><p class="text-xs" style="color:rgba(0,0,0,.4)">We verify the prescription with you by phone.</p></div></div>
+          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">3</span><div><p class="text-sm font-semibold" style="color:#153628">We source everything</p><p class="text-xs" style="color:rgba(0,0,0,.4)">100% genuine medicines, all in one order.</p></div></div>
+          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">4</span><div><p class="text-sm font-semibold" style="color:#153628">Delivered to your door</p><p class="text-xs" style="color:rgba(0,0,0,.4)">Same-day delivery within Mumbai.</p></div></div>
+        </div>
+      </div>
+      <div class="card p-6">
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628">Good to know</h3>
+        <ul class="space-y-3 text-xs" style="color:rgba(0,0,0,.55)">
+          <li class="flex gap-2.5"><i class="fas fa-check mt-0.5" style="color:#1B6B47"></i>Prescriptions are verified by a licensed pharmacist (Govt. certified)</li>
+          <li class="flex gap-2.5"><i class="fas fa-check mt-0.5" style="color:#1B6B47"></i>Scheduled/Habit-forming medicines follow Schedule H rules strictly</li>
+          <li class="flex gap-2.5"><i class="fas fa-check mt-0.5" style="color:#1B6B47"></i>Your files stay private — never shared with third parties</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('file-input');
+  let file = null;
+
+  // prefill if logged in
+  try {
+    const u = JSON.parse(localStorage.getItem('vrinda_user') || 'null');
+    if (u) {
+      document.getElementById('rx-name').value = u.name || '';
+      document.getElementById('rx-phone').value = u.phone || '';
+    }
+  } catch (e) {}
+
+  const OK_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+  const MAX = 5 * 1024 * 1024;
+
+  function setFile(f) {
+    if (!OK_TYPES.includes(f.type)) { VrindaToast('Only JPG, PNG or PDF files allowed'); return; }
+    if (f.size > MAX) { VrindaToast('File too large — maximum 5MB'); return; }
+    file = f;
+
+    const preview = document.getElementById('file-preview');
+    const img = document.getElementById('preview-img');
+    const icon = document.getElementById('preview-icon');
+    if (f.type === 'application/pdf') { img.classList.add('hidden'); icon.classList.remove('hidden'); img.src = ''; }
+    else { icon.classList.add('hidden'); img.classList.remove('hidden'); img.src = URL.createObjectURL(f); }
+
+    document.getElementById('preview-name').textContent = f.name;
+    document.getElementById('preview-size').textContent = (f.size / 1024).toFixed(0) + ' KB';
+    preview.classList.remove('hidden');
+    dz.style.display = 'none';
+  }
+
+  function clearFile() {
+    file = null;
+    document.getElementById('file-preview').classList.add('hidden');
+    dz.style.display = '';
+    input.value = '';
+  }
+
+  dz.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => { if (input.files[0]) setFile(input.files[0]); });
+  document.getElementById('remove-file').addEventListener('click', clearFile);
+
+  ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+
+  document.getElementById('rx-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!file) { VrindaToast('Please attach your prescription file'); return; }
+
+    const phone = document.getElementById('rx-phone').value.trim();
+    if (!/^\d{10}$/.test(phone)) { VrindaToast('Enter a valid 10-digit mobile number'); return; }
+
+    const btn = document.getElementById('rx-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Uploading...';
+
+    const fd = new FormData();
+    fd.append('prescription', file);
+    fd.append('name', document.getElementById('rx-name').value.trim());
+    fd.append('phone', phone);
+    fd.append('notes', document.getElementById('rx-notes').value.trim());
+
+    const headers = {};
+    const tok = localStorage.getItem('vrinda_token');
+    if (tok) headers.Authorization = 'Bearer ' + tok;
+
+    try {
+      const res = await fetch('/api/v1/prescriptions', { method: 'POST', headers, body: fd });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      document.getElementById('succ-phone').textContent = phone;
+      document.getElementById('succ-ref').textContent = String(data.reference).slice(-8).toUpperCase();
+      document.getElementById('rx-card').classList.add('hidden');
+      document.getElementById('rx-success').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      VrindaToast(err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane text-xs"></i> Submit Prescription';
+    }
+  });
+})();
+</script>
+</body>
+</html>

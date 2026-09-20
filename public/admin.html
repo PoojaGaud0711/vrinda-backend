@@ -45,6 +45,7 @@
       <button class="adm-nav" data-tab="stock"><i class="fas fa-warehouse"></i> Stock</button>
       <button class="adm-nav" data-tab="users"><i class="fas fa-users"></i> Users</button>
       <button class="adm-nav hidden" data-tab="admins" id="nav-admins"><i class="fas fa-shield-halved"></i> Admins</button>
+    <button class="adm-nav" data-tab="prescriptions"><i class="fas fa-file-prescription"></i> Prescriptions</button>
     </nav>
 
     <div class="mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,.08)">
@@ -114,7 +115,9 @@
       <section id="tab-users" class="adm-section hidden">
         <div class="card overflow-x-auto p-2"><table class="tbl" id="users-tbl"></table></div>
       </section>
-
+<section id="tab-prescriptions" class="adm-section hidden">
+  <div id="rx-list" class="space-y-3"></div>
+</section>
       <!-- ADMINS (superadmin only) -->
       <section id="tab-admins" class="adm-section hidden">
         <div class="card p-6 mb-6">
@@ -568,6 +571,39 @@
     }
   });
 })();
+
+async function loadPrescriptions() {
+  $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>';
+  try {
+    const { prescriptions } = await api('/prescriptions');
+    if (!prescriptions.length) { $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No prescriptions uploaded yet.</div>'; return; }
+    const RXS = { new:['#B45309','#FEF3C7'], contacted:['#1D4ED8','#DBEAFE'], fulfilled:['#166534','#DCFCE7'], rejected:['#B91C1C','#FEE2E2'] };
+    $('rx-list').innerHTML = prescriptions.map(r => `
+      <div class="card p-5 flex flex-wrap items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2.5 mb-1 flex-wrap">
+            <span class="font-bold text-sm" style="color:#153628">${esc(r.name)}</span>
+            <span class="pill" style="color:${RXS[r.status][0]};background:${RXS[r.status][1]}">${r.status}</span>
+            <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${dTime(r.createdAt)}</span>
+          </div>
+          <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-phone mr-1" style="color:#1B6B47"></i>${esc(r.phone)}${r.notes ? ' — <em>' + esc(r.notes) + '</em>' : ''}</div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap rx-actions" data-id="${r._id}">
+          <a href="${r.fileUrl}" target="_blank" class="mini-btn text-white" style="background:#1B6B47;text-decoration:none">View File</a>
+          ${r.status === 'new' ? `<button class="mini-btn rx-set text-white" style="background:#1B4332" data-set="contacted">Mark Contacted</button>` : ''}
+          ${['new','contacted'].includes(r.status) ? `<button class="mini-btn rx-set text-white" style="background:#166534" data-set="fulfilled">Fulfilled</button>` : ''}
+          ${r.status !== 'rejected' ? `<button class="mini-btn rx-set bg-white" style="color:#B91C1C;border:1px solid #FECACA" data-set="rejected">Reject</button>` : ''}
+        </div>
+      </div>`).join('');
+  } catch (e) { toast(e.message); }
+}
+
+ $('tab-prescriptions').addEventListener('click', async e => {
+  const b = e.target.closest('.rx-set');
+  if (!b) return;
+  try { await api('/prescriptions/' + b.closest('.rx-actions').dataset.id + '/status', 'PUT', { status: b.dataset.set }); toast('Marked ' + b.dataset.set); loadPrescriptions(); }
+  catch (err) { toast(err.message); }
+});
 </script>
 </body>
 </html>
