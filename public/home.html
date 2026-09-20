@@ -7,7 +7,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <script src="https://cdn.tailwind.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -102,12 +102,6 @@
     .combo-card{transition:all .4s cubic-bezier(.22,1,.36,1)}
     .combo-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(197,165,90,.12)}
 
-    /* ── Blog cards ── */
-    .blog-card{transition:all .4s cubic-bezier(.22,1,.36,1)}
-    .blog-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.07)}
-    .blog-card:hover .blog-img{transform:scale(1.06)}
-    .blog-img{transition:transform .5s cubic-bezier(.22,1,.36,1)}
-
     /* ── Testimonial ── */
     .testi-card{transition:all .4s cubic-bezier(.22,1,.36,1)}
     .testi-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(27,67,50,.08)}
@@ -179,7 +173,6 @@
         <div class="flex items-center gap-1 md:gap-2">
           <a href="products.html" class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-search"></i></a>
           <a href="account.html" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-user text-sm"></i></a>
-          <!-- <a href="#" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="far fa-heart text-sm"></i></a> -->
           <a href="cart.html" class="nav-icon-btn flex w-10 h-10 md:w-auto md:h-11 rounded-xl items-center justify-center md:px-4 gap-2 relative" style="color:#1B4332;background:rgba(27,67,50,.05)">
             <i class="fas fa-shopping-bag text-sm"></i>
             <span class="hidden md:inline text-xs font-semibold">Cart</span>
@@ -203,10 +196,10 @@
             <div>
               <h4 class="text-[10px] font-bold uppercase tracking-widest mb-3" style="color:#1B4332">Quick Actions</h4>
               <ul class="space-y-2.5">
-              </li><a href="prescription.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-xs w-5 text-center"></i> Upload Prescription</a>li>
-  <li><a href="account.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-redo text-xs w-5 text-center"></i> My Orders</a></li>
-  <li><a href="account.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-heartbeat text-[10px]" style="color:#C5A55A"></i> My Orders</a></li>
-</ul>
+                <li><a href="prescription.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-[10px]" style="color:#C5A55A"></i> Upload Prescription</a></li>
+                <li><a href="account.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-redo text-[10px]" style="color:#C5A55A"></i> Order Refills</a></li>
+                <li><a href="account.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-heartbeat text-[10px]" style="color:#C5A55A"></i> My Orders</a></li>
+              </ul>
             </div>
           </div>
         </div>
@@ -214,7 +207,7 @@
         <a href="#zone-beauty" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Beauty</a>
         <a href="#zone-snacks" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Healthy Snacks</a>
         <a href="#zone-needfuls" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Needfuls</a>
-        <a href="#" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
+        <a href="products.html" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
       </nav>
     </div>
   </header>
@@ -242,9 +235,9 @@
         <a href="#zone-snacks" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-amber-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-apple-alt text-xs w-5 text-center"></i> Healthy Snacks</a>
         <a href="#zone-needfuls" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-blue-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-box-open text-xs w-5 text-center"></i> Needfuls</a>
         <div class="my-3" style="border-top:1px solid rgba(0,0,0,.06)"></div>
-        <a href="#" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-xs w-5 text-center"></i> Upload Prescription</a>
-        <a href="#" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-redo text-xs w-5 text-center"></i> Order Refills</a>
-        <a href="#" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-tag text-xs w-5 text-center"></i> Offers</a>
+        <a href="prescription.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-xs w-5 text-center"></i> Upload Prescription</a>
+        <a href="account.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-redo text-xs w-5 text-center"></i> My Orders</a>
+        <a href="products.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-tag text-xs w-5 text-center"></i> Offers</a>
       </nav>
     </div>
   </div>
@@ -290,7 +283,7 @@
             </p>
             <div class="fade-up fade-up-d3 flex flex-col sm:flex-row gap-3">
               <a href="#zone-medicines" class="inline-flex items-center justify-center gap-2 text-sm font-semibold px-7 py-3.5 rounded-xl shadow-lg" style="background:#fff;color:#1B4332"><i class="fas fa-search text-xs"></i> Order Medicines</a>
-              <a href="#" class="inline-flex items-center justify-center gap-2 text-sm font-medium px-7 py-3.5 rounded-xl" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)"><i class="fas fa-file-prescription text-xs"></i> Upload Prescription</a>
+              <a href="prescription.html" class="inline-flex items-center justify-center gap-2 text-sm font-medium px-7 py-3.5 rounded-xl" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)"><i class="fas fa-file-prescription text-xs"></i> Upload Prescription</a>
             </div>
           </div>
           <div class="fade-up fade-up-d4 hidden md:block">
@@ -374,7 +367,7 @@
           <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#B8952F">Curated by Vrinda</span>
           <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight mt-1" style="color:#153628">Wellness Combos</h2>
         </div>
-        <a href="products.html" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
+        <a href="products.html" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
       </div>
       <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
         <div class="combo-card flex-shrink-0 w-[260px] md:w-[280px] bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
@@ -509,17 +502,17 @@
       </div>
     </section>
 
-    <!-- PRESCRIPTION UPLOAD -->
+    <!-- PRESCRIPTION UPLOAD (clickable card) -->
     <section class="max-w-7xl mx-auto px-4 md:px-6 my-14">
-      <div class="bg-white rounded-3xl p-8 md:p-12 text-center cursor-pointer border-2 border-dashed" style="border-color:#B3DBC5" onmouseover="this.style.borderColor='#1B4332';this.style.background='rgba(27,67,50,.02)'" onmouseout="this.style.borderColor='#B3DBC5';this.style.background='white'">
+      <a href="prescription.html" class="bg-white rounded-3xl p-8 md:p-12 text-center cursor-pointer border-2 border-dashed block" style="border-color:#B3DBC5" onmouseover="this.style.borderColor='#1B4332';this.style.background='rgba(27,67,50,.02)'" onmouseout="this.style.borderColor='#B3DBC5';this.style.background='white'">
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style="background:#F0F7F4"><i class="fas fa-cloud-upload-alt text-2xl" style="color:#2D8A5E"></i></div>
         <h3 class="font-display font-semibold text-xl md:text-2xl mb-2" style="color:#153628">Have a prescription? Upload it here</h3>
         <p class="text-sm max-w-md mx-auto mb-5" style="color:rgba(0,0,0,.4)">We'll arrange all your medicines. No need to search each one manually.</p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button class="inline-flex items-center gap-2 text-white text-sm font-semibold px-7 py-3.5 rounded-xl" style="background:#1B4332"><i class="fas fa-camera text-xs"></i> Upload Prescription</button>
+          <span class="inline-flex items-center gap-2 text-white text-sm font-semibold px-7 py-3.5 rounded-xl" style="background:#1B4332"><i class="fas fa-camera text-xs"></i> Upload Prescription</span>
           <span class="text-xs" style="color:rgba(0,0,0,.3)">JPG, PNG, PDF — Max 5MB</span>
         </div>
-      </div>
+      </a>
     </section>
 
     <!-- TRUST STRIP -->
@@ -690,7 +683,7 @@
       grid.classList.add('zone-products-enter');
     }
 
-    /* ADD buttons — event delegation */
+    /* ADD buttons — login gate lives inside VrindaCart.add() */
     Object.values(grids).forEach(grid => {
       if (!grid) return;
       grid.addEventListener('click', e => {
