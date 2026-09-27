@@ -166,26 +166,64 @@
       }
 
       list.innerHTML = orders.map(o => `
-        <a href="order-success.html?id=${o._id}" class="block p-4 rounded-xl mb-3 hover:bg-black/[.02]" style="border:1px solid rgba(0,0,0,.06)">
+        <div class="p-4 rounded-xl mb-3" style="border:1px solid rgba(0,0,0,.06)">
           <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2.5 mb-1">
+            <a href="order-success.html?id=${o._id}" class="min-w-0 flex-1 block hover:underline">
+              <div class="flex items-center gap-2.5 mb-1 flex-wrap">
                 <span class="text-sm font-bold" style="color:var(--ink)">${esc(o.orderNumber)}</span>
                 ${pill(o.status)}
               </div>
               <div class="text-xs" style="color:rgba(0,0,0,.45)">${dateFmt(o.createdAt)} · ${o.items.reduce((s,i)=>s+i.qty,0)} item(s)</div>
               <div class="text-xs truncate mt-0.5" style="color:rgba(0,0,0,.4)">${o.items.slice(0,3).map(i => esc(i.name)).join(', ')}${o.items.length > 3 ? ' +' + (o.items.length - 3) : ''}</div>
-            </div>
+            </a>
             <div class="text-right flex-shrink-0">
               <div class="text-base font-bold" style="color:var(--forest)">${inr(o.total)}</div>
-              <div class="text-[10px] font-semibold" style="color:var(--accent)">View →</div>
+              ${o.status !== 'cancelled' ? `<button class="reorder-btn text-[10px] font-bold px-3 py-1.5 rounded-lg text-white mt-1.5" style="background:var(--accent)" data-id="${o._id}"><i class="fas fa-rotate-right text-[9px] mr-1"></i>Reorder</button>` : ''}
             </div>
           </div>
-        </a>`).join('');
+        </div>`).join('');
     } catch {
       list.innerHTML = '<p class="text-sm py-6 text-center" style="color:rgba(0,0,0,.45)">Couldn\'t load orders. Is the server running?</p>';
     }
   }
+
+  /* ── One-click reorder ── */
+  $('orders-list').addEventListener('click', async e => {
+    const btn = e.target.closest('.reorder-btn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[9px]"></i>';
+
+    try {
+      const res = await fetch('/api/v1/orders/' + btn.dataset.id, { headers: H });
+      const d = await res.json();
+      if (!d.success) throw new Error(d.message);
+
+      // rebuild cart items from the order's item snapshots
+      const items = d.order.items
+        .map(i => ({
+          id: i.productId, name: i.name, brand: i.brand, pack: i.pack,
+          image: i.image, price: i.price, mrp: undefined,
+          requiresPrescription: false, qty: i.qty,
+        }))
+        .filter(i => i.id);   // skip items whose product was deleted
+
+      if (!items.length) {
+        VrindaToast('Sorry — the products in this order are no longer available');
+        btn.disabled = false;
+        btn.innerHTML = 'Reorder';
+        return;
+      }
+
+      VrindaCart.save(items);
+      VrindaToast(items.length + ' item(s) added to your cart');
+      setTimeout(() => location.href = 'cart.html', 900);
+    } catch (err) {
+      VrindaToast(err.message);
+      btn.disabled = false;
+      btn.innerHTML = 'Reorder';
+    }
+  });
 
   /* ── Edit toggle ── */
   $('btn-edit').addEventListener('click', () => {
@@ -236,9 +274,7 @@
 
   /* ── Logout ── */
   $('btn-logout').addEventListener('click', () => {
-    localStorage.removeItem('vrinda_token');
-    localStorage.removeItem('vrinda_user');
-    location.href = 'login.html';
+    window.VrindaLogout ? window.VrindaLogout() : (localStorage.removeItem('vrinda_token'), localStorage.removeItem('vrinda_user'), location.href = 'login.html');
   });
 
   load();
