@@ -157,7 +157,21 @@
       <div class="field"><label class="field-label">Pack (e.g. 15 tablets)</label><input id="pf-pack" class="input"/></div>
       <div class="field"><label class="field-label">Price (₹) *</label><input id="pf-price" type="number" min="0" step="0.01" class="input" required/></div>
       <div class="field"><label class="field-label">MRP (₹)</label><input id="pf-mrp" type="number" min="0" step="0.01" class="input"/></div>
-      <div class="field col-span-2"><label class="field-label">Image URL</label><input id="pf-image" class="input" placeholder="https://..."/></div>
+      <div class="field col-span-2"><label class="field-label">Product Image</label>
+  <div class="flex items-center gap-3">
+    <div id="pf-img-preview" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-black/10" style="background:#F0F7F4">
+      <i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>
+    </div>
+    <div class="flex-1 flex flex-col gap-2">
+      <label for="pf-image-file" class="btn btn-outline btn-sm w-full cursor-pointer text-center" style="border-color:rgba(0,0,0,.15)">
+        <i class="fas fa-upload text-[10px]"></i> Choose Image
+      </label>
+      <input type="file" id="pf-image-file" class="hidden" accept=".jpg,.jpeg,.png,.webp"/>
+      <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste an image URL"/>
+    </div>
+  </div>
+  <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — max 5MB</p>
+</div>
       <div class="field"><label class="field-label">Category *</label>
         <select id="pf-cat" class="select" required></select>
       </div>
@@ -404,6 +418,13 @@
     $('pf-price').value = p?.price ?? '';
     $('pf-mrp').value = p?.mrp ?? '';
     $('pf-image').value = p?.image || '';
+    // preview the existing image (uploaded file or URL)
+const pv = $('pf-img-preview');
+if (p?.image) {
+  pv.innerHTML = `<img src="${p.image}" class="w-full h-full object-cover" alt=""/>`;
+} else {
+  pv.innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
+}
     $('pf-stock').value = p?.stock ?? 0;
     $('pf-tag').value = p?.tag || '';
     $('pf-rx').checked = !!p?.requiresPrescription;
@@ -415,7 +436,36 @@
   $('btn-add-product').addEventListener('click', () => openModal(null));
   $('pm-close').addEventListener('click', () => $('p-modal').classList.add('hidden'));
   $('p-modal').addEventListener('click', e => { if (e.target === $('p-modal')) $('p-modal').classList.add('hidden'); });
+// choose image → upload immediately → store returned URL in the field
+ $('pf-image-file').addEventListener('change', async () => {
+  const file = $('pf-image-file').files[0];
+  if (!file) return;
 
+  if (file.size > 5 * 1024 * 1024) { toast('Image too large — max 5MB'); return; }
+  if (!/\.(jpe?g|png|webp)$/i.test(file.name)) { toast('Only JPG, PNG or WebP'); return; }
+
+  // instant local preview while uploading
+  $('pf-img-preview').innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""/>`;
+
+  const fd = new FormData();
+  fd.append('image', file);
+
+  try {
+    const res = await fetch('/api/v1/admin/upload-image', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('vrinda_token') },
+      body: fd,
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    $('pf-image').value = data.url;              // the real stored URL
+    toast('Image uploaded ✓');
+  } catch (err) {
+    toast(err.message);
+    $('pf-img-preview').innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
+  }
+});
   $('p-form').addEventListener('submit', async e => {
     e.preventDefault();
     const body = {

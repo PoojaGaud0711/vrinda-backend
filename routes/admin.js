@@ -3,11 +3,45 @@ const router = express.Router();
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { isLoggedIn, adminOnly, superAdminOnly } = require('../middleware/auth');
 
 // Every route in this file sits behind both gates
 router.use(isLoggedIn, adminOnly);
+// ── Product image upload ──
+const IMG_DIR = path.join(__dirname, '..', 'public', 'uploads', 'products');
+fs.mkdirSync(IMG_DIR, { recursive: true });
 
+const imgStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, IMG_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, 'pimg-' + Date.now() + '-' + Math.round(Math.random() * 1e6) + ext);
+  },
+});
+
+const imgUpload = multer({
+  storage: imgStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = ['.jpg', '.jpeg', '.png', '.webp'].includes(path.extname(file.originalname).toLowerCase());
+    cb(null, ok);
+  },
+});
+
+// POST /api/v1/admin/upload-image — returns { url } to store on the product
+router.post('/upload-image', imgUpload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please choose an image (JPG, PNG or WebP, max 5MB)' });
+  }
+  res.status(201).json({
+    success: true,
+    message: 'Image uploaded',
+    url: '/uploads/products/' + req.file.filename,
+  });
+});
 /* ═══ DASHBOARD ═══ */
 router.get('/stats', async (req, res) => {
   try {
