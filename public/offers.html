@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offers & Deals — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+  <style>
+    .deal-badge{position:absolute;top:10px;left:10px;z-index:5}
+  </style>
+</head>
+<body data-page="offers" data-zone="medicines">
+
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">Offers</span></div>
+
+  <div class="rounded-3xl p-8 md:p-12 mb-10 text-center relative overflow-hidden" style="background:linear-gradient(135deg,#92400E 0%,#B8952F 60%,#C5A55A 100%)">
+    <div class="absolute inset-0 opacity-[0.05]" style="background-image:radial-gradient(circle at 1px 1px,white 1px,transparent 0);background-size:26px 26px"></div>
+    <div class="relative">
+      <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5" style="background:rgba(255,255,255,.15)">
+        <i class="fas fa-tags text-xs" style="color:#FEF3C7"></i>
+        <span class="text-xs font-semibold" style="color:#FFF8EB">Live deals, updated daily</span>
+      </div>
+      <h1 class="font-display font-semibold text-3xl md:text-4xl tracking-tight mb-3 text-white">Wellness, at kinder prices.</h1>
+      <p class="text-sm max-w-lg mx-auto" style="color:rgba(255,255,255,.8)">Every product below has a real discount — no fake MRPs, no fine print. Sorted by biggest savings.</p>
+    </div>
+  </div>
+
+  <div id="offers-root" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5"></div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const root = document.getElementById('offers-root');
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  function card(p) {
+    const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+    const save = (p.mrp && p.mrp > p.price) ? (p.mrp - p.price) : 0;
+    return `
+    <a href="/product.html?id=${p._id}" class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 block">
+      <div class="relative h-36 md:h-44 overflow-hidden" style="background:#FEF3C7">
+        <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
+        <span class="deal-badge text-[11px] font-bold text-white px-2.5 py-1 rounded-full" style="background:#B8952F">${off}% OFF</span>
+        ${p.requiresPrescription ? `<span class="absolute top-3 right-3 text-[10px] font-bold text-white px-2 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
+      </div>
+      <div class="p-3 md:p-4">
+        <h3 class="text-sm font-semibold truncate mb-0.5" style="color:var(--ink)">${esc(p.name)}</h3>
+        <p class="text-[11px] truncate mb-3" style="color:rgba(0,0,0,.4)">${esc(p.brand || '')}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+        <div class="flex items-end justify-between gap-2">
+          <div class="leading-tight">
+            <span class="text-base font-bold" style="color:#B8952F">${inr(p.price)}</span>
+            <span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>
+            <div class="text-[10px] font-semibold mt-0.5" style="color:#166534">Save ${inr(save)}</div>
+          </div>
+          <button class="prod-atc flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:#B8952F" data-id="${p._id}">
+            <i class="fas fa-plus text-[10px]"></i> ADD
+          </button>
+        </div>
+      </div>
+    </a>`;
+  }
+
+  const skeleton = `
+    <div class="bg-white rounded-2xl border border-black/5 overflow-hidden animate-pulse">
+      <div class="h-36 md:h-44" style="background:rgba(0,0,0,.05)"></div>
+      <div class="p-4"><div class="h-3 rounded mb-2" style="background:rgba(0,0,0,.06)"></div><div class="h-2 w-2/3 rounded" style="background:rgba(0,0,0,.06)"></div></div>
+    </div>`;
+
+  let all = [];
+
+  function load() {
+    root.innerHTML = skeleton.repeat(8);
+    fetch('/api/v1/products')
+      .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+      .then(data => {
+        // only discounted products, biggest % off first
+        const deals = (data.products || [])
+          .filter(p => p.mrp && p.mrp > p.price)
+          .sort((a, b) => (1 - b.price / b.mrp) - (1 - a.price / a.mrp));
+
+        if (!deals.length) {
+          root.innerHTML = `
+            <div class="col-span-2 md:col-span-4 text-center py-20">
+              <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:#FEF3C7"><i class="fas fa-tags text-2xl" style="color:#B8952F"></i></div>
+              <p class="text-sm font-semibold mb-1" style="color:var(--ink)">No active offers right now</p>
+              <p class="text-xs muted mb-6">New deals land regularly — check back soon, or browse everything below.</p>
+              <a href="/products.html" class="btn btn-primary btn-sm">Browse All Products</a>
+            </div>`;
+          return;
+        }
+
+        root.innerHTML = deals.map(card).join('');
+        all = deals;
+      })
+      .catch(() => {
+        root.innerHTML = `
+          <div class="col-span-2 md:col-span-4 text-center py-16">
+            <p class="text-sm mb-4" style="color:rgba(0,0,0,.45)">Couldn't load offers. Is the server running?</p>
+            <button id="retry" class="btn btn-primary btn-sm">Try Again</button>
+          </div>`;
+        document.getElementById('retry').addEventListener('click', load);
+      });
+  }
+
+  root.addEventListener('click', e => {
+    const btn = e.target.closest('.prod-atc');
+    if (!btn) return;
+    e.preventDefault();
+    const p = all.find(x => x._id === btn.dataset.id);
+    if (p && VrindaCart.add(p)) VrindaToast(p.name + ' added to cart');
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
