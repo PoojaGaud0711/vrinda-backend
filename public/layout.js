@@ -172,7 +172,7 @@
         </div>
         ${homeLink}
         ${navLinks}
-        <a href="#" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
+        <a href="offers.html" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
       </nav>
     </div>
   </header>
@@ -201,7 +201,7 @@
   /* ── Footer ── */
   const shopLinks = Object.keys(ZONES).map(k =>
     `<li><a href="/products.html?category=${k}" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">${ZONES[k].label}</a></li>`).join('');
-
+    '<li><a href="offers.html" class="foot-link text-sm" style="color:rgba(255,255,255,.55)">Offers &amp; Deals</a></li>';
   const footerHTML = `
   <footer class="bg-dark-footer text-white">
     <div class="max-w-7xl mx-auto px-4 md:px-6 pt-14 pb-8">
