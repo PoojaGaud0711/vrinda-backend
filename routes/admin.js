@@ -3,6 +3,8 @@ const router = express.Router();
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Activity = require('../models/Activity');
+const Prescription = require('../models/Prescription');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -10,6 +12,19 @@ const { isLoggedIn, adminOnly, superAdminOnly } = require('../middleware/auth');
 
 // Every route in this file sits behind both gates
 router.use(isLoggedIn, adminOnly);
+
+/* ── Audit helper: records who did what. Never breaks the main action. ── */
+async function logActivity(req, action, detail = '') {
+  try {
+    await Activity.create({
+      actorId: req.user._id,
+      actorName: req.user.name,
+      actorRole: req.user.role,
+      action, detail,
+    });
+  } catch (e) { /* logging must never fail a real action */ }
+}
+
 // ── Product image upload ──
 const IMG_DIR = path.join(__dirname, '..', 'public', 'uploads', 'products');
 fs.mkdirSync(IMG_DIR, { recursive: true });
@@ -42,26 +57,95 @@ router.post('/upload-image', imgUpload.single('image'), (req, res) => {
     url: '/uploads/products/' + req.file.filename,
   });
 });
+
 /* ═══ DASHBOARD ═══ */
 router.get('/stats', async (req, res) => {
   try {
     const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
-    const [totalOrders, todayOrders, productCount, customerCount, orders, lowStock, recent] =
-      await Promise.all([
-        Order.countDocuments(),
-        Order.countDocuments({ createdAt: { $gte: startOfDay } }),
-        Product.countDocuments(),
-        User.countDocuments({ role: 'customer' }),
-        Order.find({ status: { $ne: 'cancelled' } }),
-        Product.find({ stock: { $lte: 5 } }).limit(10),
-        Order.find().sort({ createdAt: -1 }).limit(5),
-      ]);
+
+    const [totalOrders, todayOrders, productCount, customerCount,
+           adminsCount, blockedCount, cancelledCount,
+           lowStock, recent, orders, activities,
+           todayRevenueAgg, todayUsers, todayPrescriptions] = await Promise.all([
+      Order.countDocuments(),
+      Order.countDocuments({ createdAt: { $gte: startOfDay } }),
+      Product.countDocuments(),
+      User.countDocuments({ role: 'customer' }),
+      User.countDocuments({ role: { $in: ['admin', 'superadmin'] } }),
+      User.countDocuments({ role: 'customer', isBlocked: true }),
+      Order.countDocuments({ status: 'cancelled' }),
+      Product.find({ stock: { $lte: 5 } }).limit(10),
+      Order.find().sort({ createdAt: -1 }).limit(5),
+      Order.find({ status: { $ne: 'cancelled' } }),
+      Activity.find().sort({ createdAt: -1 }).limit(6),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: startOfDay }, status: { $ne: 'cancelled' } } },
+        { $group: { _id: null, revenue: { $sum: '$total' } } },
+      ]),
+      User.countDocuments({ createdAt: { $gte: startOfDay }, role: 'customer' }),
+      Prescription.countDocuments({ createdAt: { $gte: startOfDay } }),
+    ]);
+
     const revenue = orders.reduce((s, o) => s + o.total, 0);
+    const avgOrderValue = orders.length ? Math.round(revenue / orders.length) : 0;
+
+    // revenue per day, last 7 days
+    const revByDay = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+      revByDay[d.toDateString()] = 0;
+    }
+    orders.forEach(o => {
+      const k = new Date(o.createdAt).toDateString();
+      if (k in revByDay) revByDay[k] += o.total;
+    });
+    const revenue7d = Object.entries(revByDay).map(([day, total]) => ({ day, total }));
+
+    const isSuper = req.user.role === 'superadmin';
     res.status(200).json({
       success: true,
-      stats: { totalOrders, todayOrders, productCount, customerCount, revenue },
-      lowStock, recent,
+      stats: { totalOrders, todayOrders, productCount, customerCount,
+               adminsCount, blockedCount, cancelledCount, revenue, avgOrderValue,
+               todayRevenue: todayRevenueAgg[0]?.revenue || 0,
+               todayUsers, todayPrescriptions },
+      revenue7d, lowStock, recent,
+      activities: isSuper ? activities : [],   // the global eye is superadmin-only
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* ═══ AUDIT LOG (superadmin only) ═══ */
+router.get('/activity', superAdminOnly, async (req, res) => {
+  try {
+    const activities = await Activity.find().sort({ createdAt: -1 }).limit(100);
+    res.status(200).json({ success: true, activities });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* ═══ PRESCRIPTIONS ═══ */
+router.get('/prescriptions', async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find().sort({ createdAt: -1 }).limit(100);
+    res.status(200).json({ success: true, prescriptions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.put('/prescriptions/:id/status', async (req, res) => {
+  try {
+    const allowed = ['new', 'contacted', 'fulfilled', 'rejected'];
+    if (!allowed.includes(req.body.status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+    const rx = await Prescription.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
+    if (!rx) return res.status(404).json({ success: false, message: 'Prescription not found' });
+    await logActivity(req, 'prescription.' + req.body.status, rx.name + ' · ' + rx.phone);
+    res.status(200).json({ success: true, prescription: rx });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -87,6 +171,7 @@ router.put('/orders/:id/status', async (req, res) => {
     }
     const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    await logActivity(req, 'order.' + status, order.orderNumber + ' · ' + order.customer.name);
     res.status(200).json({ success: true, order });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -106,6 +191,7 @@ router.get('/products', async (req, res) => {
 router.post('/products', async (req, res) => {
   try {
     const p = await Product.create(whitelist(req.body));
+    await logActivity(req, 'product.created', p.name);
     res.status(201).json({ success: true, product: p });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -116,6 +202,7 @@ router.put('/products/:id', async (req, res) => {
   try {
     const p = await Product.findByIdAndUpdate(req.params.id, whitelist(req.body), { new: true, runValidators: true });
     if (!p) return res.status(404).json({ success: false, message: 'Product not found' });
+    await logActivity(req, 'product.updated', p.name);
     res.status(200).json({ success: true, product: p });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -126,6 +213,7 @@ router.delete('/products/:id', async (req, res) => {
   try {
     const p = await Product.findByIdAndDelete(req.params.id);
     if (!p) return res.status(404).json({ success: false, message: 'Product not found' });
+    await logActivity(req, 'product.deleted', p.name);
     res.status(200).json({ success: true, message: 'Product deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -148,6 +236,7 @@ router.put('/stock/:id', async (req, res) => {
     const stock = Math.max(0, Number(req.body.stock) || 0);
     const p = await Product.findByIdAndUpdate(req.params.id, { stock }, { new: true });
     if (!p) return res.status(404).json({ success: false, message: 'Product not found' });
+    await logActivity(req, 'stock.updated', p.name + ' → ' + stock);
     res.status(200).json({ success: true, product: p });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -186,7 +275,42 @@ router.put('/users/:id/block', async (req, res) => {
     }
     user.isBlocked = !!req.body.blocked;
     await user.save();
+    await logActivity(req, user.isBlocked ? 'user.blocked' : 'user.unblocked', user.name + ' · ' + user.email);
     res.status(200).json({ success: true, isBlocked: user.isBlocked });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* ═══ USER DETAIL (admin) — profile + full order history ═══ */
+router.get('/users/:id/detail', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const orders = await Order.find({ userId: user._id }).sort({ createdAt: -1 });
+
+    const totals = orders.reduce((acc, o) => {
+      if (o.status !== 'cancelled') {
+        acc.spend += o.total;
+        acc.count += 1;
+      }
+      return acc;
+    }, { spend: 0, count: 0 });
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id, name: user.name, email: user.email, phone: user.phone,
+        gender: user.gender, dob: user.dob, isBlocked: user.isBlocked,
+        role: user.role, joined: user.createdAt,
+      },
+      stats: { totalOrders: orders.length, activeOrders: totals.count, totalSpend: totals.spend },
+      orders: orders.map(o => ({
+        id: o._id, orderNumber: o.orderNumber, status: o.status,
+        total: o.total, items: o.items.length, createdAt: o.createdAt,
+      })),
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -216,6 +340,7 @@ router.post('/admins', superAdminOnly, async (req, res) => {
 
     const newRole = role === 'superadmin' ? 'superadmin' : 'admin';
     await User.create({ name, email, password, phone, role: newRole });
+    await logActivity(req, 'admin.created', newRole + ' · ' + name + ' (' + email + ')');
     res.status(201).json({ success: true, message: newRole + ' account created' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -232,6 +357,7 @@ router.put('/admins/:id/role', superAdminOnly, async (req, res) => {
     const role = req.body.role === 'admin' ? 'admin' : 'customer';
     target.role = role;
     await target.save();
+    await logActivity(req, 'admin.roleChanged', target.name + ' → ' + role);
     res.status(200).json({ success: true, role });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -246,6 +372,7 @@ router.delete('/admins/:id', superAdminOnly, async (req, res) => {
     if (target.role === 'superadmin') return res.status(403).json({ success: false, message: 'Super Admins cannot be deleted' });
 
     await target.deleteOne();
+    await logActivity(req, 'admin.deleted', target.name + ' (' + target.email + ')');
     res.status(200).json({ success: true, message: 'Account deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
