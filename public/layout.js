@@ -32,14 +32,23 @@
       this.syncBadge();
       document.dispatchEvent(new CustomEvent('cart:updated'));
     },
-    add(p, qty = 1) {
-      const items = this.get();
-      const found = items.find(i => i.id === p._id);
-      if (found) found.qty = Math.min(99, found.qty + qty);
-      else items.push({ id: p._id, name: p.name, brand: p.brand, pack: p.pack, price: p.price,
-                        mrp: p.mrp, image: p.image, requiresPrescription: !!p.requiresPrescription, qty });
-      this.save(items);
-    },
+   add(p, qty = 1) {
+  // LOGIN REQUIRED to add items
+  if (!localStorage.getItem('vrinda_token')) {
+    VrindaToast('Please login to add items to your cart');
+    setTimeout(() => {
+      location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+    }, 1000);
+    return false;
+  }
+  const items = this.get();
+  const found = items.find(i => i.id === p._id);
+  if (found) found.qty = Math.min(99, found.qty + qty);
+  else items.push({ id: p._id, name: p.name, brand: p.brand, pack: p.pack, price: p.price,
+                    mrp: p.mrp, image: p.image, requiresPrescription: !!p.requiresPrescription, qty });
+  this.save(items);
+  return true;
+},
     setQty(id, qty) {
       const items = this.get();
       const it = items.find(i => i.id === id);
@@ -243,6 +252,27 @@
     </div>
   </footer>`;
 
+    /* ── Staff floating shortcut: always one click from the panel ── */
+if (isStaff && !document.getElementById('back-to-admin')) {
+  const pill = document.createElement('a');
+  pill.id = 'back-to-admin';
+  pill.href = 'admin.html';
+  pill.innerHTML = '<i class="fas fa-shield-halved text-xs"></i> Admin Panel';
+  pill.style.cssText = 'position:fixed;bottom:24px;left:24px;z-index:80;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:100px;background:#153628;color:#C5A55A;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(21,54,40,.35);transition:all .3s ease';
+  pill.addEventListener('mouseenter', () => pill.style.transform = 'translateY(-2px)');
+  pill.addEventListener('mouseleave', () => pill.style.transform = '');
+  document.body.appendChild(pill);
+}
+
+
+window.VrindaLogout = function () {
+  localStorage.removeItem('vrinda_token');
+  localStorage.removeItem('vrinda_user');
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('vrinda_')) localStorage.removeItem(k);
+  });
+  location.href = 'login.html';
+};
   /* ── Mount + wire ── */
   const h = document.getElementById('site-header');
   if (h) h.innerHTML = headerHTML;
