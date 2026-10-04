@@ -134,9 +134,7 @@
             <span class="text-base font-bold" style="color:var(--forest)">${inr(p.price)}</span>
             ${off ? `<span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>` : ''}
           </div>
-          <button class="prod-atc flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:var(--accent)" data-id="${p._id}">
-            <i class="fas fa-plus text-[10px]"></i> ADD
-          </button>
+          <div class="smart-slot" data-id="${p._id}"></div>
         </div>
       </div>
     </a>`;
@@ -178,6 +176,9 @@
              </div>`;
         document.getElementById('retry').addEventListener('click', load);
       });
+      // register products for the stepper engine
+window.__prodCache = {};
+all.forEach(p => { window.__prodCache[p._id] = p; });
   }
 
   /* ── interactions ── */
@@ -222,6 +223,15 @@
   paintHead();
   load();
 })();
+function repaintSteppers() {
+  grid.querySelectorAll('.smart-slot').forEach(slot => {
+    const p = window.__prodCache[slot.dataset.id];
+    if (p) slot.innerHTML = VrindaCart.stepperHTML(p);
+  });
+}
+window.__repaintSteppers = repaintSteppers;
+
+// call after every load
 </script>
 </body>
 </html>

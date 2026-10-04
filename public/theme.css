@@ -38,10 +38,10 @@ a,button,input,textarea,select{transition:all .3s cubic-bezier(.22,1,.36,1)}
 .prod-card{transition:all .35s cubic-bezier(.22,1,.36,1)}
 .prod-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.08)}
 .prod-card:hover .prod-img{transform:scale(1.05)}
-.prod-card:hover .prod-atc{opacity:1;transform:translateY(0)}
+.prod-card:hover 
 .prod-img{transition:transform .5s cubic-bezier(.22,1,.36,1)}
-.prod-atc{opacity:0;transform:translateY(8px);transition:all .3s ease}
-@media (hover:none){.prod-atc{opacity:1;transform:translateY(0)}}
+.smart-slot .prod-add{opacity:1;transform:none}
+@media (hover:none)
 
 /* ── Buttons ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;padding:12px 26px;border-radius:12px;border:none;cursor:pointer;text-decoration:none;transition:all .3s cubic-bezier(.22,1,.36,1)}

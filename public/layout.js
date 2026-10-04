@@ -17,7 +17,8 @@
     snacks:    { label:'Healthy Snacks',   icon:'fa-apple-alt', color:'#D97706' },
     needfuls:  { label:'Needfuls',          icon:'fa-box-open',  color:'#2563EB' },
   };
-
+/* pages register their fetched products here so the smart-stepper engine can find them */
+window.__prodCache = {};
   const page = document.body.dataset.page || '';
   const zone = document.body.dataset.zone || '';
   const onHome = page === 'home';
@@ -32,6 +33,16 @@
       this.syncBadge();
       document.dispatchEvent(new CustomEvent('cart:updated'));
     },
+    stepperHTML(p) {
+  const items = this.get();
+  const it = items.find(i => i.id === p._id);
+  if (!it) return `<button class="prod-add flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg text-white" style="background:var(--accent)" data-id="${p._id}"><i class="fas fa-plus text-[10px]"></i> ADD</button>`;
+  return `<div class="prod-stepper flex items-center bg-white rounded-lg overflow-hidden" style="border:1.5px solid var(--accent)">
+    <button class="st-dec w-7 h-8 flex items-center justify-center" style="color:var(--accent)" data-id="${p._id}"><i class="fas fa-minus text-[10px]"></i></button>
+    <span class="w-7 text-center text-xs font-bold" style="color:var(--ink)">${it.qty}</span>
+    <button class="st-inc w-7 h-8 flex items-center justify-center" style="color:var(--accent)" data-id="${p._id}"><i class="fas fa-plus text-[10px]"></i></button>
+  </div>`;
+},
    add(p, qty = 1) {
   // LOGIN REQUIRED to add items
   if (!localStorage.getItem('vrinda_token')) {
@@ -58,6 +69,7 @@
     count() { return this.get().reduce((n, i) => n + i.qty, 0); },
     syncBadge() { const b = document.getElementById('cart-count'); if (b) b.textContent = this.count(); },
   };
+  
   window.VrindaCart = Cart;
 
   window.VrindaToast = function (msg) {
@@ -305,5 +317,42 @@ window.VrindaLogout = function () {
     }
   });
 
+
+  /* ── Smart ADD/stepper engine — works on any page via delegation ── */
+document.addEventListener('click', async e => {
+  const add = e.target.closest('.prod-add');
+  if (add) {
+    // build a minimal product from the button's data
+    const p = window.__prodCache && window.__prodCache[add.dataset.id];
+    if (!p) return;
+    if (Cart.add(p)) VrindaToast(p.name + ' added to cart');
+    document.dispatchEvent(new CustomEvent('cart:updated'));
+    return;
+  }
+
+  const inc = e.target.closest('.st-inc');
+  if (inc) {
+    const items = Cart.get();
+    const it = items.find(i => i.id === inc.dataset.id);
+    if (it) { Cart.setQty(inc.dataset.id, it.qty + 1); document.dispatchEvent(new CustomEvent('cart:updated')); }
+    return;
+  }
+
+  const dec = e.target.closest('.st-dec');
+  if (dec) {
+    const items = Cart.get();
+    const it = items.find(i => i.id === dec.dataset.id);
+    if (it) {
+      if (it.qty <= 1) { Cart.remove(dec.dataset.id); VrindaToast('Removed from cart'); }
+      else Cart.setQty(dec.dataset.id, it.qty - 1);
+      document.dispatchEvent(new CustomEvent('cart:updated'));
+    }
+  }
+});
+/* pages register a repaint function; we call it whenever the cart changes */
+document.addEventListener('cart:updated', () => {
+  if (window.__repaintSteppers) window.__repaintSteppers();
+});
   Cart.syncBadge();
+  
 })();

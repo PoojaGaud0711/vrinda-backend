@@ -57,10 +57,11 @@
     .prod-card{transition:all .35s cubic-bezier(.22,1,.36,1)}
     .prod-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.08)}
     .prod-card:hover .prod-img{transform:scale(1.05)}
-    .prod-card:hover .prod-atc{opacity:1;transform:translateY(0)}
     .prod-img{transition:transform .5s cubic-bezier(.22,1,.36,1)}
-    .prod-atc{opacity:0;transform:translateY(8px);transition:all .3s ease}
-    @media (hover:none){.prod-atc{opacity:1;transform:translateY(0)}}
+
+    /* smart stepper — always visible, hover not required */
+    .smart-slot .prod-add{opacity:1;transform:none}
+    .smart-slot .prod-stepper button:hover{background:rgba(27,67,50,.06)}
 
     .trust-item{transition:all .3s ease}
     .trust-item:hover{transform:translateY(-2px)}
@@ -173,6 +174,7 @@
         <div class="flex items-center gap-1 md:gap-2">
           <a href="products.html" class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-search"></i></a>
           <a href="account.html" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-user text-sm"></i></a>
+          <a href="wishlist.html" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="far fa-heart text-sm"></i></a>
           <a href="cart.html" class="nav-icon-btn flex w-10 h-10 md:w-auto md:h-11 rounded-xl items-center justify-center md:px-4 gap-2 relative" style="color:#1B4332;background:rgba(27,67,50,.05)">
             <i class="fas fa-shopping-bag text-sm"></i>
             <span class="hidden md:inline text-xs font-semibold">Cart</span>
@@ -197,7 +199,7 @@
               <h4 class="text-[10px] font-bold uppercase tracking-widest mb-3" style="color:#1B4332">Quick Actions</h4>
               <ul class="space-y-2.5">
                 <li><a href="prescription.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-[10px]" style="color:#C5A55A"></i> Upload Prescription</a></li>
-                <li><a href="account.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-redo text-[10px]" style="color:#C5A55A"></i> Order Refills</a></li>
+                <li><a href="track.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-truck-fast text-[10px]" style="color:#C5A55A"></i> Track Order</a></li>
                 <li><a href="account.html" class="text-sm hover:text-green-800 flex items-center gap-2" style="color:rgba(0,0,0,.6)"><i class="fas fa-heartbeat text-[10px]" style="color:#C5A55A"></i> My Orders</a></li>
               </ul>
             </div>
@@ -207,7 +209,7 @@
         <a href="#zone-beauty" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Beauty</a>
         <a href="#zone-snacks" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Healthy Snacks</a>
         <a href="#zone-needfuls" class="text-xs font-medium px-3 py-2 rounded-lg hover:bg-green-50 whitespace-nowrap" style="color:rgba(0,0,0,.5)">Needfuls</a>
-        <a href="products.html" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
+        <a href="offers.html" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
       </nav>
     </div>
   </header>
@@ -236,8 +238,10 @@
         <a href="#zone-needfuls" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-blue-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-box-open text-xs w-5 text-center"></i> Needfuls</a>
         <div class="my-3" style="border-top:1px solid rgba(0,0,0,.06)"></div>
         <a href="prescription.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-file-prescription text-xs w-5 text-center"></i> Upload Prescription</a>
-        <a href="account.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-redo text-xs w-5 text-center"></i> My Orders</a>
-        <a href="products.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-tag text-xs w-5 text-center"></i> Offers</a>
+        <a href="track.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-truck-fast text-xs w-5 text-center"></i> Track Order</a>
+        <a href="wishlist.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-pink-50" style="color:rgba(0,0,0,.6)"><i class="far fa-heart text-xs w-5 text-center"></i> Wishlist</a>
+        <a href="account.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-circle-user text-xs w-5 text-center"></i> My Account &amp; Orders</a>
+        <a href="offers.html" class="mob-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-tag text-xs w-5 text-center"></i> Offers</a>
       </nav>
     </div>
   </div>
@@ -360,18 +364,17 @@
 
     <div class="zone-sep"></div>
 
-    <!-- COMBO BANNER (cross-category) -->
     <!-- COMBO BANNER (from database) -->
-<section class="max-w-7xl mx-auto px-4 md:px-6 py-12">
-  <div class="flex items-end justify-between mb-6">
-    <div>
-      <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#B8952F">Curated by Vrinda</span>
-      <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight mt-1" style="color:#153628">Wellness Combos</h2>
-    </div>
-    <a href="products.html?category=combos" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
-  </div>
-  <div id="combo-track" class="flex gap-4 overflow-x-auto no-scrollbar pb-2"></div>
-</section>
+    <section class="max-w-7xl mx-auto px-4 md:px-6 py-12">
+      <div class="flex items-end justify-between mb-6">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#B8952F">Curated by Vrinda</span>
+          <h2 class="font-display font-semibold text-2xl md:text-3xl tracking-tight mt-1" style="color:#153628">Wellness Combos</h2>
+        </div>
+        <a href="products.html?category=combos" class="text-xs font-semibold flex items-center gap-1.5" style="color:#1B6B47">View All <i class="fas fa-arrow-right text-[10px]"></i></a>
+      </div>
+      <div id="combo-track" class="flex gap-4 overflow-x-auto no-scrollbar pb-2"></div>
+    </section>
 
     <div class="zone-sep"></div>
 
@@ -574,7 +577,7 @@
   <!-- BACK TO TOP -->
   <button id="back-to-top" class="back-to-top fixed bottom-6 right-6 z-50 w-11 h-11 rounded-xl text-white shadow-lg flex items-center justify-center" style="background:#1B4332"><i class="fas fa-arrow-up text-sm"></i></button>
 
-  <!-- Shared: cart, toast, drawer wiring, search, footer -->
+  <!-- Shared: cart, toast, drawer wiring, search, footer, stepper engine -->
   <script src="/layout.js"></script>
 
   <!-- Page logic -->
@@ -614,9 +617,7 @@
                 <span class="text-base font-bold" style="color:#1B4332">${inr(p.price)}</span>
                 ${off ? `<span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>` : ''}
               </div>
-              <button class="prod-atc flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:#1B4332" data-id="${p._id}">
-                <i class="fas fa-plus text-[10px]"></i> ADD
-              </button>
+              <div class="smart-slot" data-id="${p._id}"></div>
             </div>
           </div>
         </div>`;
@@ -639,16 +640,36 @@
       grid.classList.remove('zone-products-enter');
       void grid.offsetWidth;
       grid.classList.add('zone-products-enter');
+      repaintSteppers();
     }
 
-    /* ADD buttons — login gate lives inside VrindaCart.add() */
+    /* ── register fetched products for the stepper engine (in layout.js) ── */
+    function registerCache() {
+      window.__prodCache = window.__prodCache || {};
+      allProducts.forEach(p => { window.__prodCache[p._id] = p; });
+    }
+
+    /* ── paint ADD/stepper state into every .smart-slot ── */
+    function repaintSteppers() {
+      Object.values(grids).forEach(g => {
+        if (!g) return;
+        g.querySelectorAll('.smart-slot').forEach(slot => {
+          const p = (window.__prodCache || {})[slot.dataset.id];
+          if (p) slot.innerHTML = VrindaCart.stepperHTML(p);
+        });
+      });
+    }
+    window.__repaintSteppers = repaintSteppers;
+
+    /* ── click a card → product detail (stepper clicks excluded) ── */
     Object.values(grids).forEach(grid => {
       if (!grid) return;
       grid.addEventListener('click', e => {
-        const btn = e.target.closest('.prod-atc');
-        if (!btn) return;
-        const p = allProducts.find(x => x._id === btn.dataset.id);
-        if (p && VrindaCart.add(p)) VrindaToast(p.name + ' added to cart');
+        if (e.target.closest('.smart-slot')) return;   // stepper engine handles those
+        const card = e.target.closest('.prod-card');
+        if (!card) return;
+        const slot = card.querySelector('.smart-slot');
+        if (slot) location.href = '/product.html?id=' + slot.dataset.id;
       });
     });
 
@@ -673,6 +694,7 @@
         .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
         .then(data => {
           allProducts = data.products || [];
+          registerCache();
           document.querySelectorAll('.zone-tabs').forEach(t =>
             renderZone(t.dataset.zone, t.querySelector('.zone-tab.active')?.dataset.sub)
           );
@@ -683,41 +705,43 @@
         });
     }
     loadProducts();
-/* ═══ Combos from DB ═══ */
-function loadCombos() {
-  fetch('/api/v1/products?category=combos')
-    .then(res => res.json())
-    .then(data => {
-      const combos = data.products || [];
-      const track = document.getElementById('combo-track');
-      if (!combos.length) {
-        track.innerHTML = '<p class="text-sm" style="color:rgba(0,0,0,.35)">New combos coming soon — watch this space.</p>';
-        return;
-      }
-      track.innerHTML = combos.map(c => {
-        const off = (c.mrp && c.mrp > c.price) ? Math.round((1 - c.price / c.mrp) * 100) : 0;
-        return `
-        <div class="combo-card flex-shrink-0 w-[260px] md:w-[280px] bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer">
-          <div class="relative h-40 overflow-hidden" style="background:linear-gradient(135deg,#FFF8EB,#FEF3C7)">
-            ${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" class="w-full h-full object-cover" style="opacity:.9"/>` : ''}
-            ${c.tag ? `<span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(c.tag)}</span>` : ''}
-          </div>
-          <div class="p-4">
-            <h3 class="text-sm font-semibold mb-1" style="color:#153628">${esc(c.name)}</h3>
-            <p class="text-xs mb-3" style="color:rgba(0,0,0,.4)">${esc(c.brand)} · ${esc(c.pack || 'Combo pack')}</p>
-            <div class="flex items-center justify-between">
-              <div><span class="text-base font-bold" style="color:#1B4332">${inr(c.price)}</span>${off ? `<span class="text-xs line-through ml-1.5" style="color:rgba(0,0,0,.3)">${inr(c.mrp)}</span>` : ''}</div>
-              ${off ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="color:#166534;background:#DCFCE7">${off}% off</span>` : ''}
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-    })
-    .catch(() => {
-      document.getElementById('combo-track').innerHTML = '<p class="text-sm" style="color:rgba(0,0,0,.35)">Combos unavailable right now.</p>';
-    });
-}
-loadCombos();
+
+    /* ═══ Combos from DB ═══ */
+    function loadCombos() {
+      fetch('/api/v1/products?category=combos')
+        .then(res => res.json())
+        .then(data => {
+          const combos = data.products || [];
+          const track = document.getElementById('combo-track');
+          if (!combos.length) {
+            track.innerHTML = '<p class="text-sm" style="color:rgba(0,0,0,.35)">New combos coming soon — watch this space.</p>';
+            return;
+          }
+          track.innerHTML = combos.map(c => {
+            const off = (c.mrp && c.mrp > c.price) ? Math.round((1 - c.price / c.mrp) * 100) : 0;
+            return `
+            <div class="combo-card flex-shrink-0 w-[260px] md:w-[280px] bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer" onclick="location.href='/product.html?id=${c._id}'">
+              <div class="relative h-40 overflow-hidden" style="background:linear-gradient(135deg,#FFF8EB,#FEF3C7)">
+                ${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" class="w-full h-full object-cover" style="opacity:.9"/>` : ''}
+                ${c.tag ? `<span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(c.tag)}</span>` : ''}
+              </div>
+              <div class="p-4">
+                <h3 class="text-sm font-semibold mb-1" style="color:#153628">${esc(c.name)}</h3>
+                <p class="text-xs mb-3" style="color:rgba(0,0,0,.4)">${esc(c.brand)} · ${esc(c.pack || 'Combo pack')}</p>
+                <div class="flex items-center justify-between">
+                  <div><span class="text-base font-bold" style="color:#1B4332">${inr(c.price)}</span>${off ? `<span class="text-xs line-through ml-1.5" style="color:rgba(0,0,0,.3)">${inr(c.mrp)}</span>` : ''}</div>
+                  ${off ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="color:#166534;background:#DCFCE7">${off}% off</span>` : ''}
+                </div>
+              </div>
+            </div>`;
+          }).join('');
+        })
+        .catch(() => {
+          document.getElementById('combo-track').innerHTML = '<p class="text-sm" style="color:rgba(0,0,0,.35)">Combos unavailable right now.</p>';
+        });
+    }
+    loadCombos();
+
     /* ═══ Side nav scrollspy ═══ */
     const sideDots = document.querySelectorAll('.side-nav-dot');
     const zoneSections = ['medicines','beauty','snacks','needfuls'].map(z => document.getElementById('zone-' + z));
@@ -766,58 +790,61 @@ loadCombos();
     const btt = document.getElementById('back-to-top');
     window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 600), { passive: true });
     btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  })();
 
-  /* ── Session-aware drawer + back-to-admin for home's own header ── */
-(function () {
-  let u = null;
-  try { u = JSON.parse(localStorage.getItem('vrinda_user') || 'null'); } catch (e) {}
-  const tok = localStorage.getItem('vrinda_token');
-  const staff = tok && u && ['admin', 'superadmin'].includes(u.role);
+    /* ═══ Session-aware drawer (home has its own header) ═══ */
+    (function () {
+      let u = null;
+      try { u = JSON.parse(localStorage.getItem('vrinda_user') || 'null'); } catch (e) {}
+      const tok = localStorage.getItem('vrinda_token');
+      if (!u || !tok) return;
+      const staff = ['admin', 'superadmin'].includes(u.role);
 
-  const drawer = document.getElementById('mob-drawer');
-  if (drawer && u && tok) {
-    // swap the "Welcome! Login" block for the user's name
-    const welcome = drawer.querySelector('.mb-6');
-    if (welcome) {
-      welcome.innerHTML = `
-        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#F0F7F4">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#1B4332"><span class="text-white text-sm font-bold">${esc((u.name || 'U')[0].toUpperCase())}</span></div>
-          <div class="min-w-0">
-            <div class="text-sm font-semibold truncate" style="color:#153628">${esc(u.name)}</div>
-            <a href="account.html" class="text-xs font-medium" style="color:#2D8A5E">My Account →</a>
-          </div>
-        </div>`;
-    }
-    // add account/admin/logout links to the drawer nav
-    const nav = drawer.querySelector('nav.space-y-1');
-    if (nav) {
-      const extra = document.createElement('div');
-      extra.innerHTML = `
-        ${staff ? '<a href="admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-shield-halved text-xs w-5 text-center"></i> Admin Panel</a>' : ''}
-        <a href="account.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-green-50" style="color:rgba(0,0,0,.6)"><i class="fas fa-circle-user text-xs w-5 text-center" style="color:#1B6B47"></i> My Account &amp; Orders</a>
-        <button id="drawer-logout-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-red-50 w-full" style="color:#DC2626"><i class="fas fa-arrow-right-from-bracket text-xs w-5 text-center"></i> Logout</button>`;
-      nav.appendChild(extra);
-      document.getElementById('drawer-logout-home').addEventListener('click', () => {
-        window.VrindaLogout ? window.VrindaLogout() : (localStorage.removeItem('vrinda_token'), localStorage.removeItem('vrinda_user'), location.href = 'login.html');
-      });
-    }
-    // desktop nav: gold admin link
-    if (staff) {
-      const offersLink = document.querySelector('header nav a[href="products.html"][style*="B8952F"]');
-      if (offersLink) {
-        const a = document.createElement('a');
-        a.href = 'admin.html';
-        a.className = 'text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap';
-        a.style.cssText = 'color:#C5A55A;background:rgba(197,165,90,.12)';
-        a.innerHTML = '<i class="fas fa-shield-halved text-[10px] mr-1"></i>Admin Panel';
-        offersLink.insertAdjacentElement('afterend', a);
+      const drawer = document.getElementById('mob-drawer');
+      if (!drawer) return;
+
+      // swap "Welcome! / Login" for the user's name
+      const welcome = drawer.querySelector('.mb-6');
+      if (welcome) {
+        welcome.innerHTML = `
+          <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#F0F7F4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#1B4332"><span class="text-white text-sm font-bold">${esc((u.name || 'U')[0].toUpperCase())}</span></div>
+            <div class="min-w-0">
+              <div class="text-sm font-semibold truncate" style="color:#153628">${esc(u.name)}</div>
+              <a href="account.html" class="text-xs font-medium" style="color:#2D8A5E">My Account →</a>
+            </div>
+          </div>`;
       }
-      // user icon → account page for logged-in users
-      document.querySelector('header a[href="account.html"]')?.setAttribute('href', 'account.html');
-    }
-  }
-})();
+
+      // add account/admin/logout links to the drawer nav
+      const nav = drawer.querySelector('nav.space-y-1');
+      if (nav) {
+        const extra = document.createElement('div');
+        extra.innerHTML = `
+          ${staff ? '<a href="admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-50" style="color:#B8952F"><i class="fas fa-shield-halved text-xs w-5 text-center"></i> Admin Panel</a>' : ''}
+          <button id="drawer-logout-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-red-50 w-full" style="color:#DC2626"><i class="fas fa-arrow-right-from-bracket text-xs w-5 text-center"></i> Logout</button>`;
+        nav.appendChild(extra);
+        document.getElementById('drawer-logout-home').addEventListener('click', () => {
+          if (window.VrindaLogout) return window.VrindaLogout();
+          localStorage.removeItem('vrinda_token');
+          localStorage.removeItem('vrinda_user');
+          location.href = 'login.html';
+        });
+      }
+
+      // desktop nav: gold admin link for staff
+      if (staff) {
+        const offersLink = document.querySelector('header nav a[href="offers.html"]');
+        if (offersLink) {
+          const a = document.createElement('a');
+          a.href = 'admin.html';
+          a.className = 'text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap';
+          a.style.cssText = 'color:#C5A55A;background:rgba(197,165,90,.12)';
+          a.innerHTML = '<i class="fas fa-shield-halved text-[10px] mr-1"></i>Admin Panel';
+          offersLink.insertAdjacentElement('afterend', a);
+        }
+      }
+    })();
+  })();
   </script>
 </body>
 </html>
