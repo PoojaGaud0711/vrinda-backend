@@ -10,7 +10,7 @@
   <script src="/tw-config.js"></script>
   <link rel="stylesheet" href="/theme.css"/>
   <style>
-    .adm-nav{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer;transition:all .25s ease;border:none;background:none;font-family:inherit;text-align:left}
+    .adm-nav{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer;transition:all .25s ease;border:none;background:none;font-family:inherit;text-align:left;text-decoration:none}
     .adm-nav i{width:18px;text-align:center}
     .adm-nav:hover{color:#fff;background:rgba(255,255,255,.06)}
     .adm-nav.active{color:#fff;background:rgba(197,165,90,.18)}
@@ -20,8 +20,7 @@
     .tbl td{padding:12px;border-bottom:1px solid rgba(0,0,0,.05);vertical-align:middle}
     .mini-btn{font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap}
     .modal-bg{position:fixed;inset:0;background:rgba(14,42,30,.5);backdrop-filter:blur(4px);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
-    .adm-tab-btn{padding:8px 18px;border-radius:100px;font-size:12px;font-weight:600;border:1.5px solid rgba(0,0,0,.1);background:#fff;color:rgba(0,0,0,.45);cursor:pointer}
-    .adm-tab-btn.active{background:#1B4332;color:#fff;border-color:transparent}
+    .role-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:100px}
   </style>
 </head>
 <body class="bg-cream">
@@ -44,8 +43,9 @@
       <button class="adm-nav" data-tab="products"><i class="fas fa-pills"></i> Products</button>
       <button class="adm-nav" data-tab="stock"><i class="fas fa-warehouse"></i> Stock</button>
       <button class="adm-nav" data-tab="users"><i class="fas fa-users"></i> Users</button>
+      <button class="adm-nav" data-tab="prescriptions"><i class="fas fa-file-prescription"></i> Prescriptions</button>
       <button class="adm-nav hidden" data-tab="admins" id="nav-admins"><i class="fas fa-shield-halved"></i> Admins</button>
-    <button class="adm-nav" data-tab="prescriptions"><i class="fas fa-file-prescription"></i> Prescriptions</button>
+      <button class="adm-nav hidden" data-tab="audit" id="nav-audit"><i class="fas fa-clipboard-list"></i> Audit Log</button>
     </nav>
 
     <div class="mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,.08)">
@@ -53,13 +53,13 @@
         <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.1)"><i class="fas fa-user-shield text-white text-xs"></i></div>
         <div class="min-w-0">
           <div id="me-name" class="text-white text-sm font-semibold truncate">...</div>
-          <div id="me-role" class="text-[10px] font-bold uppercase tracking-widest" style="color:#C5A55A">...</div>
+          <span id="me-role" class="role-badge mt-0.5">...</span>
         </div>
       </div>
-     <a href="home.html" class="adm-nav"><i class="fas fa-store"></i> View Store</a>
-<a href="account.html" class="adm-nav"><i class="fas fa-circle-user"></i> My Account</a>
-<button class="adm-nav" id="btn-logout"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
-</div>
+      <a href="home.html" class="adm-nav"><i class="fas fa-store"></i> View Store</a>
+      <a href="account.html" class="adm-nav"><i class="fas fa-circle-user"></i> My Account</a>
+      <button class="adm-nav" id="btn-logout"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+    </div>
   </aside>
   <div id="side-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
 
@@ -70,19 +70,25 @@
         <button id="side-toggle" class="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-bars"></i></button>
         <h1 id="page-title" class="font-display font-semibold text-lg md:text-xl" style="color:#153628">Dashboard</h1>
       </div>
-      <div class="flex items-center gap-2">
-        <button class="adm-tab-btn hidden" data-goto="dashboard">Dashboard</button>
-        <button class="adm-tab-btn hidden" data-goto="orders">Orders</button>
-        <button class="adm-tab-btn hidden" data-goto="products">Products</button>
-      </div>
     </header>
 
     <main class="p-4 md:p-8 max-w-6xl">
 
       <!-- DASHBOARD -->
       <section id="tab-dashboard" class="adm-section">
-        <div id="stat-cards" class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6"></div>
+        <div id="today-strip" class="card p-4 md:p-5 mb-6 hidden flex-wrap items-center gap-x-8 gap-y-3" style="background:linear-gradient(135deg,#153628,#1B4332)"></div>
+        <div id="stat-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mb-6"></div>
+
+        <div id="rev-card" class="card p-6 mb-6 hidden">
+          <h3 class="text-xs font-bold uppercase tracking-widest mb-5" style="color:#153628">Revenue — Last 7 Days</h3>
+          <div id="rev-7d" class="flex items-end gap-2 md:gap-3" style="height:110px"></div>
+        </div>
+
         <div class="grid lg:grid-cols-2 gap-6">
+          <div id="act-card" class="card p-6 hidden">
+            <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628"><i class="fas fa-eye mr-1.5" style="color:#B8952F"></i>Admin Activity</h3>
+            <div id="act-feed" class="space-y-0"></div>
+          </div>
           <div class="card p-6">
             <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628"><i class="fas fa-triangle-exclamation mr-1.5" style="color:#D97706"></i>Low Stock (≤5)</h3>
             <div id="low-stock" class="space-y-2"></div>
@@ -116,9 +122,12 @@
       <section id="tab-users" class="adm-section hidden">
         <div class="card overflow-x-auto p-2"><table class="tbl" id="users-tbl"></table></div>
       </section>
-<section id="tab-prescriptions" class="adm-section hidden">
-  <div id="rx-list" class="space-y-3"></div>
-</section>
+
+      <!-- PRESCRIPTIONS -->
+      <section id="tab-prescriptions" class="adm-section hidden">
+        <div id="rx-list" class="space-y-3"></div>
+      </section>
+
       <!-- ADMINS (superadmin only) -->
       <section id="tab-admins" class="adm-section hidden">
         <div class="card p-6 mb-6">
@@ -140,6 +149,15 @@
         <div class="card overflow-x-auto p-2"><table class="tbl" id="admins-tbl"></table></div>
       </section>
 
+      <!-- AUDIT LOG (superadmin only) -->
+      <section id="tab-audit" class="adm-section hidden">
+        <div class="card p-6">
+          <h3 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#153628">Global Eye — Every Admin Action</h3>
+          <p class="text-[11px] mb-5" style="color:rgba(0,0,0,.4)">Newest first. Every order change, product edit, stock update and account action by any admin is recorded here.</p>
+          <div id="audit-list"></div>
+        </div>
+      </section>
+
     </main>
   </div>
 </div>
@@ -159,20 +177,20 @@
       <div class="field"><label class="field-label">Price (₹) *</label><input id="pf-price" type="number" min="0" step="0.01" class="input" required/></div>
       <div class="field"><label class="field-label">MRP (₹)</label><input id="pf-mrp" type="number" min="0" step="0.01" class="input"/></div>
       <div class="field col-span-2"><label class="field-label">Product Image</label>
-  <div class="flex items-center gap-3">
-    <div id="pf-img-preview" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-black/10" style="background:#F0F7F4">
-      <i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>
-    </div>
-    <div class="flex-1 flex flex-col gap-2">
-      <label for="pf-image-file" class="btn btn-outline btn-sm w-full cursor-pointer text-center" style="border-color:rgba(0,0,0,.15)">
-        <i class="fas fa-upload text-[10px]"></i> Choose Image
-      </label>
-      <input type="file" id="pf-image-file" class="hidden" accept=".jpg,.jpeg,.png,.webp"/>
-      <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste an image URL"/>
-    </div>
-  </div>
-  <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — max 5MB</p>
-</div>
+        <div class="flex items-center gap-3">
+          <div id="pf-img-preview" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-black/10" style="background:#F0F7F4">
+            <i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>
+          </div>
+          <div class="flex-1 flex flex-col gap-2">
+            <label for="pf-image-file" class="btn btn-outline btn-sm w-full cursor-pointer text-center" style="border-color:rgba(0,0,0,.15)">
+              <i class="fas fa-upload text-[10px]"></i> Choose Image
+            </label>
+            <input type="file" id="pf-image-file" class="hidden" accept=".jpg,.jpeg,.png,.webp"/>
+            <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste an image URL"/>
+          </div>
+        </div>
+        <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — max 5MB</p>
+      </div>
       <div class="field"><label class="field-label">Category *</label>
         <select id="pf-cat" class="select" required></select>
       </div>
@@ -191,6 +209,17 @@
   </div>
 </div>
 
+<!-- ═══ USER DETAIL MODAL ═══ -->
+<div id="u-modal" class="modal-bg hidden">
+  <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 md:p-8">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-display font-semibold text-lg" style="color:#153628">Customer Details</h3>
+      <button id="um-close" class="w-9 h-9 rounded-xl hover:bg-black/5" style="color:rgba(0,0,0,.4)"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="u-detail"></div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
@@ -199,15 +228,15 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const inr = n => '₹' + Number(n).toLocaleString('en-IN');
   const dShort = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  const dTime = d => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-  const CATS = ['medicines', 'beauty', 'snacks', 'needfuls'];
+  const CATS = ['medicines', 'beauty', 'snacks', 'needfuls', 'combos'];
   const SUBS = {
     medicines: { prescription:'Prescription', otc:'OTC', ayurvedic:'Ayurvedic', supplements:'Supplements' },
     beauty:    { skincare:'Skincare', haircare:'Haircare', bodycare:'Body Care', grooming:"Men's Grooming" },
     snacks:    { protein:'Protein Snacks', dryfruits:'Dry Fruits', teas:'Herbal Teas', bars:'Energy Bars' },
     needfuls:  { baby:'Baby Care', feminine:'Feminine Hygiene', napkins:'Napkins & Wipes', daily:'Daily Essentials' },
- 
- 
+    combos:    { wellness:'Wellness Combo', family:'Family Combo', seasonal:'Seasonal Combo' },
   };
   const STATUS = {
     placed:    ['#B45309', '#FEF3C7'], confirmed: ['#1D4ED8', '#DBEAFE'],
@@ -219,6 +248,25 @@
     confirmed: [['Mark Packed', 'packed', true]],
     packed:    [['Mark Shipped', 'shipped', true]],
     shipped:   [['Mark Delivered', 'delivered', true]],
+  };
+  const ACT = {
+    'order.confirmed':   { label:'accepted order',         icon:'fa-check',         color:'#166534', bg:'#DCFCE7' },
+    'order.cancelled':   { label:'rejected order',         icon:'fa-xmark',         color:'#B91C1C', bg:'#FEE2E2' },
+    'order.packed':      { label:'packed order',           icon:'fa-box',           color:'#7C3AED', bg:'#EDE9FE' },
+    'order.shipped':     { label:'shipped order',          icon:'fa-truck',         color:'#0E7490', bg:'#CFFAFE' },
+    'order.delivered':   { label:'marked order delivered', icon:'fa-house',         color:'#166534', bg:'#DCFCE7' },
+    'product.created':   { label:'added product',          icon:'fa-plus',          color:'#166534', bg:'#DCFCE7' },
+    'product.updated':   { label:'updated product',        icon:'fa-pen',           color:'#1D4ED8', bg:'#DBEAFE' },
+    'product.deleted':   { label:'deleted product',        icon:'fa-trash',         color:'#B91C1C', bg:'#FEE2E2' },
+    'stock.updated':     { label:'updated stock',          icon:'fa-warehouse',     color:'#B45309', bg:'#FEF3C7' },
+    'user.blocked':      { label:'blocked user',           icon:'fa-user-slash',    color:'#B91C1C', bg:'#FEE2E2' },
+    'user.unblocked':    { label:'unblocked user',         icon:'fa-user-check',    color:'#166534', bg:'#DCFCE7' },
+    'admin.created':     { label:'created staff account',  icon:'fa-user-shield',   color:'#92400E', bg:'#FEF3C7' },
+    'admin.roleChanged': { label:'changed staff role',     icon:'fa-arrows-rotate', color:'#1D4ED8', bg:'#DBEAFE' },
+    'admin.deleted':     { label:'removed staff account',  icon:'fa-user-minus',    color:'#B91C1C', bg:'#FEE2E2' },
+    'prescription.contacted': { label:'contacted for Rx',  icon:'fa-phone',         color:'#1D4ED8', bg:'#DBEAFE' },
+    'prescription.fulfilled': { label:'fulfilled Rx',      icon:'fa-check-double',  color:'#166534', bg:'#DCFCE7' },
+    'prescription.rejected':  { label:'rejected Rx',       icon:'fa-ban',           color:'#B91C1C', bg:'#FEE2E2' },
   };
 
   const token = localStorage.getItem('vrinda_token');
@@ -251,7 +299,21 @@
   }
   const btn = (label, cls, attrs) => `<button class="mini-btn ${cls}" ${attrs}>${label}</button>`;
 
-  /* ═══ Boot: verify session + role ═══ */
+  /* ── shared activity row (dashboard feed + audit log) ── */
+  function actRow(a) {
+    const m = ACT[a.action] || { label: a.action, icon: 'fa-circle-info', color: '#333', bg: '#eee' };
+    return `
+    <div class="flex items-center gap-3 py-2.5" style="border-bottom:1px solid rgba(0,0,0,.05)">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${m.bg};color:${m.color}"><i class="fas ${m.icon} text-xs"></i></div>
+      <div class="min-w-0 flex-1">
+        <div class="text-xs" style="color:#153628"><strong>${esc(a.actorName)}</strong> <span class="role-badge" style="background:${a.actorRole === 'superadmin' ? 'rgba(197,165,90,.18);color:#9A7B24' : 'rgba(127,196,160,.18);color:#1B6B47'}">${a.actorRole}</span> <span style="color:rgba(0,0,0,.55)">${m.label}</span></div>
+        <div class="text-[11px] truncate mt-0.5" style="color:rgba(0,0,0,.4)">${esc(a.detail || '')}</div>
+      </div>
+      <span class="text-[10px] flex-shrink-0" style="color:rgba(0,0,0,.35)">${dTime(a.createdAt)}</span>
+    </div>`;
+  }
+
+  /* ═══ Boot ═══ */
   (async function init() {
     if (!token) return location.href = 'login.html';
     try {
@@ -259,21 +321,31 @@
       const d = await r.json();
       if (!d.success || !['admin', 'superadmin'].includes(d.user.role)) return location.href = 'home.html';
       ME = d.user;
+
       $('me-name').textContent = ME.name;
-      $('me-role').textContent = ME.role === 'superadmin' ? 'Super Admin' : 'Admin';
-      if (ME.role === 'superadmin') $('nav-admins').classList.remove('hidden');
+      const rb = $('me-role');
+      if (ME.role === 'superadmin') {
+        rb.textContent = 'Super Admin';
+        rb.style.cssText = 'background:rgba(197,165,90,.22);color:#C5A55A';
+        $('nav-admins').classList.remove('hidden');
+        $('nav-audit').classList.remove('hidden');
+      } else {
+        rb.textContent = 'Admin';
+        rb.style.cssText = 'background:rgba(127,196,160,.18);color:#7FC4A0';
+      }
       loadDashboard();
     } catch { location.href = 'login.html'; }
   })();
 
   $('btn-logout').addEventListener('click', () => {
+    if (window.VrindaLogout) return window.VrindaLogout();
     localStorage.removeItem('vrinda_token');
     localStorage.removeItem('vrinda_user');
     location.href = 'login.html';
   });
 
   /* ═══ Tabs ═══ */
-  const TITLES = { dashboard:'Dashboard', orders:'Orders', products:'Products', stock:'Warehouse Stock', users:'Users', admins:'Admin Management' };
+  const TITLES = { dashboard:'Dashboard', orders:'Orders', products:'Products', stock:'Warehouse Stock', users:'Users', prescriptions:'Prescriptions', admins:'Admin Management', audit:'Audit Log — Global Eye' };
   function goto(tab) {
     document.querySelectorAll('.adm-section').forEach(s => s.classList.add('hidden'));
     $('tab-' + tab).classList.remove('hidden');
@@ -285,33 +357,84 @@
     if (tab === 'products') loadProducts();
     if (tab === 'stock') loadStock();
     if (tab === 'users') loadUsers();
+    if (tab === 'prescriptions') loadPrescriptions();
     if (tab === 'admins') loadAdmins();
+    if (tab === 'audit') loadAudit();
   }
-  document.querySelectorAll('.adm-nav, [data-goto]').forEach(n =>
-    n.addEventListener('click', () => goto(n.dataset.tab || n.dataset.goto)));
+  document.querySelectorAll('.adm-nav').forEach(n => n.addEventListener('click', () => goto(n.dataset.tab)));
 
   const sidebar = $('sidebar'), overlay = $('side-overlay');
   function closeSidebar() { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }
   $('side-toggle').addEventListener('click', () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); });
   overlay.addEventListener('click', closeSidebar);
 
-  /* ═══ Dashboard ═══ */
+  /* ═══ Dashboard — role-based ═══ */
   async function loadDashboard() {
     try {
-      const { stats, lowStock, recent } = await api('/stats');
+      const d = await api('/stats');
+      const { stats, revenue7d, lowStock, recent, activities } = d;
+      const isSuper = ME.role === 'superadmin';
+
+      // Today strip
+      const strip = $('today-strip');
+      strip.classList.remove('hidden');
+      strip.style.display = 'flex';
+      strip.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(255,255,255,.12);color:#C5A55A"><i class="fas fa-sun text-sm"></i></div>
+          <span class="text-xs font-bold uppercase tracking-widest" style="color:#C5A55A">Today</span>
+        </div>
+        <div class="text-white"><div class="text-lg font-bold">${stats.todayOrders}</div><div class="text-[10px]" style="color:rgba(255,255,255,.5)">orders</div></div>
+        <div class="text-white"><div class="text-lg font-bold">${inr(stats.todayRevenue || 0)}</div><div class="text-[10px]" style="color:rgba(255,255,255,.5)">revenue</div></div>
+        <div class="text-white"><div class="text-lg font-bold">${stats.todayUsers || 0}</div><div class="text-[10px]" style="color:rgba(255,255,255,.5)">new customers</div></div>
+        <div class="text-white"><div class="text-lg font-bold">${stats.todayPrescriptions || 0}</div><div class="text-[10px]" style="color:rgba(255,255,255,.5)">prescriptions</div></div>`;
+
       const cards = [
         ['Total Orders', stats.totalOrders, 'fa-box', '#1B4332', '#F0F7F4'],
-        ["Today's Orders", stats.todayOrders, 'fa-calendar-day', '#D97706', '#FFFBEB'],
         ['Revenue', inr(stats.revenue), 'fa-indian-rupee-sign', '#166534', '#DCFCE7'],
         ['Products', stats.productCount, 'fa-pills', '#2563EB', '#EFF6FF'],
         ['Customers', stats.customerCount, 'fa-users', '#E11D48', '#FFF1F2'],
       ];
+      if (isSuper) {
+        cards.push(
+          ['Admins', stats.adminsCount, 'fa-shield-halved', '#92400E', '#FEF3C7'],
+          ['Avg Order Value', inr(stats.avgOrderValue), 'fa-receipt', '#7C3AED', '#EDE9FE'],
+          ['Cancelled Orders', stats.cancelledCount, 'fa-ban', '#B91C1C', '#FEE2E2'],
+          ['Blocked Users', stats.blockedCount, 'fa-user-slash', '#B45309', '#FEF3C7'],
+        );
+      }
       $('stat-cards').innerHTML = cards.map(([l, v, i, c, bg]) => `
         <div class="card p-4 md:p-5">
           <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style="background:${bg};color:${c}"><i class="fas ${i} text-sm"></i></div>
           <div class="text-xl md:text-2xl font-bold" style="color:#153628">${v}</div>
           <div class="text-[11px] font-medium" style="color:rgba(0,0,0,.4)">${l}</div>
         </div>`).join('');
+
+      // 7-day revenue bars — superadmin only
+      if (isSuper && revenue7d) {
+        const max = Math.max(...revenue7d.map(r => r.total), 1);
+        $('rev-7d').innerHTML = revenue7d.map(r => `
+          <div class="flex-1 flex flex-col items-center gap-1.5 justify-end" style="height:100%">
+            <div class="w-full rounded-t-lg relative" style="height:${Math.max(4, Math.round(r.total / max * 80))}px;background:linear-gradient(to top,#1B4332,#2D8A5E)">
+              ${r.total > 0 ? `<span class="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold whitespace-nowrap" style="color:#1B4332">${r.total >= 1000 ? (r.total/1000).toFixed(1) + 'k' : r.total}</span>` : ''}
+            </div>
+            <span class="text-[10px] font-semibold" style="color:rgba(0,0,0,.45)">${new Date(r.day).toLocaleDateString('en-IN', { weekday: 'short' })}</span>
+          </div>`).join('');
+        $('rev-card').classList.remove('hidden');
+      } else {
+        $('rev-card').classList.add('hidden');
+      }
+
+      // admin activity feed — superadmin only
+      if (isSuper) {
+        $('act-feed').innerHTML = activities.length
+          ? activities.map(actRow).join('')
+          : '<p class="text-xs" style="color:rgba(0,0,0,.4)">No admin actions recorded yet.</p>';
+        $('act-card').classList.remove('hidden');
+      } else {
+        $('act-card').classList.add('hidden');
+      }
+
       $('low-stock').innerHTML = lowStock.length
         ? lowStock.map(p => `
           <div class="flex items-center justify-between gap-3 text-sm py-1.5" style="border-bottom:1px solid rgba(0,0,0,.05)">
@@ -319,6 +442,7 @@
             <span class="pill flex-shrink-0" style="color:${p.stock === 0 ? '#B91C1C' : '#B45309'};background:${p.stock === 0 ? '#FEE2E2' : '#FEF3C7'}">${p.stock} left</span>
           </div>`).join('')
         : '<p class="text-xs" style="color:rgba(0,0,0,.4)">All stocked up 👍</p>';
+
       $('recent-orders').innerHTML = recent.length
         ? recent.map(o => `
           <div class="flex items-center justify-between gap-3 text-sm py-1.5" style="border-bottom:1px solid rgba(0,0,0,.05)">
@@ -330,7 +454,22 @@
     } catch (e) { toast(e.message); }
   }
 
-  /* ═══ Orders ═══ */
+  /* ═══ Audit Log — superadmin only ═══ */
+  async function loadAudit() {
+    $('audit-list').innerHTML = '<p class="text-sm py-6 text-center" style="color:rgba(0,0,0,.4)">Loading...</p>';
+    try {
+      const { activities } = await api('/activity');
+      $('audit-list').innerHTML = activities.length
+        ? activities.map(actRow).join('')
+        : `<div class="text-center py-12">
+             <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:#FEF3C7"><i class="fas fa-clipboard-list text-xl" style="color:#B45309"></i></div>
+             <p class="text-sm font-semibold mb-1" style="color:#153628">No actions recorded yet</p>
+             <p class="text-xs" style="color:rgba(0,0,0,.4)">As admins work — accepting orders, editing products, updating stock — every action will appear here.</p>
+           </div>`;
+    } catch (e) { toast(e.message); }
+  }
+
+  /* ═══ Orders — with expandable details ═══ */
   async function loadOrders() {
     $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading orders...</div>';
     try {
@@ -338,22 +477,42 @@
       if (!orders.length) { $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No orders yet.</div>'; return; }
       $('orders-list').innerHTML = orders.map(o => `
         <div class="card p-5">
-          <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
-            <div>
-              <div class="flex items-center gap-2.5 mb-1">
-                <span class="font-bold text-sm" style="color:#153628">${esc(o.orderNumber)}</span>
-                ${pill(o.status)}
-                <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${new Date(o.createdAt).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
+          <button class="og-toggle w-full text-left" style="cursor:pointer">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2.5 mb-1 flex-wrap">
+                  <span class="font-bold text-sm" style="color:#153628">${esc(o.orderNumber)}</span>
+                  ${pill(o.status)}
+                  <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${dTime(o.createdAt)}</span>
+                  <i class="fas fa-chevron-down text-[10px]" style="color:rgba(0,0,0,.3);transition:transform .3s"></i>
+                </div>
+                <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-user mr-1" style="color:#1B6B47"></i>${esc(o.customer.name)} · ${esc(o.customer.phone)}
+                  <span class="mx-1.5 opacity-30">|</span><i class="fas fa-location-dot mr-1" style="color:#1B6B47"></i>${esc(o.address.line1)}, ${esc(o.address.pincode)}</div>
               </div>
-              <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-user mr-1" style="color:#1B6B47"></i>${esc(o.customer.name)} · ${esc(o.customer.phone)}
-                <span class="mx-1.5 opacity-30">|</span><i class="fas fa-location-dot mr-1" style="color:#1B6B47"></i>${esc(o.address.line1)}, ${esc(o.address.pincode)}</div>
+              <div class="text-right">
+                <div class="text-lg font-bold" style="color:#1B4332">${inr(o.total)}</div>
+                <div class="text-[10px] font-bold uppercase" style="color:rgba(0,0,0,.4)">${o.paymentMethod}</div>
+              </div>
             </div>
-            <div class="text-right">
-              <div class="text-lg font-bold" style="color:#1B4332">${inr(o.total)}</div>
-              <div class="text-[10px] font-bold uppercase" style="color:rgba(0,0,0,.4)">${o.paymentMethod}</div>
+          </button>
+
+          <div class="order-full hidden pt-3 mt-3" style="border-top:1px solid rgba(0,0,0,.06)">
+            ${o.items.map(i => `
+              <div class="flex items-center gap-3 py-1.5">
+                <div class="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0" style="background:#F0F7F4">
+                  ${i.image ? `<img src="${esc(i.image)}" class="w-full h-full object-cover" alt=""/>` : ''}
+                </div>
+                <div class="min-w-0 flex-1"><p class="text-xs font-semibold truncate" style="color:#153628">${esc(i.name)}</p><p class="text-[10px]" style="color:rgba(0,0,0,.4)">${esc(i.brand || '')} · Qty ${i.qty} × ${inr(i.price)}</p></div>
+                <span class="text-xs font-semibold" style="color:#1B4332">${inr(i.price * i.qty)}</span>
+              </div>`).join('')}
+            <div class="text-[11px] mt-3 pt-2 space-y-1" style="color:rgba(0,0,0,.5);border-top:1px solid rgba(0,0,0,.06)">
+              <div><i class="fas fa-user mr-1.5" style="color:#1B6B47"></i>${esc(o.customer.name)} · ${esc(o.customer.phone)}${o.customer.email ? ' · ' + esc(o.customer.email) : ''}</div>
+              <div><i class="fas fa-location-dot mr-1.5" style="color:#1B6B47"></i>${esc(o.address.line1)}, ${esc(o.address.city)}, ${esc(o.address.state)} — ${esc(o.address.pincode)}</div>
+              <div><i class="fas fa-receipt mr-1.5" style="color:#1B6B47"></i>Subtotal ${inr(o.subtotal)} · Delivery ${o.deliveryFee === 0 ? 'FREE' : inr(o.deliveryFee)} · <strong style="color:#153628">Total ${inr(o.total)}</strong></div>
             </div>
           </div>
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-3" style="border-top:1px solid rgba(0,0,0,.06)">
+
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3 mt-3" style="border-top:1px solid rgba(0,0,0,.06)">
             <div class="text-xs" style="color:rgba(0,0,0,.5)">${o.items.length} item${o.items.length > 1 ? 's' : ''}: ${o.items.slice(0, 3).map(i => esc(i.name)).join(', ')}${o.items.length > 3 ? ' +' + (o.items.length - 3) : ''}</div>
             <div class="flex gap-2 order-actions" data-id="${o._id}">
               ${(NEXT[o.status] || []).map(([l, s, good]) =>
@@ -366,6 +525,16 @@
   }
 
   $('tab-orders').addEventListener('click', async e => {
+    // expand/collapse first
+    const t = e.target.closest('.og-toggle');
+    if (t) {
+      const full = t.closest('.card').querySelector('.order-full');
+      full.classList.toggle('hidden');
+      const chev = t.querySelector('.fa-chevron-down');
+      if (chev) chev.style.transform = full.classList.contains('hidden') ? '' : 'rotate(180deg)';
+      return;
+    }
+    // status buttons
     const b = e.target.closest('[data-set]');
     if (!b) return;
     b.disabled = true;
@@ -405,7 +574,6 @@
     } catch (e) { toast(e.message); }
   }
 
-  // fill category select once
   $('pf-cat').innerHTML = '<option value="">Select</option>' + CATS.map(c => `<option>${c}</option>`).join('');
   $('pf-cat').addEventListener('change', () => {
     const subs = SUBS[$('pf-cat').value] || {};
@@ -421,13 +589,13 @@
     $('pf-price').value = p?.price ?? '';
     $('pf-mrp').value = p?.mrp ?? '';
     $('pf-image').value = p?.image || '';
-    // preview the existing image (uploaded file or URL)
-const pv = $('pf-img-preview');
-if (p?.image) {
-  pv.innerHTML = `<img src="${p.image}" class="w-full h-full object-cover" alt=""/>`;
-} else {
-  pv.innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
-}
+    $('pf-image-file').value = '';
+    const pv = $('pf-img-preview');
+    if (p?.image) {
+      pv.innerHTML = `<img src="${esc(p.image)}" class="w-full h-full object-cover" alt=""/>`;
+    } else {
+      pv.innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
+    }
     $('pf-stock').value = p?.stock ?? 0;
     $('pf-tag').value = p?.tag || '';
     $('pf-rx').checked = !!p?.requiresPrescription;
@@ -439,36 +607,34 @@ if (p?.image) {
   $('btn-add-product').addEventListener('click', () => openModal(null));
   $('pm-close').addEventListener('click', () => $('p-modal').classList.add('hidden'));
   $('p-modal').addEventListener('click', e => { if (e.target === $('p-modal')) $('p-modal').classList.add('hidden'); });
-// choose image → upload immediately → store returned URL in the field
- $('pf-image-file').addEventListener('change', async () => {
-  const file = $('pf-image-file').files[0];
-  if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) { toast('Image too large — max 5MB'); return; }
-  if (!/\.(jpe?g|png|webp)$/i.test(file.name)) { toast('Only JPG, PNG or WebP'); return; }
+  // choose image → upload immediately → store returned URL
+  $('pf-image-file').addEventListener('change', async () => {
+    const file = $('pf-image-file').files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast('Image too large — max 5MB'); return; }
+    if (!/\.(jpe?g|png|webp)$/i.test(file.name)) { toast('Only JPG, PNG or WebP'); return; }
 
-  // instant local preview while uploading
-  $('pf-img-preview').innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""/>`;
+    $('pf-img-preview').innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""/>`;
 
-  const fd = new FormData();
-  fd.append('image', file);
+    const fd = new FormData();
+    fd.append('image', file);
+    try {
+      const res = await fetch('/api/v1/admin/upload-image', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('vrinda_token') },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      $('pf-image').value = data.url;
+      toast('Image uploaded ✓');
+    } catch (err) {
+      toast(err.message);
+      $('pf-img-preview').innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
+    }
+  });
 
-  try {
-    const res = await fetch('/api/v1/admin/upload-image', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + localStorage.getItem('vrinda_token') },
-      body: fd,
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.message);
-
-    $('pf-image').value = data.url;              // the real stored URL
-    toast('Image uploaded ✓');
-  } catch (err) {
-    toast(err.message);
-    $('pf-img-preview').innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
-  }
-});
   $('p-form').addEventListener('submit', async e => {
     e.preventDefault();
     const body = {
@@ -537,7 +703,7 @@ if (p?.image) {
     }
   });
 
-  /* ═══ Users ═══ */
+  /* ═══ Users — with detail modal ═══ */
   async function loadUsers() {
     $('users-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
     try {
@@ -546,7 +712,7 @@ if (p?.image) {
         <thead><tr><th>Customer</th><th>Joined</th><th>Orders</th><th>Status</th><th></th></tr></thead>
         <tbody>${users.map(u => `
           <tr>
-            <td><div class="font-semibold" style="color:#153628">${esc(u.name)}</div>
+            <td><button class="ud-btn text-left font-semibold underline decoration-dotted" style="color:#153628" data-id="${u.id}">${esc(u.name)}</button>
             <div class="text-[11px]" style="color:rgba(0,0,0,.4)">${esc(u.email)} · ${esc(u.phone)}</div></td>
             <td style="color:rgba(0,0,0,.6)">${dShort(u.joined)}</td>
             <td class="font-semibold" style="color:#1B6B47">${u.orderCount}</td>
@@ -559,17 +725,109 @@ if (p?.image) {
     } catch (e) { toast(e.message); }
   }
 
+  /* ── User detail modal ── */
+  async function openUserDetail(id) {
+    $('u-modal').classList.remove('hidden');
+    $('u-detail').innerHTML = '<div class="py-10 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>';
+    try {
+      const d = await api('/users/' + id + '/detail');
+      const { user, stats, orders } = d;
+      $('u-detail').innerHTML = `
+        <div class="flex items-center gap-4 mb-5">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style="background:#1B4332"><span class="text-white text-xl font-bold">${esc(user.name[0].toUpperCase())}</span></div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="font-semibold" style="color:#153628">${esc(user.name)}</h4>
+              ${user.isBlocked ? '<span class="pill" style="color:#B91C1C;background:#FEE2E2">blocked</span>' : '<span class="pill" style="color:#166534;background:#DCFCE7">active</span>'}
+            </div>
+            <p class="text-xs" style="color:rgba(0,0,0,.4)">${esc(user.email)} · ${esc(user.phone)}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="card p-3 text-center"><div class="text-base font-bold" style="color:#1B4332">${stats.totalOrders}</div><div class="text-[10px]" style="color:rgba(0,0,0,.4)">total orders</div></div>
+          <div class="card p-3 text-center"><div class="text-base font-bold" style="color:#1B6B47">${stats.activeOrders}</div><div class="text-[10px]" style="color:rgba(0,0,0,.4)">not cancelled</div></div>
+          <div class="card p-3 text-center"><div class="text-base font-bold" style="color:#166534">${inr(stats.totalSpend)}</div><div class="text-[10px]" style="color:rgba(0,0,0,.4)">lifetime spend</div></div>
+        </div>
+
+        <div class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:rgba(0,0,0,.4)">Details</div>
+        <div class="mb-5 text-xs space-y-1.5" style="color:rgba(0,0,0,.55)">
+          <div>Gender: ${esc(user.gender || '—')}</div>
+          <div>DOB: ${user.dob ? dShort(user.dob) : '—'}</div>
+          <div>Joined: ${dTime(user.joined)}</div>
+        </div>
+
+        <div class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:rgba(0,0,0,.4)">Order History (${orders.length})</div>
+        <div class="space-y-2 max-h-64 overflow-y-auto">
+          ${orders.length ? orders.map(o => `
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl text-xs" style="border:1px solid rgba(0,0,0,.06)">
+              <div><span class="font-bold" style="color:#153628">${esc(o.orderNumber)}</span> ${pill(o.status)}<div style="color:rgba(0,0,0,.4)">${dTime(o.createdAt)} · ${o.items} item(s)</div></div>
+              <span class="font-semibold flex-shrink-0" style="color:#1B4332">${inr(o.total)}</span>
+            </div>`).join('') : '<p class="text-xs py-3 text-center" style="color:rgba(0,0,0,.35)">No orders yet.</p>'}
+        </div>`;
+    } catch (e) {
+      $('u-detail').innerHTML = '<p class="text-sm text-center py-6" style="color:#DC2626">' + esc(e.message) + '</p>';
+    }
+  }
+  $('um-close').addEventListener('click', () => $('u-modal').classList.add('hidden'));
+  $('u-modal').addEventListener('click', e => { if (e.target === $('u-modal')) $('u-modal').classList.add('hidden'); });
+
   $('tab-users').addEventListener('click', async e => {
+    const ud = e.target.closest('.ud-btn');
+    if (ud) { openUserDetail(ud.dataset.id); return; }
+
     const blk = e.target.closest('.blk-btn');
     if (blk) {
       try { await api('/users/' + blk.dataset.id + '/block', 'PUT', { blocked: blk.dataset.block === 'true' }); toast('Updated'); loadUsers(); }
       catch (err) { toast(err.message); }
+      return;
     }
     const prom = e.target.closest('.prom-btn');
     if (prom && confirm('Promote this customer to Admin?')) {
       try { await api('/admins/' + prom.dataset.id + '/role', 'PUT', { role: 'admin' }); toast('Promoted to Admin'); loadUsers(); }
       catch (err) { toast(err.message); }
     }
+  });
+
+  /* ═══ Prescriptions — INSIDE the closure this time ═══ */
+  async function loadPrescriptions() {
+    $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>';
+    try {
+      const { prescriptions } = await api('/prescriptions');
+      if (!prescriptions.length) {
+        $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No prescriptions uploaded yet.</div>';
+        return;
+      }
+      const RXS = { new:['#B45309','#FEF3C7'], contacted:['#1D4ED8','#DBEAFE'], fulfilled:['#166534','#DCFCE7'], rejected:['#B91C1C','#FEE2E2'] };
+      $('rx-list').innerHTML = prescriptions.map(r => `
+        <div class="card p-5 flex flex-wrap items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2.5 mb-1 flex-wrap">
+              <span class="font-bold text-sm" style="color:#153628">${esc(r.name)}</span>
+              <span class="pill" style="color:${RXS[r.status][0]};background:${RXS[r.status][1]}">${r.status}</span>
+              <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${dTime(r.createdAt)}</span>
+            </div>
+            <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-phone mr-1" style="color:#1B6B47"></i>${esc(r.phone)}${r.notes ? ' — <em>' + esc(r.notes) + '</em>' : ''}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap rx-actions" data-id="${r._id}">
+            <a href="${r.fileUrl}" target="_blank" class="mini-btn text-white" style="background:#1B6B47;text-decoration:none">View File</a>
+            ${r.status === 'new' ? `<button class="mini-btn rx-set text-white" style="background:#1B4332" data-set="contacted">Mark Contacted</button>` : ''}
+            ${['new','contacted'].includes(r.status) ? `<button class="mini-btn rx-set text-white" style="background:#166534" data-set="fulfilled">Fulfilled</button>` : ''}
+            ${r.status !== 'rejected' ? `<button class="mini-btn rx-set bg-white" style="color:#B91C1C;border:1px solid #FECACA" data-set="rejected">Reject</button>` : ''}
+          </div>
+        </div>`).join('');
+    } catch (e) { toast(e.message); }
+  }
+
+  $('tab-prescriptions').addEventListener('click', async e => {
+    const b = e.target.closest('.rx-set');
+    if (!b) return;
+    b.disabled = true;
+    try {
+      await api('/prescriptions/' + b.closest('.rx-actions').dataset.id + '/status', 'PUT', { status: b.dataset.set });
+      toast('Marked ' + b.dataset.set);
+      loadPrescriptions();
+    } catch (err) { toast(err.message); b.disabled = false; }
   });
 
   /* ═══ Admins (superadmin) ═══ */
@@ -586,7 +844,7 @@ if (p?.image) {
           <tr>
             <td><div class="font-semibold" style="color:#153628">${esc(a.name)}${self ? ' <span class="text-[10px] font-bold" style="color:#C5A55A">(you)</span>' : ''}</div>
             <div class="text-[11px]" style="color:rgba(0,0,0,.4)">${esc(a.email)} · ${esc(a.phone)}</div></td>
-            <td><span class="pill" style="color:${a.role === 'superadmin' ? '#92400E' : '#1D4ED8'};background:${a.role === 'superadmin' ? '#FEF3C7' : '#DBEAFE'}">${a.role}</span></td>
+            <td><span class="pill" style="color:${locked ? '#92400E' : '#1D4ED8'};background:${locked ? '#FEF3C7' : '#DBEAFE'}">${a.role}</span></td>
             <td style="color:rgba(0,0,0,.6)">${dShort(a.joined)}</td>
             <td class="text-right whitespace-nowrap">
               ${self || locked ? `<span class="text-[10px]" style="color:rgba(0,0,0,.3)">${locked && !self ? 'protected' : ''}</span>` : `
@@ -624,39 +882,6 @@ if (p?.image) {
     }
   });
 })();
-
-async function loadPrescriptions() {
-  $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>';
-  try {
-    const { prescriptions } = await api('/prescriptions');
-    if (!prescriptions.length) { $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No prescriptions uploaded yet.</div>'; return; }
-    const RXS = { new:['#B45309','#FEF3C7'], contacted:['#1D4ED8','#DBEAFE'], fulfilled:['#166534','#DCFCE7'], rejected:['#B91C1C','#FEE2E2'] };
-    $('rx-list').innerHTML = prescriptions.map(r => `
-      <div class="card p-5 flex flex-wrap items-center justify-between gap-3">
-        <div class="min-w-0">
-          <div class="flex items-center gap-2.5 mb-1 flex-wrap">
-            <span class="font-bold text-sm" style="color:#153628">${esc(r.name)}</span>
-            <span class="pill" style="color:${RXS[r.status][0]};background:${RXS[r.status][1]}">${r.status}</span>
-            <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${dTime(r.createdAt)}</span>
-          </div>
-          <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-phone mr-1" style="color:#1B6B47"></i>${esc(r.phone)}${r.notes ? ' — <em>' + esc(r.notes) + '</em>' : ''}</div>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap rx-actions" data-id="${r._id}">
-          <a href="${r.fileUrl}" target="_blank" class="mini-btn text-white" style="background:#1B6B47;text-decoration:none">View File</a>
-          ${r.status === 'new' ? `<button class="mini-btn rx-set text-white" style="background:#1B4332" data-set="contacted">Mark Contacted</button>` : ''}
-          ${['new','contacted'].includes(r.status) ? `<button class="mini-btn rx-set text-white" style="background:#166534" data-set="fulfilled">Fulfilled</button>` : ''}
-          ${r.status !== 'rejected' ? `<button class="mini-btn rx-set bg-white" style="color:#B91C1C;border:1px solid #FECACA" data-set="rejected">Reject</button>` : ''}
-        </div>
-      </div>`).join('');
-  } catch (e) { toast(e.message); }
-}
-
- $('tab-prescriptions').addEventListener('click', async e => {
-  const b = e.target.closest('.rx-set');
-  if (!b) return;
-  try { await api('/prescriptions/' + b.closest('.rx-actions').dataset.id + '/status', 'PUT', { status: b.dataset.set }); toast('Marked ' + b.dataset.set); loadPrescriptions(); }
-  catch (err) { toast(err.message); }
-});
 </script>
 </body>
 </html>
