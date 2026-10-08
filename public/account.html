@@ -26,12 +26,15 @@
       <span class="eyebrow">Your Space</span>
       <h1 class="sec-title text-2xl md:text-3xl tracking-tight">My Account</h1>
     </div>
-    <button id="btn-logout" class="btn btn-outline btn-sm"><i class="fas fa-arrow-right-from-bracket text-[10px]"></i> Logout</button>
+    <div class="flex items-center gap-2">
+      <a href="wishlist.html" class="btn btn-outline btn-sm"><i class="fas fa-heart text-[10px] text-red-500 mr-1"></i> Wishlist</a>
+      <button id="btn-logout" class="btn btn-outline btn-sm"><i class="fas fa-arrow-right-from-bracket text-[10px]"></i> Logout</button>
+    </div>
   </div>
 
   <div class="grid lg:grid-cols-3 gap-6">
 
-    <!-- LEFT: profile + details -->
+    <!-- LEFT: profile + details + security -->
     <div>
       <div class="card p-6 mb-6 text-center">
         <div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:var(--accent)">
@@ -44,7 +47,8 @@
         <a id="me-admin-link" href="admin.html" class="btn btn-gold btn-sm mt-4 hidden"><i class="fas fa-shield-halved text-[10px]"></i> Open Admin Panel</a>
       </div>
 
-      <div class="card p-6">
+      <!-- PERSONAL DETAILS -->
+      <div class="card p-6 mb-6">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xs font-bold uppercase tracking-widest" style="color:var(--ink)">Personal Details</h3>
           <button id="btn-edit" class="btn btn-outline btn-sm">Edit</button>
@@ -66,12 +70,38 @@
           <button type="submit" class="btn btn-primary w-full">Save Changes</button>
         </form>
       </div>
+
+      <!-- SECURITY / CHANGE PASSWORD -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xs font-bold uppercase tracking-widest" style="color:var(--ink)"><i class="fas fa-lock mr-1.5" style="color:var(--accent)"></i>Change Password</h3>
+        </div>
+        <form id="pass-form" class="space-y-3">
+          <div class="field">
+            <label class="field-label">Current Password</label>
+            <input id="pf-current" type="password" class="input" required placeholder="••••••••"/>
+          </div>
+          <div class="field">
+            <label class="field-label">New Password (min 6 chars)</label>
+            <input id="pf-new" type="password" class="input" minlength="6" required placeholder="••••••••"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Confirm New Password</label>
+            <input id="pf-confirm" type="password" class="input" minlength="6" required placeholder="••••••••"/>
+          </div>
+          <button type="submit" id="pf-submit" class="btn btn-outline btn-sm w-full font-semibold">Update Password</button>
+        </form>
+      </div>
+
     </div>
 
     <!-- RIGHT: orders -->
     <div class="lg:col-span-2">
       <div class="card p-6">
-        <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:var(--ink)">Order History</h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xs font-bold uppercase tracking-widest" style="color:var(--ink)">Order History</h3>
+          <a href="track.html" class="text-xs font-medium" style="color:var(--accent)">Track by Number →</a>
+        </div>
         <div id="orders-list">
           <div class="py-10 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading your orders...</div>
         </div>
@@ -178,7 +208,10 @@
             </a>
             <div class="text-right flex-shrink-0">
               <div class="text-base font-bold" style="color:var(--forest)">${inr(o.total)}</div>
-              ${o.status !== 'cancelled' ? `<button class="reorder-btn text-[10px] font-bold px-3 py-1.5 rounded-lg text-white mt-1.5" style="background:var(--accent)" data-id="${o._id}"><i class="fas fa-rotate-right text-[9px] mr-1"></i>Reorder</button>` : ''}
+              <div class="flex items-center gap-1.5 justify-end mt-1.5">
+                <button class="inv-btn text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-black/10 hover:bg-black/5 transition" data-id="${o._id}"><i class="fas fa-file-invoice text-[9px] mr-1"></i>Invoice</button>
+                ${o.status !== 'cancelled' ? `<button class="reorder-btn text-[10px] font-bold px-3 py-1.5 rounded-lg text-white" style="background:var(--accent)" data-id="${o._id}"><i class="fas fa-rotate-right text-[9px] mr-1"></i>Reorder</button>` : ''}
+              </div>
             </div>
           </div>
         </div>`).join('');
@@ -187,8 +220,26 @@
     }
   }
 
-  /* ── One-click reorder ── */
+  /* ── Orders list actions (Reorder & Invoice) ── */
   $('orders-list').addEventListener('click', async e => {
+    const invBtn = e.target.closest('.inv-btn');
+    if (invBtn) {
+      invBtn.disabled = true;
+      try {
+        const res = await fetch('/api/v1/orders/' + invBtn.dataset.id, { headers: H });
+        const d = await res.json();
+        if (d.success && d.order && window.VrindaPrintInvoice) {
+          window.VrindaPrintInvoice(d.order);
+        } else {
+          VrindaToast('Could not display invoice');
+        }
+      } catch (err) {
+        VrindaToast('Failed to load invoice details');
+      } finally {
+        invBtn.disabled = false;
+      }
+      return;
+    }
     const btn = e.target.closest('.reorder-btn');
     if (!btn) return;
     btn.disabled = true;
@@ -199,14 +250,13 @@
       const d = await res.json();
       if (!d.success) throw new Error(d.message);
 
-      // rebuild cart items from the order's item snapshots
       const items = d.order.items
         .map(i => ({
           id: i.productId, name: i.name, brand: i.brand, pack: i.pack,
           image: i.image, price: i.price, mrp: undefined,
           requiresPrescription: false, qty: i.qty,
         }))
-        .filter(i => i.id);   // skip items whose product was deleted
+        .filter(i => i.id);
 
       if (!items.length) {
         VrindaToast('Sorry — the products in this order are no longer available');
@@ -245,7 +295,7 @@
     }
   });
 
-  /* ── Save ── */
+  /* ── Save Details ── */
   $('details-form').addEventListener('submit', async e => {
     e.preventDefault();
     try {
@@ -269,6 +319,39 @@
       setTimeout(() => location.reload(), 900);
     } catch (err) {
       VrindaToast(err.message);
+    }
+  });
+
+  /* ── Change Password ── */
+  $('pass-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const cur = $('pf-current').value;
+    const nPass = $('pf-new').value;
+    const conf = $('pf-confirm').value;
+
+    if (nPass !== conf) {
+      VrindaToast('New password and confirmation do not match');
+      return;
+    }
+
+    $('pf-submit').disabled = true;
+    $('pf-submit').textContent = 'Updating...';
+
+    try {
+      const r = await fetch('/api/v1/user/change-password', {
+        method: 'PUT', headers: H,
+        body: JSON.stringify({ currentPassword: cur, newPassword: nPass })
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.message);
+
+      VrindaToast('Password changed successfully ✓');
+      $('pass-form').reset();
+    } catch (err) {
+      VrindaToast(err.message || 'Could not change password');
+    } finally {
+      $('pf-submit').disabled = false;
+      $('pf-submit').textContent = 'Update Password';
     }
   });
 

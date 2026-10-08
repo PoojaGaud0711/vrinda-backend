@@ -3,15 +3,47 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Prescription — Vrinda Wellness</title>
+  <title>Smart Prescription Reader &amp; Order — Vrinda Wellness</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/tw-config.js"></script>
   <link rel="stylesheet" href="/theme.css"/>
   <style>
-    .dropzone{border:2px dashed #B3DBC5;border-radius:20px;transition:all .3s ease;cursor:pointer}
-    .dropzone:hover,.dropzone.drag{border-color:#1B4332;background:rgba(27,67,50,.03)}
+    .dropzone { border: 2px dashed #B3DBC5; border-radius: 20px; transition: all .3s ease; cursor: pointer; }
+    .dropzone:hover, .dropzone.drag { border-color: #1B4332; background: rgba(27,67,50,.03); }
+    
+    /* Scanner Laser Beam Animation */
+    @keyframes scanBeam {
+      0% { top: 0%; opacity: 0.8; }
+      50% { top: 92%; opacity: 1; }
+      100% { top: 0%; opacity: 0.8; }
+    }
+    .scanner-laser {
+      position: absolute;
+      left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, #2D8A5E, #C5A55A, #2D8A5E, transparent);
+      box-shadow: 0 0 15px #2D8A5E, 0 0 25px #C5A55A;
+      animation: scanBeam 2.2s ease-in-out infinite;
+      z-index: 10;
+    }
+    .scanner-grid {
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(45, 138, 94, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(45, 138, 94, 0.08) 1px, transparent 1px);
+    }
+
+    /* Pulse dot */
+    @keyframes livePulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(45, 138, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(45, 138, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(45, 138, 94, 0); }
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #16A34A;
+      animation: livePulse 2s infinite;
+    }
   </style>
 </head>
 <body data-page="prescription" data-zone="medicines">
@@ -19,92 +51,495 @@
 <div id="site-header"></div>
 
 <main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">Upload Prescription</span></div>
+  <div class="crumbs mb-6">
+    <a href="/home.html">Home</a>
+    <i class="fas fa-chevron-right"></i>
+    <span class="current">Smart Prescription Reader</span>
+  </div>
 
-  <div class="flex items-end justify-between mb-2">
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
     <div>
-      <span class="eyebrow">Fast &amp; Easy</span>
-      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">Upload Your Prescription</h1>
+      <span class="eyebrow flex items-center gap-1.5"><i class="fas fa-microchip text-xs"></i> AI-Powered Pharmacy Funnel</span>
+      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">Smart Prescription Auto-Reader</h1>
+      <p class="text-sm muted mt-1 max-w-2xl">
+        Upload your doctor's slip or prescription. Our system automatically reads the medications, verifies current store availability, configures dosage regimens, and lets you add to cart or place an instant order in one click.
+      </p>
+    </div>
+    <div id="top-pill-status" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-black/10 text-xs font-semibold shadow-sm">
+      <span class="live-dot"></span>
+      <span id="top-status-text" class="text-stone-700">Live Pharmacist Sync Active</span>
     </div>
   </div>
-  <p class="text-sm muted mb-8 max-w-xl">Snap a photo or scan your prescription — our pharmacist verifies it, sources every medicine, and calls you to confirm. No searching item by item.</p>
 
-  <div class="grid lg:grid-cols-3 gap-8">
-
-    <!-- LEFT: upload + form -->
+  <!-- ════ VIEW 1: UPLOAD FORM ════ -->
+  <div id="view-upload" class="grid lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2">
-      <div class="card p-6 md:p-8" id="rx-card">
+      <div class="card p-6 md:p-8" id="rx-upload-card">
 
-        <div id="dropzone" class="dropzone p-8 md:p-10 text-center mb-6">
-          <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:#F0F7F4"><i class="fas fa-cloud-upload-alt text-2xl" style="color:#2D8A5E"></i></div>
-          <p class="text-sm font-semibold mb-1" style="color:#153628">Drag &amp; drop your prescription here</p>
-          <p class="text-xs mb-4" style="color:rgba(0,0,0,.4)">or <span class="font-semibold" style="color:#1B6B47">browse from your device</span></p>
-          <span class="text-[11px] px-3 py-1 rounded-full" style="background:#F0F7F4;color:#1B6B47">JPG · PNG · PDF — Max 5MB</span>
-          <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.pdf"/>
-        </div>
+        <label for="file-input" id="dropzone" class="dropzone p-8 md:p-10 text-center mb-6 cursor-pointer block border-2 border-dashed border-[#B3DBC5] rounded-2xl hover:border-[#1B4332] transition-colors relative">
+          <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center pointer-events-none" style="background:#F0F7F4">
+            <i class="fas fa-file-medical text-2xl" style="color:#2D8A5E"></i>
+          </div>
+          <p class="text-sm font-semibold mb-1 pointer-events-none" style="color:#153628">Drag &amp; drop doctor prescription here</p>
+          <p class="text-xs mb-3 pointer-events-none" style="color:rgba(0,0,0,.4)">or browse image / PDF from device</p>
+          
+          <div class="my-3 pointer-events-none">
+            <span class="btn btn-outline btn-sm inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl pointer-events-none" style="border-color:#1B4332;color:#1B4332;background:#fff">
+              <i class="fas fa-arrow-up-from-bracket text-xs text-[#1B6B47]"></i> Choose File / Browse Device
+            </span>
+          </div>
 
-        <!-- file preview -->
+          <div class="flex flex-wrap items-center justify-center gap-2 pointer-events-none">
+            <span class="text-[11px] px-3 py-1 rounded-full font-medium" style="background:#F0F7F4;color:#1B6B47">JPG · PNG · PDF (Max 5MB)</span>
+            <span class="text-[11px] px-3 py-1 rounded-full font-medium" style="background:#FEF3C7;color:#92400E"><i class="fas fa-wand-magic-sparkles text-[10px] mr-1"></i>Auto-Read Enabled</span>
+          </div>
+          <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf,.webp" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;"/>
+        </label>
+
+        <!-- File preview -->
         <div id="file-preview" class="hidden mb-6 flex items-center gap-4 p-4 rounded-2xl" style="background:#F0F7F4">
-          <div class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 bg-white">
-            <img id="preview-img" class="w-full h-full object-cover hidden" alt=""/>
+          <div class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 bg-white border border-black/10 shadow-sm">
+            <img id="preview-img" class="w-full h-full object-cover hidden" alt="Prescription preview"/>
             <i id="preview-icon" class="fas fa-file-pdf text-2xl hidden" style="color:#DC2626"></i>
           </div>
           <div class="min-w-0 flex-1">
             <p id="preview-name" class="text-sm font-semibold truncate" style="color:#153628"></p>
             <p id="preview-size" class="text-xs" style="color:rgba(0,0,0,.4)"></p>
           </div>
-          <button id="remove-file" class="w-9 h-9 rounded-xl hover:bg-white flex items-center justify-center" style="color:#DC2626"><i class="fas fa-trash-alt text-sm"></i></button>
+          <button type="button" id="remove-file" class="w-9 h-9 rounded-xl hover:bg-white flex items-center justify-center transition-all" style="color:#DC2626" title="Remove file">
+            <i class="fas fa-trash-alt text-sm"></i>
+          </button>
         </div>
 
-        <form id="rx-form">
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div class="field"><label class="field-label">Your Name *</label><input id="rx-name" class="input" required placeholder="e.g. Priya Sharma"/></div>
-            <div class="field"><label class="field-label">Mobile Number *</label><input id="rx-phone" class="input" required maxlength="10" inputmode="numeric" placeholder="We'll call on this number"/></div>
+        <form id="rx-form" novalidate>
+          <div class="grid sm:grid-cols-2 gap-4 mb-4">
+            <div class="field">
+              <label class="field-label">Patient / Your Name *</label>
+              <input id="rx-name" class="input" required placeholder="e.g. Rahul Sharma"/>
+            </div>
+            <div class="field">
+              <label class="field-label">Mobile Number *</label>
+              <input id="rx-phone" class="input" required maxlength="10" inputmode="numeric" placeholder="10-digit mobile number"/>
+            </div>
           </div>
-          <div class="field">
-            <label class="field-label">Notes for the pharmacist (optional)</label>
-            <textarea id="rx-notes" class="textarea" placeholder="e.g. Need 2 months' supply, prefer generic brands, deliver after 6 PM..."></textarea>
+          <div class="field mb-6">
+            <label class="field-label">Prescription notes or specific medicines (optional)</label>
+            <textarea id="rx-notes" class="textarea" rows="3" placeholder="e.g. Dolo 650, Azithral 500, Digene Gel — or any instructions like 'Deliver after 6 PM'"></textarea>
+            <p class="text-[11px] mt-1 text-stone-500">Tip: Mentioning medicine names helps our AI match with 100% precision even if doctor's handwriting is cursive.</p>
           </div>
-          <button type="submit" id="rx-submit" class="btn btn-primary w-full"><i class="fas fa-paper-plane text-xs"></i> Submit Prescription</button>
-          <p class="text-[11px] text-center mt-3" style="color:rgba(0,0,0,.35)"><i class="fas fa-lock mr-1"></i>Your prescription is private — only our licensed pharmacist sees it.</p>
+          <button type="submit" id="rx-submit" class="btn btn-primary w-full text-base py-3.5 shadow-lg flex items-center justify-center gap-2">
+            <i class="fas fa-cloud-arrow-up text-sm"></i> Upload &amp; Auto-Read Prescription
+          </button>
+          <p class="text-[11px] text-center mt-3 text-stone-500 flex items-center justify-center gap-1.5">
+            <i class="fas fa-shield-halved text-green-700"></i>
+            100% Private &amp; Secure — Handled exclusively by licensed Vrinda Wellness Pharmacists under Schedule H guidelines.
+          </p>
         </form>
       </div>
+    </div>
 
-      <!-- success state -->
-      <div id="rx-success" class="card p-8 md:p-12 text-center hidden">
-        <div class="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center" style="background:#DCFCE7"><i class="fas fa-check text-2xl" style="color:#166534"></i></div>
-        <h2 class="font-display font-semibold text-2xl mb-2" style="color:#153628">Prescription Received!</h2>
-        <p class="text-sm muted mb-2">Our pharmacist will call <strong id="succ-phone" style="color:#153628"></strong> within 30 minutes (8AM–10PM).</p>
-        <p class="text-[11px] mb-8" style="color:rgba(0,0,0,.35)">Reference: <span id="succ-ref" class="font-mono font-semibold"></span></p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/products.html" class="btn btn-primary btn-sm">Browse Products</a>
-          <a href="/home.html" class="btn btn-outline btn-sm">Back to Home</a>
+    <!-- Right Side Information -->
+    <aside>
+      <div class="card p-6 mb-5">
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-4 text-[#153628] flex items-center gap-2">
+          <i class="fas fa-bolt text-[#C5A55A]"></i> How Auto-Read Works
+        </h3>
+        <div class="space-y-4">
+          <div class="flex gap-3">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 bg-[#1B4332]">1</span>
+            <div>
+              <p class="text-sm font-semibold text-[#153628]">Snap &amp; Upload</p>
+              <p class="text-xs text-stone-500">Attach photo or PDF of your prescription.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 bg-[#1B4332]">2</span>
+            <div>
+              <p class="text-sm font-semibold text-[#153628]">Instant Auto-Reader</p>
+              <p class="text-xs text-stone-500">AI deciphers handwriting, finds exact inventory matches, and checks dosage.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 bg-[#1B4332]">3</span>
+            <div>
+              <p class="text-sm font-semibold text-[#153628]">One-Click Order / Cart</p>
+              <p class="text-xs text-stone-500">Add matched items to cart or place an instant COD order immediately.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 bg-[#1B4332]">4</span>
+            <div>
+              <p class="text-sm font-semibold text-[#153628]">Pharmacist Live Seal</p>
+              <p class="text-xs text-stone-500">Our licensed pharmacist verifies the items live before dispatching to your doorstep.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-6 bg-[#FDF8F0] border border-[#E9DFD0]">
+        <h4 class="text-xs font-bold uppercase tracking-widest mb-2 text-[#153628]"><i class="fas fa-truck-fast mr-1 text-[#1B6B47]"></i> Express Mumbai Delivery</h4>
+        <p class="text-xs text-stone-600 leading-relaxed mb-3">All verified prescription orders placed before 7:00 PM are dispatched on the same day across Mumbai, Thane, and Navi Mumbai.</p>
+        <div class="flex items-center gap-2 text-xs font-semibold text-[#1B6B47]">
+          <i class="fas fa-badge-check"></i> Free delivery on orders over ₹499
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ════ VIEW 2: SCANNING ANIMATION STATE ════ -->
+  <div id="view-scanning" class="hidden">
+    <div class="card max-w-2xl mx-auto p-8 md:p-12 text-center relative overflow-hidden scanner-grid border-2 border-[#1B6B47]/20 shadow-2xl">
+      <div class="scanner-laser"></div>
+      
+      <div class="relative z-20">
+        <div class="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center bg-white shadow-md border border-stone-100">
+          <i class="fas fa-wand-magic-sparkles text-3xl text-[#1B6B47] animate-pulse"></i>
+        </div>
+
+        <h2 class="font-display font-bold text-2xl text-[#153628] mb-2">Analyzing Prescription...</h2>
+        <p class="text-sm text-stone-600 mb-8 max-w-md mx-auto">
+          Our intelligent engine is decoding medication formulations, checking registered stock, and cross-referencing dosage regimens.
+        </p>
+
+        <!-- Progress Steps -->
+        <div class="space-y-3 text-left max-w-md mx-auto bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-stone-200">
+          <div id="scan-step-1" class="flex items-center gap-3 text-xs font-medium text-stone-700">
+            <i class="fas fa-circle-notch fa-spin text-[#1B6B47]"></i>
+            <span>Uploading high-resolution document...</span>
+          </div>
+          <div id="scan-step-2" class="flex items-center gap-3 text-xs font-medium text-stone-400">
+            <i class="fas fa-circle text-[10px]"></i>
+            <span>Deciphering handwriting &amp; medicine names...</span>
+          </div>
+          <div id="scan-step-3" class="flex items-center gap-3 text-xs font-medium text-stone-400">
+            <i class="fas fa-circle text-[10px]"></i>
+            <span>Cross-referencing live inventory &amp; prices...</span>
+          </div>
+          <div id="scan-step-4" class="flex items-center gap-3 text-xs font-medium text-stone-400">
+            <i class="fas fa-circle text-[10px]"></i>
+            <span>Configuring cart items &amp; pharmacist review queue...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ VIEW 3: AUTO-READ RESULTS & LIVE TRACKING DASHBOARD ════ -->
+  <div id="view-results" class="hidden">
+    
+    <!-- Top Meta Strip -->
+    <div class="card p-5 md:p-6 mb-6 flex flex-wrap items-center justify-between gap-4 border-l-4 border-l-[#1B4332]">
+      <div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-[#F0F7F4] text-[#1B4332] border border-[#B3DBC5]" id="res-ref-badge"></span>
+          <span id="res-status-pill" class="pill font-semibold text-xs px-3 py-1"></span>
+          <span class="text-xs text-stone-400" id="res-time-badge"></span>
+        </div>
+        <h2 class="font-display font-semibold text-xl text-[#153628] mt-1" id="res-patient-title">Prescription Scan Results</h2>
+      </div>
+
+      <div class="flex items-center gap-3 flex-wrap">
+        <a id="res-file-link" href="#" target="_blank" class="btn btn-outline btn-sm">
+          <i class="fas fa-file-arrow-down text-xs"></i> View Attached Slip
+        </a>
+        <button id="res-refresh-btn" class="btn btn-outline btn-sm" title="Refresh Live Status">
+          <i class="fas fa-rotate text-xs"></i> Live Sync
+        </button>
+        <button id="res-upload-another" class="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm">
+          <i class="fas fa-cloud-arrow-up text-xs"></i> Upload Another Prescription
+        </button>
+      </div>
+    </div>
+
+    <!-- Pharmacist Verification Seal (if verified) -->
+    <div id="res-verified-seal" class="hidden mb-6 card p-5 bg-[#F0FDF4] border border-[#BBF7D0]">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-[#22C55E]/10 text-[#16A34A]">
+          <i class="fas fa-shield-check text-2xl"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h4 class="font-bold text-sm text-[#14532D]">Clinically Verified by Registered Pharmacist</h4>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] font-medium" id="res-verified-by"></span>
+          </div>
+          <p class="text-xs text-[#166534] mt-0.5" id="res-pharmacist-notes"></p>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT: how it works -->
-    <aside>
-      <div class="card p-6 mb-4">
-        <h3 class="text-xs font-bold uppercase tracking-widest mb-5" style="color:#153628">How it works</h3>
-        <div class="space-y-5">
-          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">1</span><div><p class="text-sm font-semibold" style="color:#153628">Upload your prescription</p><p class="text-xs" style="color:rgba(0,0,0,.4)">Photo, scan or PDF — whatever is clear.</p></div></div>
-          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">2</span><div><p class="text-sm font-semibold" style="color:#153628">Pharmacist calls you</p><p class="text-xs" style="color:rgba(0,0,0,.4)">We verify the prescription with you by phone.</p></div></div>
-          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">3</span><div><p class="text-sm font-semibold" style="color:#153628">We source everything</p><p class="text-xs" style="color:rgba(0,0,0,.4)">100% genuine medicines, all in one order.</p></div></div>
-          <div class="flex gap-3"><span class="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0" style="background:#1B4332">4</span><div><p class="text-sm font-semibold" style="color:#153628">Delivered to your door</p><p class="text-xs" style="color:rgba(0,0,0,.4)">Same-day delivery within Mumbai.</p></div></div>
+    <!-- Order Placed Success Banner (if order placed) -->
+    <div id="res-order-placed-banner" class="hidden mb-6 card p-6 bg-[#FAF5FF] border border-[#E9D5FF]">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-[#A855F7]/10 text-[#9333EA]">
+            <i class="fas fa-box-check text-2xl"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-base text-[#581C87]">Prescription Order Confirmed!</h4>
+            <p class="text-xs text-[#6B21A8]">Order Number: <strong id="res-order-num" class="font-mono text-sm text-[#3B0764]"></strong></p>
+          </div>
+        </div>
+        <div>
+          <a id="res-track-order-link" href="#" class="btn btn-primary btn-sm">
+            <i class="fas fa-location-dot text-xs"></i> Track Order Live &rarr;
+          </a>
         </div>
       </div>
-      <div class="card p-6">
-        <h3 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#153628">Good to know</h3>
-        <ul class="space-y-3 text-xs" style="color:rgba(0,0,0,.55)">
-          <li class="flex gap-2.5"><i class="fas fa-check mt-0.5" style="color:#1B6B47"></i>Prescriptions are verified by a licensed pharmacist (Govt. certified)</li>
-          <li class="flex gap-2.5"><i class="fas fa-check mt-0.5" style="color:#1B6B47"></i>Scheduled/Habit-forming medicines follow Schedule H rules strictly</li>
-          <li class="flex gap-2.5"><i class="fas fa-check mt-0.5" style="color:#1B6B47"></i>Your files stay private — never shared with third parties</li>
-        </ul>
+    </div>
+
+    <!-- Grid: Available vs Unavailable Items -->
+    <div class="grid lg:grid-cols-3 gap-8 mb-8">
+
+      <!-- LEFT: Available Medicines List (2 cols) -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Available in Store -->
+        <div class="card p-6 md:p-8">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <h3 class="font-display font-semibold text-lg text-[#153628]">Available in Store (Ready to Dispatch)</h3>
+              </div>
+              <p class="text-xs text-stone-500 mt-0.5">Matched from doctor prescription against Mumbai licensed pharmacy inventory</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btn-toggle-select" class="text-xs font-semibold text-[#1B6B47] hover:underline">Select All</button>
+            </div>
+          </div>
+
+          <!-- List Container -->
+          <div id="matched-items-list" class="space-y-4 mb-6">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Subtotal & Actions Bar -->
+          <div class="border-t border-stone-200 pt-5 mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="text-xs text-stone-500">Selected Items Subtotal:</div>
+              <div class="text-2xl font-bold text-[#153628]" id="matched-subtotal">₹0</div>
+              <div class="text-[11px] text-emerald-700 font-medium" id="matched-delivery-note">Free Delivery applied</div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" id="btn-add-matched-cart" class="btn btn-outline text-sm">
+                <i class="fas fa-cart-plus text-xs"></i> Add Selected to Cart
+              </button>
+              <button type="button" id="btn-instant-order" class="btn btn-primary text-sm shadow-md">
+                <i class="fas fa-bolt text-xs text-[#C5A55A]"></i> Express Place Order (COD)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Out of Stock in Store -->
+        <div id="outofstock-card" class="card p-6 bg-[#FEF2F2] border border-[#FECACA] hidden">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#EF4444]/20 text-[#B91C1C]">
+              <i class="fas fa-boxes-stacked text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-sm text-[#991B1B]">Out of Stock in Store (0 units left)</h3>
+              <p class="text-[11px] text-[#B91C1C]">Formulations carried in our catalog that are currently depleted</p>
+            </div>
+          </div>
+          <div id="outofstock-items-list" class="space-y-3 mb-2">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- 3. Unavailable / Special Wholesale Sourcing Required (with In-Stock Suggestions) -->
+        <div id="unavailable-card" class="card p-6 bg-[#FFFBEB] border border-[#FDE68A] hidden">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#F59E0B]/20 text-[#B45309]">
+              <i class="fas fa-dolly text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-sm text-[#92400E]">Special Wholesale Sourcing Required (Not in Retail Catalog)</h3>
+              <p class="text-[11px] text-[#B45309]">Prescribed by doctor — our pharmacist will procure directly from wholesale distributors</p>
+            </div>
+          </div>
+          <div id="unavailable-items-list" class="space-y-4 mb-4">
+            <!-- Injected via JS -->
+          </div>
+          <p class="text-[11px] text-[#92400E] bg-white/70 p-3 rounded-lg border border-[#FDE68A]/60 flex items-start gap-2">
+            <i class="fas fa-info-circle text-xs mt-0.5 flex-shrink-0"></i>
+            <span>Our licensed pharmacy team contacts authorized wholesale distributors across Mumbai to procure these exact medicines. We will call you before delivery to confirm.</span>
+          </p>
+        </div>
+
+        <!-- 4. Unclear / Stylized Handwriting Flagged -->
+        <div id="unclear-card" class="card p-5 bg-[#F8FAFC] border border-[#E2E8F0] hidden">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-stone-200 text-stone-600">
+              <i class="fas fa-signature text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-xs text-stone-800">⚠️ Flagged for Pharmacist Clinical Verification</h3>
+              <p class="text-[10px] text-stone-400">Portions of doctor slip require licensed pharmacist visual inspection</p>
+            </div>
+          </div>
+          <div id="unclear-items-list" class="space-y-2 text-xs text-stone-600 bg-white p-3 rounded-lg border border-stone-200">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
       </div>
-    </aside>
+
+      <!-- RIGHT: Status Tracker & Pharmacist Notes -->
+      <aside class="space-y-6">
+
+        <!-- Real-Time Lifecycle Tracker -->
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-[#153628]">Prescription Status</h3>
+            <span class="live-dot" title="Live Syncing"></span>
+          </div>
+
+          <div class="space-y-5 relative before:absolute before:left-3.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-stone-200">
+            <!-- Step 1 -->
+            <div class="flex gap-4 relative" id="track-step-1">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white bg-[#1B4332] z-10 shadow">
+                <i class="fas fa-check text-[10px]"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-[#153628]">Uploaded &amp; AI Read</p>
+                <p class="text-[11px] text-stone-500">Medicines scanned &amp; matched</p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex gap-4 relative" id="track-step-2">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-stone-500 bg-stone-200 z-10 shadow" id="track-icon-2">
+                2
+              </div>
+              <div>
+                <p class="text-xs font-bold text-stone-700" id="track-title-2">Pharmacist Verification</p>
+                <p class="text-[11px] text-stone-500" id="track-sub-2">Pending clinical sign-off</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flex gap-4 relative" id="track-step-3">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-stone-500 bg-stone-200 z-10 shadow" id="track-icon-3">
+                3
+              </div>
+              <div>
+                <p class="text-xs font-bold text-stone-700" id="track-title-3">Order Formulation</p>
+                <p class="text-[11px] text-stone-500" id="track-sub-3">Waiting for order confirmation</p>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flex gap-4 relative" id="track-step-4">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-stone-500 bg-stone-200 z-10 shadow" id="track-icon-4">
+                4
+              </div>
+              <div>
+                <p class="text-xs font-bold text-stone-700" id="track-title-4">Dispatched &amp; Delivered</p>
+                <p class="text-[11px] text-stone-500" id="track-sub-4">Doorstep Mumbai delivery</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact & Patient Snapshot -->
+        <div class="card p-6 text-xs space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-[#153628] mb-2">Prescription Details</h3>
+          <div class="flex justify-between py-1 border-b border-stone-100">
+            <span class="text-stone-400">Patient Name</span>
+            <span class="font-semibold text-[#153628]" id="res-patient-name"></span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-stone-100">
+            <span class="text-stone-400">Contact Mobile</span>
+            <span class="font-semibold text-[#153628]" id="res-patient-phone"></span>
+          </div>
+          <div class="py-1">
+            <span class="text-stone-400 block mb-1">Customer Notes</span>
+            <p class="text-stone-700 bg-stone-50 p-2 rounded-lg italic" id="res-patient-notes">None provided</p>
+          </div>
+        </div>
+
+        <!-- Pharmacist Help Line -->
+        <div class="card p-5 bg-[#1B4332] text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/10 text-[#C5A55A]">
+              <i class="fas fa-headset text-base"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-[#C5A55A]">Need Help?</div>
+              <div class="text-sm font-semibold">Talk to Our Pharmacist</div>
+            </div>
+          </div>
+          <p class="text-xs text-white/70 mb-3">Questions about generic alternatives, dosages, or drug interactions?</p>
+          <a href="tel:+919876543210" class="btn btn-gold btn-sm w-full text-xs">
+            <i class="fas fa-phone text-xs"></i> Call Pharmacist: +91 98765 43210
+          </a>
+        </div>
+
+      </aside>
+
+    </div>
   </div>
+
 </main>
+
+<!-- ════ INSTANT ORDER MODAL ════ -->
+<div id="order-modal" class="modal-bg hidden">
+  <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-display font-semibold text-lg text-[#153628] flex items-center gap-2">
+        <i class="fas fa-bolt text-[#C5A55A]"></i> Confirm Prescription Order
+      </h3>
+      <button id="close-order-modal" class="w-9 h-9 rounded-xl hover:bg-black/5 flex items-center justify-center text-stone-400">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="instant-order-form" class="space-y-4">
+      <div class="p-3 rounded-xl bg-[#F0F7F4] text-xs text-[#1B6B47] mb-2">
+        We'll dispatch the selected medicines directly to your address with Cash on Delivery (COD).
+      </div>
+
+      <div class="field">
+        <label class="field-label">Delivery Address *</label>
+        <textarea id="ord-address" class="textarea" rows="2" required placeholder="Flat / House No., Building Name, Street..."></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="field">
+          <label class="field-label">City *</label>
+          <input id="ord-city" class="input" value="Mumbai" required/>
+        </div>
+        <div class="field">
+          <label class="field-label">Pincode *</label>
+          <input id="ord-pin" class="input" maxlength="6" inputmode="numeric" required placeholder="400050"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Payment Method</label>
+        <div class="p-3 rounded-xl border border-stone-200 flex items-center gap-3">
+          <i class="fas fa-money-bill-wave text-emerald-600 text-lg"></i>
+          <div>
+            <div class="text-xs font-semibold text-stone-800">Cash on Delivery (COD)</div>
+            <div class="text-[11px] text-stone-400">Pay cash or scan QR upon doorstep delivery</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-stone-50 border border-stone-200 text-xs flex justify-between font-bold text-stone-800">
+        <span>Total Payable:</span>
+        <span id="ord-modal-total" class="text-[#1B4332]">₹0</span>
+      </div>
+
+      <button type="submit" id="ord-submit-btn" class="btn btn-primary w-full text-base py-3">
+        Confirm &amp; Place Prescription Order
+      </button>
+    </form>
+  </div>
+</div>
 
 <div id="site-footer"></div>
 
@@ -113,70 +548,143 @@
 (function () {
   'use strict';
 
-  const dz = document.getElementById('dropzone');
-  const input = document.getElementById('file-input');
-  let file = null;
+  const $ = id => document.getElementById(id);
 
-  // prefill if logged in
+  let currentRx = null;
+  let pollInterval = null;
+
+  // View containers
+  const viewUpload = $('view-upload');
+  const viewScanning = $('view-scanning');
+  const viewResults = $('view-results');
+
+  // File Upload Elements
+  const dz = $('dropzone');
+  const fileInput = $('file-input');
+  let selectedFile = null;
+
+  // Prefill user details if logged in
   try {
     const u = JSON.parse(localStorage.getItem('vrinda_user') || 'null');
     if (u) {
-      document.getElementById('rx-name').value = u.name || '';
-      document.getElementById('rx-phone').value = u.phone || '';
+      if ($('rx-name')) $('rx-name').value = u.name || '';
+      if ($('rx-phone')) $('rx-phone').value = u.phone || '';
     }
   } catch (e) {}
 
-  const OK_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+  const OK_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'image/webp'];
   const MAX = 5 * 1024 * 1024;
 
   function setFile(f) {
-    if (!OK_TYPES.includes(f.type)) { VrindaToast('Only JPG, PNG or PDF files allowed'); return; }
-    if (f.size > MAX) { VrindaToast('File too large — maximum 5MB'); return; }
-    file = f;
+    if (!f) return;
+    const ext = (f.name || '').split('.').pop().toLowerCase();
+    const isAllowedExt = ['jpg', 'jpeg', 'png', 'pdf', 'webp'].includes(ext);
+    const isAllowedMime = f.type ? (OK_TYPES.includes(f.type) || f.type.startsWith('image/')) : isAllowedExt;
+    
+    if (!isAllowedExt && !isAllowedMime) {
+      VrindaToast('⚠️ Please choose a JPG, PNG, WebP or PDF file');
+      return;
+    }
+    if (f.size > MAX) {
+      VrindaToast('⚠️ File too large — maximum allowed size is 5MB');
+      return;
+    }
+    selectedFile = f;
 
-    const preview = document.getElementById('file-preview');
-    const img = document.getElementById('preview-img');
-    const icon = document.getElementById('preview-icon');
-    if (f.type === 'application/pdf') { img.classList.add('hidden'); icon.classList.remove('hidden'); img.src = ''; }
-    else { icon.classList.add('hidden'); img.classList.remove('hidden'); img.src = URL.createObjectURL(f); }
+    const preview = $('file-preview');
+    const img = $('preview-img');
+    const icon = $('preview-icon');
+    if (f.type === 'application/pdf' || ext === 'pdf') {
+      img.classList.add('hidden');
+      icon.classList.remove('hidden');
+      img.src = '';
+    } else {
+      icon.classList.add('hidden');
+      img.classList.remove('hidden');
+      img.src = URL.createObjectURL(f);
+    }
 
-    document.getElementById('preview-name').textContent = f.name;
-    document.getElementById('preview-size').textContent = (f.size / 1024).toFixed(0) + ' KB';
+    $('preview-name').textContent = f.name;
+    $('preview-size').textContent = (f.size / 1024).toFixed(0) + ' KB';
     preview.classList.remove('hidden');
-    dz.style.display = 'none';
+    dz.classList.add('hidden');
   }
 
   function clearFile() {
-    file = null;
-    document.getElementById('file-preview').classList.add('hidden');
-    dz.style.display = '';
-    input.value = '';
+    selectedFile = null;
+    $('file-preview').classList.add('hidden');
+    dz.classList.remove('hidden');
+    fileInput.value = '';
   }
 
-  dz.addEventListener('click', () => input.click());
-  input.addEventListener('change', () => { if (input.files[0]) setFile(input.files[0]); });
-  document.getElementById('remove-file').addEventListener('click', clearFile);
+  fileInput.addEventListener('click', e => e.stopPropagation());
+  fileInput.addEventListener('change', () => { if (fileInput.files && fileInput.files[0]) setFile(fileInput.files[0]); });
+  $('remove-file').addEventListener('click', clearFile);
 
   ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
   ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-  dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
-
-  document.getElementById('rx-form').addEventListener('submit', async e => {
+  dz.addEventListener('drop', e => {
     e.preventDefault();
-    if (!file) { VrindaToast('Please attach your prescription file'); return; }
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  });
 
-    const phone = document.getElementById('rx-phone').value.trim();
-    if (!/^\d{10}$/.test(phone)) { VrindaToast('Enter a valid 10-digit mobile number'); return; }
+  // ════════════════════════════════════════════════
+  // Form Submission & Scanning Animation Sequence
+  // ════════════════════════════════════════════════
+  $('rx-form').addEventListener('submit', async e => {
+    e.preventDefault();
 
-    const btn = document.getElementById('rx-submit');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Uploading...';
+    if (!selectedFile) {
+      VrindaToast('⚠️ Please choose or drop your prescription file first');
+      dz.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const name = $('rx-name').value.trim();
+    if (!name) {
+      VrindaToast('⚠️ Please enter your name');
+      $('rx-name').focus();
+      return;
+    }
+
+    const phone = $('rx-phone').value.trim();
+    if (!phone || !/^\d{10}$/.test(phone)) {
+      VrindaToast('⚠️ Please enter a valid 10-digit mobile number');
+      $('rx-phone').focus();
+      return;
+    }
+
+    const notes = $('rx-notes').value.trim();
+    const submitBtn = $('rx-submit');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-sm"></i> Uploading &amp; Reading...';
+
+    // Switch to Scanning view
+    viewUpload.classList.add('hidden');
+    viewResults.classList.add('hidden');
+    viewScanning.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Step-by-step scanner animation logs
+    setTimeout(() => {
+      $('scan-step-1').innerHTML = '<i class="fas fa-check text-emerald-600"></i> <span class="text-emerald-800 font-semibold">Prescription image uploaded</span>';
+      $('scan-step-2').className = 'flex items-center gap-3 text-xs font-medium text-stone-700';
+      $('scan-step-2').innerHTML = '<i class="fas fa-circle-notch fa-spin text-[#1B6B47]"></i> <span>Deciphering handwriting &amp; medicine names...</span>';
+    }, 800);
+
+    setTimeout(() => {
+      $('scan-step-2').innerHTML = '<i class="fas fa-check text-emerald-600"></i> <span class="text-emerald-800 font-semibold">Formulations identified</span>';
+      $('scan-step-3').className = 'flex items-center gap-3 text-xs font-medium text-stone-700';
+      $('scan-step-3').innerHTML = '<i class="fas fa-circle-notch fa-spin text-[#1B6B47]"></i> <span>Cross-referencing live inventory &amp; prices...</span>';
+    }, 1800);
 
     const fd = new FormData();
-    fd.append('prescription', file);
-    fd.append('name', document.getElementById('rx-name').value.trim());
+    fd.append('prescription', selectedFile);
+    fd.append('name', name);
     fd.append('phone', phone);
-    fd.append('notes', document.getElementById('rx-notes').value.trim());
+    fd.append('notes', notes);
 
     const headers = {};
     const tok = localStorage.getItem('vrinda_token');
@@ -187,17 +695,562 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
 
-      document.getElementById('succ-phone').textContent = phone;
-      document.getElementById('succ-ref').textContent = String(data.reference).slice(-8).toUpperCase();
-      document.getElementById('rx-card').classList.add('hidden');
-      document.getElementById('rx-success').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        $('scan-step-3').innerHTML = '<i class="fas fa-check text-emerald-600"></i> <span class="text-emerald-800 font-semibold">Medicines matched to store inventory</span>';
+        $('scan-step-4').className = 'flex items-center gap-3 text-xs font-medium text-emerald-800 font-semibold';
+        $('scan-step-4').innerHTML = '<i class="fas fa-check text-emerald-600"></i> <span>Prescription scan complete!</span>';
+      }, 2500);
+
+      // Render results view after scan completes
+      setTimeout(() => {
+        currentRx = data.prescription;
+        history.replaceState(null, '', `prescription.html?id=${currentRx._id}`);
+        renderPrescriptionResults(currentRx);
+        startPolling(currentRx._id);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-cloud-arrow-up text-sm"></i> Upload &amp; Auto-Read Prescription';
+      }, 3000);
+
+    } catch (err) {
+      VrindaToast(err.message || 'Prescription upload failed. Please try again.');
+      viewScanning.classList.add('hidden');
+      viewUpload.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-cloud-arrow-up text-sm"></i> Upload &amp; Auto-Read Prescription';
+    }
+  });
+
+  // ════════════════════════════════════════════════
+  // Render Prescription Results Screen
+  // ════════════════════════════════════════════════
+  function renderPrescriptionResults(rx) {
+    currentRx = rx;
+    viewUpload.classList.add('hidden');
+    viewScanning.classList.add('hidden');
+    viewResults.classList.remove('hidden');
+
+    $('top-pill-status').classList.remove('hidden');
+
+    // Meta strip
+    $('res-ref-badge').textContent = 'REF: ' + String(rx._id).slice(-8).toUpperCase();
+    $('res-time-badge').textContent = new Date(rx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    $('res-patient-title').textContent = `Prescription for ${rx.name}`;
+    $('res-patient-name').textContent = rx.name;
+    $('res-patient-phone').textContent = rx.phone;
+    $('res-patient-notes').textContent = rx.notes || 'None provided';
+    $('res-file-link').href = rx.fileUrl;
+
+    // Status Pill
+    const STATUS_MAP = {
+      new: ['#B45309', '#FEF3C7', 'Uploaded'],
+      analyzed: ['#1D4ED8', '#DBEAFE', 'Scanned & Ready'],
+      contacted: ['#0369A1', '#E0F2FE', 'Pharmacist Contacted'],
+      verified: ['#15803D', '#DCFCE7', 'Pharmacist Verified ✓'],
+      order_placed: ['#7E22CE', '#F3E8FF', 'Order Placed'],
+      fulfilled: ['#166534', '#BBF7D0', 'Fulfilled & Delivered'],
+      rejected: ['#B91C1C', '#FEE2E2', 'Rejected']
+    };
+    const [fg, bg, label] = STATUS_MAP[rx.status] || ['#333', '#eee', rx.status];
+    const sp = $('res-status-pill');
+    sp.style.color = fg;
+    sp.style.background = bg;
+    sp.textContent = label;
+
+    // Pharmacist Verification Seal
+    if (rx.status === 'verified' || rx.verifiedBy) {
+      $('res-verified-seal').classList.remove('hidden');
+      $('res-verified-by').textContent = `Verified by: ${rx.verifiedBy || 'Licensed Pharmacist'}`;
+      $('res-pharmacist-notes').textContent = rx.pharmacistNotes || 'All dosages, formulations, and quantities confirmed safe and compliant.';
+    } else {
+      $('res-verified-seal').classList.add('hidden');
+    }
+
+    // Order Placed Banner
+    if (rx.orderNumber) {
+      $('res-order-placed-banner').classList.remove('hidden');
+      $('res-order-num').textContent = rx.orderNumber;
+      $('res-track-order-link').href = `track.html?order=${rx.orderNumber}`;
+      $('btn-instant-order').disabled = true;
+      $('btn-instant-order').textContent = 'Order Already Placed ✓';
+    } else {
+      $('res-order-placed-banner').classList.add('hidden');
+      $('btn-instant-order').disabled = false;
+      $('btn-instant-order').innerHTML = '<i class="fas fa-bolt text-xs text-[#C5A55A]"></i> Express Place Order (COD)';
+    }
+
+    // Render Timeline Steps
+    updateTimeline(rx.status);
+
+    // Render Matched Items
+    const matched = rx.matchedItems || [];
+    const list = $('matched-items-list');
+
+    if (matched.length === 0) {
+      list.innerHTML = `<div class="p-6 text-center text-sm text-stone-600 bg-stone-50 rounded-xl border border-stone-200">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center bg-emerald-50 text-[#1B6B47] text-xl">
+          <i class="fas fa-stethoscope"></i>
+        </div>
+        <h4 class="font-bold text-stone-800 text-sm mb-1">Prescription Received for Pharmacist Review</h4>
+        <p class="text-xs text-stone-500 max-w-md mx-auto">
+          No automated catalog medicines were matched from the uploaded image. Our licensed pharmacist will manually examine your doctor slip and call you to arrange the exact medicines.
+        </p>
+      </div>`;
+      $('btn-add-matched-cart').classList.add('hidden');
+      $('btn-instant-order').classList.add('hidden');
+      $('btn-toggle-select').classList.add('hidden');
+      $('matched-subtotal').textContent = '₹0';
+      $('matched-delivery-note').textContent = 'Pharmacist will confirm pricing during phone consultation';
+    } else {
+      $('btn-add-matched-cart').classList.remove('hidden');
+      $('btn-instant-order').classList.remove('hidden');
+      $('btn-toggle-select').classList.remove('hidden');
+      list.innerHTML = matched.map((item, idx) => `
+        <div class="rx-item-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-stone-200 hover:border-emerald-700/30 transition-all bg-white" data-index="${idx}">
+          <div class="flex items-start sm:items-center gap-3">
+            <input type="checkbox" class="rx-item-chk w-5 h-5 mt-1 sm:mt-0 rounded accent-[#1B4332] cursor-pointer" data-index="${idx}" ${item.isAvailable ? 'checked' : 'disabled'}/>
+            <div class="w-14 h-14 rounded-lg overflow-hidden flex items-center justify-center bg-stone-50 border border-stone-100 flex-shrink-0">
+              ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover"/>` : `<i class="fas fa-pills text-lg text-emerald-800"></i>`}
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-bold text-sm text-[#153628]">${item.name}</h4>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                  In Stock (Qty: ${item.stock})
+                </span>
+              </div>
+              <p class="text-xs text-stone-400 font-medium">${item.brand || 'Vrinda Care'} ${item.pack ? '· ' + item.pack : ''}</p>
+              ${item.prescribedAs && item.prescribedAs.toLowerCase() !== item.name.toLowerCase() ? `
+              <div class="text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md mt-1 inline-flex items-center gap-1.5 flex-wrap">
+                <i class="fas fa-check-double text-[10px] text-emerald-600"></i> ${item.matchType || 'Generic Chemical Match'} for: <strong>"${item.prescribedAs}"</strong>
+              </div>` : ''}
+              <div class="mt-1 flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
+                <i class="fas fa-prescription text-[10px]"></i>
+                <span>${item.dosage || '1 dose daily as directed'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+            <div class="text-right">
+              <div class="text-base font-bold text-[#153628]">₹${item.price}</div>
+              <div class="text-[10px] text-stone-400">per pack</div>
+            </div>
+            <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden">
+              <button type="button" class="rx-qty-dec w-8 h-8 flex items-center justify-center hover:bg-stone-100 text-xs font-bold" data-index="${idx}">−</button>
+              <span class="rx-qty-val w-8 text-center text-xs font-bold" id="qty-val-${idx}">${item.qty || 1}</span>
+              <button type="button" class="rx-qty-inc w-8 h-8 flex items-center justify-center hover:bg-stone-100 text-xs font-bold" data-index="${idx}">+</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Helper to render alternative options list
+    function renderAlternativesList(it, badgeClass, badgeText) {
+      const sugs = (it.suggestedAlternatives && it.suggestedAlternatives.length > 0)
+        ? it.suggestedAlternatives
+        : (it.suggestedAlternative ? [it.suggestedAlternative] : []);
+
+      if (sugs.length === 0) {
+        return `
+        <div class="text-[11px] text-stone-400 bg-stone-50 p-2.5 rounded-lg italic mt-2">
+          Schedule H Prescription Formulation — Pharmacist will procure the exact prescribed medication from authorized wholesale distributors before dispatch.
+        </div>`;
+      }
+
+      return `
+      <div class="mt-2.5 space-y-2">
+        <div class="text-[11px] font-bold text-stone-600 flex items-center gap-1.5">
+          <i class="fas fa-lightbulb text-amber-600 text-xs"></i>
+          <span>${sugs.length > 1 ? 'Available In-Stock Alternate Options (' + sugs.length + '):' : 'Available In-Stock Alternative:'}</span>
+        </div>
+        ${sugs.map((sug, sIdx) => `
+        <div class="p-3 rounded-xl bg-stone-50 border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-600/40 transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-lg overflow-hidden bg-white border border-stone-200 flex items-center justify-center flex-shrink-0">
+              ${sug.image ? `<img src="${sug.image}" class="w-full h-full object-cover"/>` : `<i class="fas fa-pills text-sm text-[#1B6B47]"></i>`}
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-bold ${badgeClass} uppercase tracking-wider px-2 py-0.5 rounded">Option ${sIdx + 1}: ${badgeText}</span>
+                <span class="text-[10px] font-semibold text-emerald-800 bg-white border border-emerald-200 px-2 py-0.5 rounded">In Stock (${sug.stock})</span>
+              </div>
+              <h5 class="font-bold text-xs text-stone-800 mt-0.5">${sug.name} <span class="font-normal text-stone-400">(${sug.brand || 'Vrinda'} ${sug.pack ? '· ' + sug.pack : ''})</span></h5>
+              <p class="text-[11px] text-stone-600 mt-0.5"><em>${sug.clinicalNote}</em></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 justify-end flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+            <span class="font-bold text-sm text-[#153628]">₹${sug.price}</span>
+            <button type="button" class="btn-add-suggestion btn btn-primary btn-sm text-xs py-1.5 px-3" data-sug='${JSON.stringify(sug).replace(/'/g, "&apos;")}'>
+              <i class="fas fa-cart-plus text-[10px]"></i> Add to Cart
+            </button>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    // 2. Render Out of Stock Items (if any in catalog are depleted)
+    const allUnavail = rx.unavailableItems || [];
+    const outOfStockItems = allUnavail.filter(i => i.status === 'out_of_stock');
+    const oosCard = $('outofstock-card');
+    const oosList = $('outofstock-items-list');
+
+    if (outOfStockItems.length === 0) {
+      oosCard.classList.add('hidden');
+    } else {
+      oosCard.classList.remove('hidden');
+      oosList.innerHTML = outOfStockItems.map(it => `
+        <div class="p-4 rounded-xl bg-white border border-red-200 shadow-sm">
+          <div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+            <span class="font-bold text-xs text-red-950">${it.prescribedName || it.name}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-800">
+              <i class="fas fa-boxes-stacked text-[9px] mr-1"></i>Out of Stock (0 units left in store)
+            </span>
+          </div>
+          <div class="text-[11px] text-stone-500 mb-1">${it.reason} ${it.dosage ? '· <strong>Regimen:</strong> ' + it.dosage : ''}</div>
+          ${renderAlternativesList(it, 'bg-emerald-100 text-emerald-900', 'In-Stock Generic Alternative')}
+        </div>
+      `).join('');
+    }
+
+    // 3. Render Unavailable / Special Sourcing Required (Not in retail catalog)
+    const unavailRetailItems = allUnavail.filter(i => i.status !== 'out_of_stock');
+    const unavailCard = $('unavailable-card');
+    const unavailList = $('unavailable-items-list');
+
+    if (unavailRetailItems.length === 0) {
+      unavailCard.classList.add('hidden');
+    } else {
+      unavailCard.classList.remove('hidden');
+      unavailList.innerHTML = unavailRetailItems.map(it => `
+        <div class="p-4 rounded-xl bg-white/95 border border-[#FDE68A] shadow-sm">
+          <div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+            <span class="font-bold text-xs text-stone-900">${it.prescribedName || it.name}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#FEF3C7] text-[#92400E]">
+              <i class="fas fa-dolly text-[9px] mr-1"></i>Special Wholesale Sourcing Required
+            </span>
+          </div>
+          <div class="text-[11px] text-stone-500 mb-1">
+            ${it.dosage ? '<strong>Regimen:</strong> ' + it.dosage + ' · ' : ''}Prescribed formulation not carried in retail stock — our pharmacist will procure directly from wholesale distributor.
+          </div>
+          ${renderAlternativesList(it, 'bg-amber-100 text-amber-900', 'Suggested Alternative / Supportive Care')}
+        </div>
+      `).join('');
+    }
+
+    // 4. Render Unclear / Stylized Handwriting Flagged items (if any)
+    const unclear = rx.unclearItems || [];
+    const unclearCard = $('unclear-card');
+    const unclearList = $('unclear-items-list');
+
+    if (unclear.length === 0) {
+      unclearCard.classList.add('hidden');
+    } else {
+      unclearCard.classList.remove('hidden');
+      unclearList.innerHTML = unclear.map(u => `
+        <div class="p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+          <p class="font-medium text-stone-700 italic">"${u.rawText || 'Handwritten notations'}"</p>
+          <span class="text-[10px] text-amber-800 mt-1 block">${u.reason}</span>
+        </div>
+      `).join('');
+    }
+
+    updateSubtotal();
+  }
+
+  // ════════════════════════════════════════════════
+  // Timeline Progress Update
+  // ════════════════════════════════════════════════
+  function updateTimeline(status) {
+    const isStep2 = ['verified', 'order_placed', 'fulfilled'].includes(status);
+    const isStep3 = ['order_placed', 'fulfilled'].includes(status);
+    const isStep4 = status === 'fulfilled';
+
+    // Step 2: Pharmacist Verification
+    if (isStep2) {
+      $('track-icon-2').className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white bg-[#1B4332] z-10 shadow';
+      $('track-icon-2').innerHTML = '<i class="fas fa-check text-[10px]"></i>';
+      $('track-title-2').className = 'text-xs font-bold text-[#153628]';
+      $('track-sub-2').textContent = 'Clinically certified by pharmacist ✓';
+    }
+
+    // Step 3: Order Formulation
+    if (isStep3) {
+      $('track-icon-3').className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white bg-[#1B4332] z-10 shadow';
+      $('track-icon-3').innerHTML = '<i class="fas fa-check text-[10px]"></i>';
+      $('track-title-3').className = 'text-xs font-bold text-[#153628]';
+      $('track-sub-3').textContent = 'Order dispatched to pharmacy desk';
+    }
+
+    // Step 4: Delivered
+    if (isStep4) {
+      $('track-icon-4').className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white bg-[#16A34A] z-10 shadow';
+      $('track-icon-4').innerHTML = '<i class="fas fa-check text-[10px]"></i>';
+      $('track-title-4').className = 'text-xs font-bold text-[#16A34A]';
+      $('track-sub-4').textContent = 'Delivered to your doorstep ✓';
+    }
+  }
+
+  // ════════════════════════════════════════════════
+  // Quantity and Checkbox Event Delegation
+  // ════════════════════════════════════════════════
+  $('matched-items-list').addEventListener('click', e => {
+    const dec = e.target.closest('.rx-qty-dec');
+    if (dec) {
+      const idx = Number(dec.dataset.index);
+      if (currentRx.matchedItems[idx].qty > 1) {
+        currentRx.matchedItems[idx].qty--;
+        $('qty-val-' + idx).textContent = currentRx.matchedItems[idx].qty;
+        updateSubtotal();
+      }
+      return;
+    }
+
+    const inc = e.target.closest('.rx-qty-inc');
+    if (inc) {
+      const idx = Number(inc.dataset.index);
+      currentRx.matchedItems[idx].qty = (currentRx.matchedItems[idx].qty || 1) + 1;
+      $('qty-val-' + idx).textContent = currentRx.matchedItems[idx].qty;
+      updateSubtotal();
+      return;
+    }
+
+    if (e.target.matches('.rx-item-chk')) {
+      updateSubtotal();
+    }
+  });
+
+  // Add suggested alternative to cart
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-add-suggestion');
+    if (!btn) return;
+    try {
+      const sug = JSON.parse(btn.dataset.sug);
+      if (!window.VrindaCart) return VrindaToast('Cart system not available');
+      const ok = window.VrindaCart.add({
+        _id: sug.productId,
+        name: sug.name,
+        brand: sug.brand || '',
+        pack: sug.pack || '',
+        price: sug.price,
+        image: sug.image || '',
+        requiresPrescription: false
+      }, 1);
+      if (ok) {
+        VrindaToast(`Added ${sug.name} to cart ✓`);
+      }
+    } catch (err) {
+      VrindaToast('Could not add alternative to cart');
+    }
+  });
+
+  // Select all / deselect all
+  $('btn-toggle-select').addEventListener('click', () => {
+    const chks = document.querySelectorAll('.rx-item-chk:not(:disabled)');
+    const allChecked = Array.from(chks).every(c => c.checked);
+    chks.forEach(c => c.checked = !allChecked);
+    $('btn-toggle-select').textContent = allChecked ? 'Select All' : 'Deselect All';
+    updateSubtotal();
+  });
+
+  function getSelectedItems() {
+    if (!currentRx || !currentRx.matchedItems) return [];
+    const chks = document.querySelectorAll('.rx-item-chk');
+    const selected = [];
+    chks.forEach(c => {
+      if (c.checked) {
+        const idx = Number(c.dataset.index);
+        selected.push(currentRx.matchedItems[idx]);
+      }
+    });
+    return selected;
+  }
+
+  function updateSubtotal() {
+    const items = getSelectedItems();
+    const subtotal = items.reduce((s, it) => s + (it.price * (it.qty || 1)), 0);
+    $('matched-subtotal').textContent = `₹${subtotal}`;
+    
+    if (subtotal >= 499) {
+      $('matched-delivery-note').textContent = 'Free Delivery applied (over ₹499)';
+      $('matched-delivery-note').className = 'text-[11px] text-emerald-700 font-medium';
+    } else if (subtotal > 0) {
+      $('matched-delivery-note').textContent = `Add ₹${499 - subtotal} more for Free Delivery (+₹40 delivery)`;
+      $('matched-delivery-note').className = 'text-[11px] text-amber-700 font-medium';
+    } else {
+      $('matched-delivery-note').textContent = 'Select medicines to proceed';
+    }
+  }
+
+  // ════════════════════════════════════════════════
+  // Add Selected to Cart Action
+  // ════════════════════════════════════════════════
+  $('btn-add-matched-cart').addEventListener('click', () => {
+    const selected = getSelectedItems();
+    if (selected.length === 0) {
+      VrindaToast('Please select at least one medicine');
+      return;
+    }
+
+    if (!window.VrindaCart) {
+      VrindaToast('Cart system unavailable');
+      return;
+    }
+
+    let addedCount = 0;
+    for (const item of selected) {
+      const ok = window.VrindaCart.add({
+        _id: item.productId,
+        name: item.name,
+        brand: item.brand,
+        pack: item.pack,
+        price: item.price,
+        image: item.image,
+        requiresPrescription: true
+      }, item.qty || 1);
+      if (ok) addedCount++;
+    }
+
+    if (addedCount > 0) {
+      VrindaToast(`${addedCount} prescription medicines added to cart!`);
+      setTimeout(() => {
+        if (confirm(`${addedCount} items added to your cart. Go to cart page now?`)) {
+          location.href = 'cart.html';
+        }
+      }, 500);
+    }
+  });
+
+  // ════════════════════════════════════════════════
+  // Instant Order Modal & Submission
+  // ════════════════════════════════════════════════
+  $('btn-instant-order').addEventListener('click', () => {
+    const selected = getSelectedItems();
+    if (selected.length === 0) {
+      VrindaToast('Please select at least one medicine to order');
+      return;
+    }
+
+    const subtotal = selected.reduce((s, it) => s + (it.price * (it.qty || 1)), 0);
+    const delFee = subtotal >= 499 ? 0 : 40;
+    const total = subtotal + delFee;
+
+    $('ord-modal-total').textContent = `₹${total} (Subtotal: ₹${subtotal} + Delivery: ₹${delFee})`;
+    $('order-modal').classList.remove('hidden');
+  });
+
+  $('close-order-modal').addEventListener('click', () => $('order-modal').classList.add('hidden'));
+
+  $('instant-order-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!currentRx) return;
+
+    const selected = getSelectedItems();
+    const btn = $('ord-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-sm"></i> Placing Order...';
+
+    const body = {
+      selectedItems: selected,
+      address: {
+        line1: $('ord-address').value.trim(),
+        city: $('ord-city').value.trim(),
+        state: 'Maharashtra',
+        pincode: $('ord-pin').value.trim(),
+      },
+      paymentMethod: 'cod'
+    };
+
+    const headers = { 'Content-Type': 'application/json' };
+    const tok = localStorage.getItem('vrinda_token');
+    if (tok) headers.Authorization = 'Bearer ' + tok;
+
+    try {
+      const res = await fetch(`/api/v1/prescriptions/${currentRx._id}/order`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      VrindaToast('Prescription order placed successfully!');
+      $('order-modal').classList.add('hidden');
+      renderPrescriptionResults(data.prescription);
     } catch (err) {
       VrindaToast(err.message);
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-paper-plane text-xs"></i> Submit Prescription';
+      btn.innerHTML = 'Confirm &amp; Place Prescription Order';
     }
   });
+
+  // ════════════════════════════════════════════════
+  // Polling for Live Pharmacist Sync
+  // ════════════════════════════════════════════════
+  function startPolling(rxId) {
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/v1/prescriptions/${rxId}`);
+        const data = await res.json();
+        if (data.success && data.prescription) {
+          // If status or orderNumber changed, re-render
+          if (data.prescription.status !== currentRx.status || data.prescription.orderNumber !== currentRx.orderNumber) {
+            renderPrescriptionResults(data.prescription);
+          }
+        }
+      } catch (e) {
+        // quiet poll fail
+      }
+    }, 6000);
+  }
+
+  $('res-refresh-btn').addEventListener('click', async () => {
+    if (!currentRx) return;
+    try {
+      const res = await fetch(`/api/v1/prescriptions/${currentRx._id}`);
+      const data = await res.json();
+      if (data.success && data.prescription) {
+        renderPrescriptionResults(data.prescription);
+        VrindaToast('Status refreshed from pharmacy desk ✓');
+      }
+    } catch (e) {
+      VrindaToast('Could not sync status');
+    }
+  });
+
+  $('res-upload-another').addEventListener('click', () => {
+    if (pollInterval) clearInterval(pollInterval);
+    history.replaceState(null, '', 'prescription.html');
+    clearFile();
+    viewResults.classList.add('hidden');
+    viewScanning.classList.add('hidden');
+    viewUpload.classList.remove('hidden');
+    const submitBtn = $('rx-submit');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-cloud-arrow-up text-sm"></i> Upload &amp; Auto-Read Prescription';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ════════════════════════════════════════════════
+  // Initialize: Check if ?id= parameter is present
+  // ════════════════════════════════════════════════
+  const params = new URLSearchParams(location.search);
+  const existingId = params.get('id');
+  if (existingId) {
+    fetch(`/api/v1/prescriptions/${existingId}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.prescription) {
+          renderPrescriptionResults(d.prescription);
+          startPolling(d.prescription._id);
+        }
+      })
+      .catch(() => {});
+  }
+
 })();
 </script>
 </body>

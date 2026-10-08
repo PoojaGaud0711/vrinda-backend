@@ -140,8 +140,16 @@
   root.addEventListener('click', e => {
     const q = e.target.closest('.qty-btn');
     if (q) {
+      const delta = Number(q.dataset.delta);
       const item = VrindaCart.get().find(i => i.id === q.dataset.id);
-      if (item) VrindaCart.setQty(q.dataset.id, item.qty + Number(q.dataset.delta));
+      if (item) {
+        if (item.qty + delta <= 0) {
+          VrindaCart.remove(q.dataset.id);
+          VrindaToast('Removed from cart');
+        } else {
+          VrindaCart.setQty(q.dataset.id, item.qty + delta);
+        }
+      }
       return;
     }
     const r = e.target.closest('.rm-btn');

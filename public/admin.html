@@ -21,6 +21,8 @@
     .mini-btn{font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap}
     .modal-bg{position:fixed;inset:0;background:rgba(14,42,30,.5);backdrop-filter:blur(4px);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
     .role-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:100px}
+    .status-tab{font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid rgba(0,0,0,.08);background:#fff;color:rgba(0,0,0,.6);transition:all .2s}
+    .status-tab.active{background:#1B4332;color:#fff;border-color:#1B4332}
   </style>
 </head>
 <body class="bg-cream">
@@ -58,6 +60,7 @@
       </div>
       <a href="home.html" class="adm-nav"><i class="fas fa-store"></i> View Store</a>
       <a href="account.html" class="adm-nav"><i class="fas fa-circle-user"></i> My Account</a>
+      <button class="adm-nav" id="btn-admin-pass"><i class="fas fa-key"></i> Change Password</button>
       <button class="adm-nav" id="btn-logout"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
     </div>
   </aside>
@@ -102,6 +105,25 @@
 
       <!-- ORDERS -->
       <section id="tab-orders" class="adm-section hidden">
+        <!-- Search & Status Filter Bar -->
+        <div class="card p-4 mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2 flex-wrap" id="orders-status-filters">
+            <button class="status-tab active" data-status="">All</button>
+            <button class="status-tab" data-status="placed">Placed</button>
+            <button class="status-tab" data-status="confirmed">Confirmed</button>
+            <button class="status-tab" data-status="packed">Packed</button>
+            <button class="status-tab" data-status="shipped">Shipped</button>
+            <button class="status-tab" data-status="delivered">Delivered</button>
+            <button class="status-tab" data-status="cancelled">Cancelled</button>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="relative flex-1 sm:w-64">
+              <i class="fas fa-search absolute left-3 top-3 text-xs" style="color:rgba(0,0,0,.3)"></i>
+              <input id="orders-search" placeholder="Search order #, customer, phone..." class="input pl-8" style="height:38px;font-size:12px"/>
+            </div>
+            <button id="orders-search-btn" class="btn btn-primary btn-sm">Filter</button>
+          </div>
+        </div>
         <div id="orders-list" class="space-y-3"></div>
       </section>
 
@@ -120,12 +142,44 @@
 
       <!-- USERS -->
       <section id="tab-users" class="adm-section hidden">
+        <div class="card p-4 mb-5 flex items-center justify-between gap-3 flex-wrap">
+          <div class="text-xs font-bold uppercase tracking-wider" style="color:#153628">Customer Accounts</div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <input id="users-search" placeholder="Search by name, email, phone..." class="input" style="height:38px;font-size:12px;width:240px"/>
+            <button id="users-search-btn" class="btn btn-primary btn-sm">Search</button>
+          </div>
+        </div>
         <div class="card overflow-x-auto p-2"><table class="tbl" id="users-tbl"></table></div>
       </section>
 
       <!-- PRESCRIPTIONS -->
       <section id="tab-prescriptions" class="adm-section hidden">
-        <div id="rx-list" class="space-y-3"></div>
+        <div class="card p-4 mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-[#153628] flex items-center gap-2">
+              <i class="fas fa-file-prescription text-sm text-[#1B6B47]"></i> Pharmacist Prescription Desk &amp; Auto-Reader Controls
+            </div>
+            <p class="text-[11px] text-stone-400 mt-0.5">Real-time prescription analysis, clinical verification, stock availability, and 1-click customer order placement</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <input id="rx-search" placeholder="Search by name, phone, order #..." class="input" style="height:38px;font-size:12px;width:240px"/>
+            <button id="rx-search-btn" class="btn btn-primary btn-sm"><i class="fas fa-search text-[10px]"></i> Search</button>
+            <button id="rx-reload-btn" class="btn btn-outline btn-sm" title="Reload queue"><i class="fas fa-rotate text-[10px]"></i></button>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1" id="rx-status-filters">
+          <button class="status-tab active" data-status="">All</button>
+          <button class="status-tab" data-status="analyzed">AI Scanned</button>
+          <button class="status-tab" data-status="verified">Pharmacist Verified</button>
+          <button class="status-tab" data-status="contacted">Contacted</button>
+          <button class="status-tab" data-status="order_placed">Order Placed</button>
+          <button class="status-tab" data-status="fulfilled">Fulfilled</button>
+          <button class="status-tab" data-status="rejected">Rejected</button>
+        </div>
+
+        <div id="rx-list" class="space-y-4"></div>
       </section>
 
       <!-- ADMINS (superadmin only) -->
@@ -189,7 +243,7 @@
             <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste an image URL"/>
           </div>
         </div>
-        <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — max 5MB</p>
+        <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — max 5MB (automatically saved to Cloudinary / storage)</p>
       </div>
       <div class="field"><label class="field-label">Category *</label>
         <select id="pf-cat" class="select" required></select>
@@ -197,9 +251,16 @@
       <div class="field"><label class="field-label">Subcategory *</label>
         <select id="pf-sub" class="select" required></select>
       </div>
-      <div class="field"><label class="field-label">Stock</label><input id="pf-stock" type="number" min="0" value="0" class="input"/></div>
-      <div class="field"><label class="field-label">Tag</label>
+      <div class="field"><label class="field-label">Stock *</label><input id="pf-stock" type="number" min="0" value="0" class="input" required/></div>
+      <div class="field"><label class="field-label">Unit (e.g. per strip, per bottle)</label><input id="pf-unit" class="input"/></div>
+      <div class="field col-span-2"><label class="field-label">Tag</label>
         <select id="pf-tag" class="select"><option value="">None</option><option>Bestseller</option><option>New</option></select>
+      </div>
+      <div class="field col-span-2"><label class="field-label">Description</label>
+        <textarea id="pf-desc" class="input" style="height:70px;padding:8px" placeholder="Full product description for detail page..."></textarea>
+      </div>
+      <div class="field col-span-2"><label class="field-label">Key Highlights (one per line)</label>
+        <textarea id="pf-highlights" class="input" style="height:70px;padding:8px" placeholder="Fast acting relief&#10;Gentle on stomach"></textarea>
       </div>
       <label class="col-span-2 flex items-center gap-2.5 text-sm cursor-pointer" style="color:#153628">
         <input id="pf-rx" type="checkbox" class="w-4 h-4 accent-[#1B4332]"/> Requires prescription
@@ -217,6 +278,31 @@
       <button id="um-close" class="w-9 h-9 rounded-xl hover:bg-black/5" style="color:rgba(0,0,0,.4)"><i class="fas fa-times"></i></button>
     </div>
     <div id="u-detail"></div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN CHANGE PASSWORD MODAL ═══ -->
+<div id="pass-modal" class="modal-bg hidden">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 md:p-8">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-display font-semibold text-lg" style="color:#153628"><i class="fas fa-key mr-2" style="color:#C5A55A"></i>Change Admin Password</h3>
+      <button id="passm-close" class="w-9 h-9 rounded-xl hover:bg-black/5" style="color:rgba(0,0,0,.4)"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="admin-pass-form" class="space-y-4">
+      <div class="field">
+        <label class="field-label">Current Password</label>
+        <input id="ap-cur" type="password" class="input" required placeholder="••••••••"/>
+      </div>
+      <div class="field">
+        <label class="field-label">New Password (min 6 chars)</label>
+        <input id="ap-new" type="password" class="input" minlength="6" required placeholder="••••••••"/>
+      </div>
+      <div class="field">
+        <label class="field-label">Confirm New Password</label>
+        <input id="ap-conf" type="password" class="input" minlength="6" required placeholder="••••••••"/>
+      </div>
+      <button type="submit" class="btn btn-primary w-full" id="ap-btn">Update Password</button>
+    </form>
   </div>
 </div>
 
@@ -264,6 +350,7 @@
     'admin.created':     { label:'created staff account',  icon:'fa-user-shield',   color:'#92400E', bg:'#FEF3C7' },
     'admin.roleChanged': { label:'changed staff role',     icon:'fa-arrows-rotate', color:'#1D4ED8', bg:'#DBEAFE' },
     'admin.deleted':     { label:'removed staff account',  icon:'fa-user-minus',    color:'#B91C1C', bg:'#FEE2E2' },
+    'admin.passwordChanged': { label:'changed password',   icon:'fa-key',           color:'#C5A55A', bg:'#FEF3C7' },
     'prescription.contacted': { label:'contacted for Rx',  icon:'fa-phone',         color:'#1D4ED8', bg:'#DBEAFE' },
     'prescription.fulfilled': { label:'fulfilled Rx',      icon:'fa-check-double',  color:'#166534', bg:'#DCFCE7' },
     'prescription.rejected':  { label:'rejected Rx',       icon:'fa-ban',           color:'#B91C1C', bg:'#FEE2E2' },
@@ -299,7 +386,6 @@
   }
   const btn = (label, cls, attrs) => `<button class="mini-btn ${cls}" ${attrs}>${label}</button>`;
 
-  /* ── shared activity row (dashboard feed + audit log) ── */
   function actRow(a) {
     const m = ACT[a.action] || { label: a.action, icon: 'fa-circle-info', color: '#333', bg: '#eee' };
     return `
@@ -344,6 +430,38 @@
     location.href = 'login.html';
   });
 
+  /* ═══ Admin Change Password Modal ═══ */
+  $('btn-admin-pass').addEventListener('click', () => $('pass-modal').classList.remove('hidden'));
+  $('passm-close').addEventListener('click', () => $('pass-modal').classList.add('hidden'));
+  $('pass-modal').addEventListener('click', e => { if (e.target === $('pass-modal')) $('pass-modal').classList.add('hidden'); });
+
+  $('admin-pass-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const cur = $('ap-cur').value;
+    const nPass = $('ap-new').value;
+    const conf = $('ap-conf').value;
+
+    if (nPass !== conf) {
+      toast('Passwords do not match');
+      return;
+    }
+
+    $('ap-btn').disabled = true;
+    $('ap-btn').textContent = 'Updating...';
+
+    try {
+      await api('/change-password', 'PUT', { currentPassword: cur, newPassword: nPass });
+      toast('Admin password updated ✓');
+      $('admin-pass-form').reset();
+      $('pass-modal').classList.add('hidden');
+    } catch (err) {
+      toast(err.message);
+    } finally {
+      $('ap-btn').disabled = false;
+      $('ap-btn').textContent = 'Update Password';
+    }
+  });
+
   /* ═══ Tabs ═══ */
   const TITLES = { dashboard:'Dashboard', orders:'Orders', products:'Products', stock:'Warehouse Stock', users:'Users', prescriptions:'Prescriptions', admins:'Admin Management', audit:'Audit Log — Global Eye' };
   function goto(tab) {
@@ -368,14 +486,13 @@
   $('side-toggle').addEventListener('click', () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); });
   overlay.addEventListener('click', closeSidebar);
 
-  /* ═══ Dashboard — role-based ═══ */
+  /* ═══ Dashboard ═══ */
   async function loadDashboard() {
     try {
       const d = await api('/stats');
       const { stats, revenue7d, lowStock, recent, activities } = d;
       const isSuper = ME.role === 'superadmin';
 
-      // Today strip
       const strip = $('today-strip');
       strip.classList.remove('hidden');
       strip.style.display = 'flex';
@@ -410,7 +527,6 @@
           <div class="text-[11px] font-medium" style="color:rgba(0,0,0,.4)">${l}</div>
         </div>`).join('');
 
-      // 7-day revenue bars — superadmin only
       if (isSuper && revenue7d) {
         const max = Math.max(...revenue7d.map(r => r.total), 1);
         $('rev-7d').innerHTML = revenue7d.map(r => `
@@ -425,7 +541,6 @@
         $('rev-card').classList.add('hidden');
       }
 
-      // admin activity feed — superadmin only
       if (isSuper) {
         $('act-feed').innerHTML = activities.length
           ? activities.map(actRow).join('')
@@ -454,7 +569,7 @@
     } catch (e) { toast(e.message); }
   }
 
-  /* ═══ Audit Log — superadmin only ═══ */
+  /* ═══ Audit Log ═══ */
   async function loadAudit() {
     $('audit-list').innerHTML = '<p class="text-sm py-6 text-center" style="color:rgba(0,0,0,.4)">Loading...</p>';
     try {
@@ -469,12 +584,34 @@
     } catch (e) { toast(e.message); }
   }
 
-  /* ═══ Orders — with expandable details ═══ */
+  /* ═══ Orders — with Search & Status Filters ═══ */
+  let orderFilterStatus = '';
+
+  document.querySelectorAll('#orders-status-filters .status-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#orders-status-filters .status-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      orderFilterStatus = btn.dataset.status;
+      loadOrders();
+    });
+  });
+
+  $('orders-search-btn')?.addEventListener('click', () => loadOrders());
+  $('orders-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') loadOrders(); });
+
   async function loadOrders() {
     $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading orders...</div>';
     try {
-      const { orders } = await api('/orders');
-      if (!orders.length) { $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No orders yet.</div>'; return; }
+      const q = $('orders-search')?.value.trim() || '';
+      let qs = '?limit=100';
+      if (orderFilterStatus) qs += '&status=' + encodeURIComponent(orderFilterStatus);
+      if (q) qs += '&q=' + encodeURIComponent(q);
+
+      const { orders } = await api('/orders' + qs);
+      if (!orders.length) {
+        $('orders-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No matching orders found.</div>';
+        return;
+      }
       $('orders-list').innerHTML = orders.map(o => `
         <div class="card p-5">
           <button class="og-toggle w-full text-left" style="cursor:pointer">
@@ -525,7 +662,6 @@
   }
 
   $('tab-orders').addEventListener('click', async e => {
-    // expand/collapse first
     const t = e.target.closest('.og-toggle');
     if (t) {
       const full = t.closest('.card').querySelector('.order-full');
@@ -534,7 +670,6 @@
       if (chev) chev.style.transform = full.classList.contains('hidden') ? '' : 'rotate(180deg)';
       return;
     }
-    // status buttons
     const b = e.target.closest('[data-set]');
     if (!b) return;
     b.disabled = true;
@@ -597,6 +732,9 @@
       pv.innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
     }
     $('pf-stock').value = p?.stock ?? 0;
+    $('pf-unit').value = p?.unit || '';
+    $('pf-desc').value = p?.description || '';
+    $('pf-highlights').value = Array.isArray(p?.highlights) ? p.highlights.join('\n') : (p?.highlights || '');
     $('pf-tag').value = p?.tag || '';
     $('pf-rx').checked = !!p?.requiresPrescription;
     $('pf-cat').value = p?.category || '';
@@ -608,7 +746,6 @@
   $('pm-close').addEventListener('click', () => $('p-modal').classList.add('hidden'));
   $('p-modal').addEventListener('click', e => { if (e.target === $('p-modal')) $('p-modal').classList.add('hidden'); });
 
-  // choose image → upload immediately → store returned URL
   $('pf-image-file').addEventListener('change', async () => {
     const file = $('pf-image-file').files[0];
     if (!file) return;
@@ -637,11 +774,22 @@
 
   $('p-form').addEventListener('submit', async e => {
     e.preventDefault();
+    const hlRaw = $('pf-highlights').value.split('\n').map(s => s.trim()).filter(Boolean);
     const body = {
-      name: $('pf-name').value.trim(), brand: $('pf-brand').value.trim(), pack: $('pf-pack').value.trim(),
-      price: $('pf-price').value, mrp: $('pf-mrp').value || undefined, image: $('pf-image').value.trim(),
-      category: $('pf-cat').value, subcategory: $('pf-sub').value,
-      tag: $('pf-tag').value, requiresPrescription: $('pf-rx').checked, stock: Number($('pf-stock').value) || 0,
+      name: $('pf-name').value.trim(),
+      brand: $('pf-brand').value.trim(),
+      pack: $('pf-pack').value.trim(),
+      price: $('pf-price').value,
+      mrp: $('pf-mrp').value || undefined,
+      image: $('pf-image').value.trim(),
+      category: $('pf-cat').value,
+      subcategory: $('pf-sub').value,
+      tag: $('pf-tag').value,
+      unit: $('pf-unit').value.trim(),
+      description: $('pf-desc').value.trim(),
+      highlights: hlRaw,
+      requiresPrescription: $('pf-rx').checked,
+      stock: Number($('pf-stock').value) || 0,
     };
     const id = $('pf-id').value;
     try {
@@ -703,11 +851,22 @@
     }
   });
 
-  /* ═══ Users — with detail modal ═══ */
+  /* ═══ Users ═══ */
+  $('users-search-btn')?.addEventListener('click', () => loadUsers());
+  $('users-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') loadUsers(); });
+
   async function loadUsers() {
     $('users-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
     try {
-      const { users } = await api('/users');
+      const q = $('users-search')?.value.trim() || '';
+      const qs = q ? '?q=' + encodeURIComponent(q) : '';
+      const { users } = await api('/users' + qs);
+
+      if (!users.length) {
+        $('users-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">No customers match your search.</td></tr>';
+        return;
+      }
+
       $('users-tbl').innerHTML = `
         <thead><tr><th>Customer</th><th>Joined</th><th>Orders</th><th>Status</th><th></th></tr></thead>
         <tbody>${users.map(u => `
@@ -725,7 +884,6 @@
     } catch (e) { toast(e.message); }
   }
 
-  /* ── User detail modal ── */
   async function openUserDetail(id) {
     $('u-modal').classList.remove('hidden');
     $('u-detail').innerHTML = '<div class="py-10 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>';
@@ -789,48 +947,235 @@
     }
   });
 
-  /* ═══ Prescriptions — INSIDE the closure this time ═══ */
+  /* ═══ Prescriptions Control Room ═══ */
+  let rxFilterStatus = '';
+
+  document.querySelectorAll('#rx-status-filters .status-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#rx-status-filters .status-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      rxFilterStatus = btn.dataset.status;
+      loadPrescriptions();
+    });
+  });
+
+  $('rx-search-btn')?.addEventListener('click', () => loadPrescriptions());
+  $('rx-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') loadPrescriptions(); });
+  $('rx-reload-btn')?.addEventListener('click', () => loadPrescriptions());
+
   async function loadPrescriptions() {
-    $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading...</div>';
+    $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading prescriptions...</div>';
     try {
-      const { prescriptions } = await api('/prescriptions');
+      const q = $('rx-search')?.value.trim() || '';
+      let qs = '';
+      const params = [];
+      if (rxFilterStatus) params.push('status=' + encodeURIComponent(rxFilterStatus));
+      if (q) params.push('q=' + encodeURIComponent(q));
+      if (params.length) qs = '?' + params.join('&');
+
+      const { prescriptions } = await api('/prescriptions' + qs);
       if (!prescriptions.length) {
-        $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No prescriptions uploaded yet.</div>';
+        $('rx-list').innerHTML = '<div class="card p-8 text-center text-sm" style="color:rgba(0,0,0,.4)">No prescriptions match your filter.</div>';
         return;
       }
-      const RXS = { new:['#B45309','#FEF3C7'], contacted:['#1D4ED8','#DBEAFE'], fulfilled:['#166534','#DCFCE7'], rejected:['#B91C1C','#FEE2E2'] };
-      $('rx-list').innerHTML = prescriptions.map(r => `
-        <div class="card p-5 flex flex-wrap items-center justify-between gap-3">
-          <div class="min-w-0">
-            <div class="flex items-center gap-2.5 mb-1 flex-wrap">
-              <span class="font-bold text-sm" style="color:#153628">${esc(r.name)}</span>
-              <span class="pill" style="color:${RXS[r.status][0]};background:${RXS[r.status][1]}">${r.status}</span>
-              <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${dTime(r.createdAt)}</span>
+
+      const RXS = {
+        new:          ['#B45309', '#FEF3C7', 'Uploaded'],
+        analyzed:     ['#1D4ED8', '#DBEAFE', 'AI Scanned'],
+        verified:     ['#15803D', '#DCFCE7', 'Pharmacist Verified ✓'],
+        contacted:    ['#0284C7', '#E0F2FE', 'Contacted'],
+        order_placed: ['#7E22CE', '#F3E8FF', 'Order Placed'],
+        fulfilled:    ['#166534', '#BBF7D0', 'Fulfilled'],
+        rejected:     ['#B91C1C', '#FEE2E2', 'Rejected']
+      };
+
+      $('rx-list').innerHTML = prescriptions.map(r => {
+        const [fg, bg, label] = RXS[r.status] || ['#333', '#eee', r.status];
+        const matched = r.matchedItems || [];
+        const unavail = r.unavailableItems || [];
+        const matchedTotal = matched.reduce((s, it) => s + (it.price * (it.qty || 1)), 0);
+
+        return `
+        <div class="card p-5 md:p-6" data-id="${r._id}">
+          <!-- Header -->
+          <div class="flex flex-wrap items-start justify-between gap-3 pb-4 mb-4" style="border-bottom:1px solid rgba(0,0,0,.06)">
+            <div>
+              <div class="flex items-center gap-2.5 mb-1.5 flex-wrap">
+                <span class="font-bold text-base" style="color:#153628">${esc(r.name)}</span>
+                <span class="pill font-semibold" style="color:${fg};background:${bg}">${label}</span>
+                ${r.orderNumber ? `<span class="pill font-bold" style="color:#6B21A8;background:#FAF5FF;border:1px solid #E9D5FF"><i class="fas fa-box text-[10px] mr-1"></i>Order: ${esc(r.orderNumber)}</span>` : ''}
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-stone-100 text-stone-600">REF: ${String(r._id).slice(-8).toUpperCase()}</span>
+                <span class="text-[11px]" style="color:rgba(0,0,0,.4)">${dTime(r.createdAt)}</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs text-stone-600 flex-wrap">
+                <a href="tel:${esc(r.phone)}" class="font-medium hover:underline flex items-center gap-1 text-[#1B6B47]"><i class="fas fa-phone-volume text-[11px]"></i> ${esc(r.phone)}</a>
+                ${r.notes ? `<span class="italic text-stone-500 bg-stone-50 px-2.5 py-1 rounded-lg">Notes: "${esc(r.notes)}"</span>` : ''}
+              </div>
             </div>
-            <div class="text-xs" style="color:rgba(0,0,0,.55)"><i class="fas fa-phone mr-1" style="color:#1B6B47"></i>${esc(r.phone)}${r.notes ? ' — <em>' + esc(r.notes) + '</em>' : ''}</div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="${r.fileUrl}" target="_blank" class="mini-btn text-white flex items-center gap-1.5" style="background:#1B6B47;text-decoration:none">
+                <i class="fas fa-file-prescription text-xs"></i> View Slip
+              </a>
+            </div>
           </div>
-          <div class="flex items-center gap-2 flex-wrap rx-actions" data-id="${r._id}">
-            <a href="${r.fileUrl}" target="_blank" class="mini-btn text-white" style="background:#1B6B47;text-decoration:none">View File</a>
-            ${r.status === 'new' ? `<button class="mini-btn rx-set text-white" style="background:#1B4332" data-set="contacted">Mark Contacted</button>` : ''}
-            ${['new','contacted'].includes(r.status) ? `<button class="mini-btn rx-set text-white" style="background:#166534" data-set="fulfilled">Fulfilled</button>` : ''}
-            ${r.status !== 'rejected' ? `<button class="mini-btn rx-set bg-white" style="color:#B91C1C;border:1px solid #FECACA" data-set="rejected">Reject</button>` : ''}
+
+          <!-- Pharmacist Seal (if verified) -->
+          ${r.verifiedBy ? `
+          <div class="p-3 rounded-xl mb-4 flex items-center justify-between flex-wrap gap-2 text-xs" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#14532D">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-shield-check text-emerald-600 text-sm"></i>
+              <span><strong>Verified by Pharmacist:</strong> ${esc(r.verifiedBy)} ${r.verifiedAt ? '· ' + dShort(r.verifiedAt) : ''}</span>
+            </div>
+            ${r.pharmacistNotes ? `<span class="italic text-emerald-800">"${esc(r.pharmacistNotes)}"</span>` : ''}
+          </div>` : ''}
+
+          <!-- Auto-Read Prescribed Formulations -->
+          <div class="mb-5 p-4 rounded-xl bg-stone-50 border border-stone-200">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-3 flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i class="fas fa-wand-magic-sparkles text-[#1B6B47]"></i> Auto-Read Extracted Medicines (${matched.length} In-Stock Matches)</span>
+              ${matched.length ? `<span class="text-stone-700 font-semibold">Matched Subtotal: ${inr(matchedTotal)}</span>` : ''}
+            </div>
+
+            ${matched.length ? `
+            <div class="space-y-2 mb-3">
+              ${matched.map(m => `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-white border border-stone-200 text-xs">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded flex items-center justify-center bg-emerald-50 flex-shrink-0 text-[#1B6B47]">
+                    <i class="fas fa-pills text-xs"></i>
+                  </div>
+                  <div>
+                    <span class="font-bold text-stone-800">${esc(m.name)}</span>
+                    <span class="text-stone-400 ml-1">(${esc(m.brand || 'Vrinda Care')}${m.pack ? ' · ' + esc(m.pack) : ''})</span>
+                    ${m.prescribedAs && m.prescribedAs.toLowerCase() !== m.name.toLowerCase() ? `
+                    <div class="text-[10px] text-emerald-800 font-medium">✓ ${esc(m.matchType || 'Generic Match')} for: <em>"${esc(m.prescribedAs)}"</em></div>` : ''}
+                    <div class="text-[11px] text-emerald-700 font-medium"><i class="fas fa-prescription text-[9px] mr-1"></i>${esc(m.dosage || '1 dose daily')}</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 justify-between sm:justify-end">
+                  <span class="pill text-[10px]" style="color:${m.stock > 0 ? '#166534' : '#B91C1C'};background:${m.stock > 0 ? '#DCFCE7' : '#FEE2E2'}">
+                    ${m.stock > 0 ? 'In Stock (Qty: ' + m.stock + ')' : 'Out of stock'}
+                  </span>
+                  <span class="font-bold text-stone-800">${inr(m.price)} × ${m.qty || 1}</span>
+                </div>
+              </div>`).join('')}
+            </div>` : '<p class="text-xs text-stone-400 py-1">No automatic catalog matches found. Manual slip inspection required.</p>'}
+
+            ${unavail.length ? `
+            <div class="mt-3 space-y-2">
+              <div class="font-bold text-xs text-stone-700 flex items-center gap-1.5">
+                <i class="fas fa-boxes-stacked text-amber-700 text-xs"></i> Prescribed Items Requiring Sourcing / Alternatives (${unavail.length}):
+              </div>
+              ${unavail.map(u => `
+              <div class="p-3 rounded-lg ${u.status === 'out_of_stock' ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'} text-xs">
+                <div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+                  <span class="font-bold ${u.status === 'out_of_stock' ? 'text-red-950' : 'text-amber-950'}">${esc(u.prescribedName || u.name)}</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded ${u.status === 'out_of_stock' ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900'}">
+                    ${u.status === 'out_of_stock' ? 'Out of Stock in Store' : 'Wholesale Sourcing Required'}
+                  </span>
+                </div>
+                <div class="text-[11px] text-stone-600 mb-1.5">${esc(u.reason)} ${u.dosage ? '· <em>' + esc(u.dosage) + '</em>' : ''}</div>
+                ${(() => {
+                  const sugs = (u.suggestedAlternatives && u.suggestedAlternatives.length)
+                    ? u.suggestedAlternatives
+                    : (u.suggestedAlternative ? [u.suggestedAlternative] : []);
+                  if (!sugs.length) return '';
+                  return `
+                  <div class="mt-2 space-y-1.5">
+                    <div class="text-[10px] font-bold text-stone-600 uppercase tracking-wider">
+                      💡 Suggested In-Stock Alternate Options (${sugs.length}):
+                    </div>
+                    ${sugs.map((s, idx) => `
+                    <div class="p-2 rounded bg-white border border-stone-200 flex items-center justify-between gap-2 flex-wrap">
+                      <div>
+                        <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wide">Option ${idx + 1}:</span>
+                        <strong class="text-stone-800 ml-1">${esc(s.name)}</strong>
+                        <span class="text-stone-500 text-[11px]">(${esc(s.brand || '')} · ${inr(s.price)} · ${s.stock} in stock)</span>
+                        <p class="text-[10px] text-stone-500 italic mt-0.5">${esc(s.clinicalNote || '')}</p>
+                      </div>
+                    </div>`).join('')}
+                  </div>`;
+                })()}
+              </div>`).join('')}
+            </div>` : ''}
           </div>
-        </div>`).join('');
+
+          <!-- Action Controls -->
+          <div class="flex items-center justify-between flex-wrap gap-3 pt-3" style="border-top:1px solid rgba(0,0,0,.06)">
+            <div class="flex items-center gap-2 flex-wrap rx-actions" data-id="${r._id}">
+              ${!r.orderNumber && matched.length > 0 ? `
+              <button class="mini-btn rx-order-create text-white flex items-center gap-1.5" style="background:#1B4332" data-id="${r._id}">
+                <i class="fas fa-bolt text-[#C5A55A] text-xs"></i> Create Order for Customer (${inr(matchedTotal + (matchedTotal >= 499 ? 0 : 40))})
+              </button>` : ''}
+
+              ${r.status !== 'verified' ? `
+              <button class="mini-btn rx-verify text-white flex items-center gap-1.5" style="background:#15803D" data-id="${r._id}">
+                <i class="fas fa-stamp text-xs"></i> Pharmacist Verify
+              </button>` : ''}
+
+              ${['new', 'analyzed'].includes(r.status) ? `
+              <button class="mini-btn rx-set text-white" style="background:#0284C7" data-set="contacted">Mark Contacted</button>` : ''}
+
+              ${['order_placed', 'verified', 'contacted'].includes(r.status) ? `
+              <button class="mini-btn rx-set text-white" style="background:#166534" data-set="fulfilled">Fulfilled</button>` : ''}
+
+              ${r.status !== 'rejected' ? `
+              <button class="mini-btn rx-set bg-white" style="color:#B91C1C;border:1px solid #FECACA" data-set="rejected">Reject</button>` : ''}
+            </div>
+            
+            <div class="text-[11px] text-stone-400">
+              ${r.userId ? '<i class="fas fa-user-check text-emerald-600 mr-1"></i> Registered User' : '<i class="fas fa-user text-stone-400 mr-1"></i> Guest Upload'}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
     } catch (e) { toast(e.message); }
   }
 
   $('tab-prescriptions').addEventListener('click', async e => {
+    // 1. Pharmacist Verify
+    const vf = e.target.closest('.rx-verify');
+    if (vf) {
+      const rxId = vf.dataset.id;
+      const notes = prompt('Pharmacist clinical notes / verification confirmation:', 'Dosage, formulations, and quantity verified.');
+      if (notes === null) return;
+      vf.disabled = true;
+      try {
+        await api('/prescriptions/' + rxId + '/verify', 'PUT', { pharmacistNotes: notes });
+        toast('Prescription clinically verified ✓');
+        loadPrescriptions();
+      } catch (err) { toast(err.message); vf.disabled = false; }
+      return;
+    }
+
+    // 2. Create Order on behalf of customer
+    const ord = e.target.closest('.rx-order-create');
+    if (ord) {
+      const rxId = ord.dataset.id;
+      if (!confirm('Generate official COD prescription order for this customer and decrement stock?')) return;
+      ord.disabled = true;
+      try {
+        const res = await api('/prescriptions/' + rxId + '/admin-order', 'POST');
+        toast(`Order ${res.order.orderNumber} created successfully!`);
+        loadPrescriptions();
+      } catch (err) { toast(err.message); ord.disabled = false; }
+      return;
+    }
+
+    // 3. Status pipeline change
     const b = e.target.closest('.rx-set');
-    if (!b) return;
-    b.disabled = true;
-    try {
-      await api('/prescriptions/' + b.closest('.rx-actions').dataset.id + '/status', 'PUT', { status: b.dataset.set });
-      toast('Marked ' + b.dataset.set);
-      loadPrescriptions();
-    } catch (err) { toast(err.message); b.disabled = false; }
+    if (b) {
+      b.disabled = true;
+      try {
+        await api('/prescriptions/' + b.closest('.rx-actions').dataset.id + '/status', 'PUT', { status: b.dataset.set });
+        toast('Marked ' + b.dataset.set);
+        loadPrescriptions();
+      } catch (err) { toast(err.message); b.disabled = false; }
+    }
   });
 
-  /* ═══ Admins (superadmin) ═══ */
+  /* ═══ Admins ═══ */
   async function loadAdmins() {
     $('admins-tbl').innerHTML = '<tr><td class="text-sm py-8 text-center" style="color:rgba(0,0,0,.4)">Loading...</td></tr>';
     try {

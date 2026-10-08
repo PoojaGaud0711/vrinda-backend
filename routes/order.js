@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Product = require('../models/Product');
+const { sendOrderConfirmation } = require('../services/emailService');
 
 const FREE_DELIVERY_ABOVE = 499;
 const DELIVERY_FEE = 40;
@@ -22,37 +25,139 @@ async function currentUser(req) {
   } catch { return null; }
 }
 
-// POST /api/v1/orders
+// POST /api/v1/orders — place order (login required, server-computed totals, inventory checked & deducted)
 router.post('/', async (req, res) => {
   try {
-    const { items, customer, address, paymentMethod } = req.body;
-
-    if (!Array.isArray(items) || items.length === 0)
-      return res.status(400).json({ success: false, message: 'Cart is empty' });
-
-    for (const it of items) {
-      if (!it.name || typeof it.price !== 'number' || !Number.isInteger(it.qty) || it.qty < 1)
-        return res.status(400).json({ success: false, message: 'Invalid item: ' + (it.name || 'unknown') });
+    const user = await currentUser(req);
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Please log in to place your order' });
+    }
+    if (user.isBlocked) {
+      return res.status(403).json({ success: false, message: 'Your account is blocked from placing orders' });
     }
 
-    if (!customer?.name || !customer?.phone || !address?.line1 || !address?.pincode)
-      return res.status(400).json({ success: false, message: 'Missing delivery details' });
+    const { items, customer, address, paymentMethod, paymentDetails } = req.body;
 
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Cart is empty' });
+    }
+
+    for (const it of items) {
+      if (!it.name || typeof it.price !== 'number' || !Number.isInteger(it.qty) || it.qty < 1) {
+        return res.status(400).json({ success: false, message: 'Invalid item: ' + (it.name || 'unknown') });
+      }
+    }
+
+    if (!customer?.name || !customer?.phone || !address?.line1 || !address?.pincode) {
+      return res.status(400).json({ success: false, message: 'Missing delivery details' });
+    }
+
+    // ── Inventory / Stock Validation ──
+    for (const it of items) {
+      const prodId = it.productId || it.id;
+      if (prodId) {
+        const prod = await Product.findById(prodId);
+        if (prod) {
+          if (prod.stock < it.qty) {
+            return res.status(400).json({
+              success: false,
+              message: `Insufficient stock for "${prod.name}". Available: ${prod.stock}, requested: ${it.qty}.`
+            });
+          }
+          // Validate bundle items if combo
+          if (prod.category === 'combos' && prod.bundleItems && prod.bundleItems.length) {
+            for (const bundle of prod.bundleItems) {
+              const bItem = await Product.findById(bundle.productId);
+              const needed = bundle.qty * it.qty;
+              if (bItem && bItem.stock < needed) {
+                return res.status(400).json({
+                  success: false,
+                  message: `Insufficient stock for bundle component "${bItem.name}". Available: ${bItem.stock}, needed: ${needed}.`
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // ── Server-Computed Totals ──
     const subtotal    = items.reduce((s, it) => s + it.price * it.qty, 0);
     const deliveryFee = subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE;
     const total       = subtotal + deliveryFee;
 
-    const user = await currentUser(req);
+    // Snapshot formatted items
+    const snapshotItems = items.map(it => ({
+      productId: it.productId || it.id,
+      name: it.name,
+      brand: it.brand || '',
+      pack: it.pack || '',
+      image: it.image || '',
+      price: it.price,
+      qty: it.qty,
+    }));
+
+    const validPayment = ['cod','upi','card'].includes(paymentMethod) ? paymentMethod : 'cod';
 
     const order = await Order.create({
       orderNumber: makeOrderNumber(),
-      items, subtotal, deliveryFee, total,
-      customer, address,
-      paymentMethod: ['cod','upi','card'].includes(paymentMethod) ? paymentMethod : 'cod',
-      userId: user ? user._id : undefined,
+      items: snapshotItems,
+      subtotal,
+      deliveryFee,
+      total,
+      customer,
+      address,
+      paymentMethod: validPayment,
+      userId: user._id,
+      status: 'placed',
     });
 
+    // ── Deduct Stock ──
+    for (const it of items) {
+      const prodId = it.productId || it.id;
+      if (prodId) {
+        const prod = await Product.findByIdAndUpdate(prodId, { $inc: { stock: -it.qty } }, { new: true });
+        if (prod && prod.category === 'combos' && prod.bundleItems && prod.bundleItems.length) {
+          for (const bundle of prod.bundleItems) {
+            await Product.findByIdAndUpdate(bundle.productId, { $inc: { stock: -(bundle.qty * it.qty) } });
+          }
+        }
+      }
+    }
+
+    // Send confirmation email asynchronously
+    sendOrderConfirmation(order).catch(e => console.error('Order confirmation email error:', e));
+
     res.status(201).json({ success: true, order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/v1/orders/create-payment — initiate UPI / Card payment session
+router.post('/create-payment', async (req, res) => {
+  try {
+    const user = await currentUser(req);
+    if (!user) return res.status(401).json({ success: false, message: 'Please log in' });
+
+    const { amount, currency = 'INR' } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid payment amount' });
+    }
+
+    const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_vrinda_demo';
+    const hasLiveKeys = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+
+    // Return payment order configuration
+    const orderPayload = {
+      key: keyId,
+      amount: Math.round(amount * 100), // in paise
+      currency,
+      id: 'order_pay_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+      isSandbox: !hasLiveKeys,
+    };
+
+    res.status(200).json({ success: true, payment: orderPayload });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -69,7 +174,6 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/v1/orders/track/:number — PUBLIC, safe fields only.
-// Must be defined BEFORE /:id, or "track" gets treated as an id.
 router.get('/track/:number', async (req, res) => {
   try {
     const number = String(req.params.number || '').trim().toUpperCase();

@@ -18,7 +18,7 @@
 
   <div id="crumbs" class="crumbs mb-6"></div>
 
-  <!-- skeleton while loading -->
+  <!-- skeleton while loading / PDP content -->
   <div id="pdp">
     <div class="grid md:grid-cols-2 gap-8 lg:gap-14">
       <div class="rounded-3xl h-[300px] md:h-[460px] animate-pulse" style="background:rgba(0,0,0,.05)"></div>
@@ -31,6 +31,72 @@
       </div>
     </div>
   </div>
+
+  <!-- customer reviews -->
+  <section id="reviews-wrap" class="hidden mt-16 md:mt-20">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <span class="eyebrow">Verified Pharmacy Feedback</span>
+        <h2 class="sec-title text-xl md:text-2xl tracking-tight">Customer Reviews &amp; Ratings</h2>
+      </div>
+      <div id="reviews-header-count" class="text-xs font-semibold" style="color:var(--ink)"></div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <!-- Ratings summary & Write Review box -->
+      <div class="space-y-6">
+        <div class="card p-6">
+          <div class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--ink)">Rating Overview</div>
+          <div class="flex items-baseline gap-3 mb-2">
+            <span id="rev-score-big" class="text-4xl font-bold" style="color:var(--forest)">0.0</span>
+            <div class="space-y-0.5">
+              <div id="rev-stars-big" class="flex text-amber-500 text-sm gap-0.5"></div>
+              <div id="rev-count-big" class="text-[11px] muted">Based on 0 reviews</div>
+            </div>
+          </div>
+          <p class="text-[11px] muted mt-4 pt-4 border-t border-black/5">
+            <i class="fas fa-shield-alt mr-1 text-emerald-700"></i> Authentic feedback from verified purchasers to guide your wellness choices.
+          </p>
+        </div>
+
+        <!-- Write a Review Form -->
+        <div class="card p-6" id="write-review-card">
+          <h3 class="text-xs font-bold uppercase tracking-wider mb-1" style="color:var(--ink)">Write a Review</h3>
+          <p class="text-xs muted mb-4">Share your feedback to guide fellow customers.</p>
+
+          <form id="review-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--ink)">Your Rating *</label>
+              <div id="star-picker" class="flex items-center gap-1.5 cursor-pointer text-gray-300 text-xl">
+                <i class="fas fa-star text-amber-500 cursor-pointer" data-val="1"></i>
+                <i class="fas fa-star text-amber-500 cursor-pointer" data-val="2"></i>
+                <i class="fas fa-star text-amber-500 cursor-pointer" data-val="3"></i>
+                <i class="fas fa-star text-amber-500 cursor-pointer" data-val="4"></i>
+                <i class="fas fa-star text-amber-500 cursor-pointer" data-val="5"></i>
+              </div>
+              <input type="hidden" id="rf-rating" value="5"/>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="rf-comment">Review Comment *</label>
+              <textarea id="rf-comment" class="textarea" required rows="3" placeholder="Tell us about the effectiveness, quality, packaging, or relief..."></textarea>
+            </div>
+
+            <button type="submit" id="rf-submit" class="btn btn-primary btn-sm w-full font-semibold">
+              <i class="fas fa-paper-plane text-[10px]"></i> Submit Review
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Reviews list -->
+      <div class="lg:col-span-2">
+        <div id="reviews-list" class="space-y-4">
+          <div class="card p-8 text-center text-sm muted">Loading verified reviews...</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- similar products -->
   <section id="similar-wrap" class="hidden mt-16 md:mt-20">
@@ -58,104 +124,54 @@
     beauty:    { label:'Beauty Products', icon:'fa-spa' },
     snacks:    { label:'Healthy Snacks',  icon:'fa-apple-alt' },
     needfuls:  { label:'Needfuls',        icon:'fa-box-open' },
+    combos:    { label:'Wellness Combos', icon:'fa-gift' },
   };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+  const dateFmt = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  function starsHtml(r) {
+    const rounded = Math.round(r || 0);
+    let h = '';
+    for (let i = 1; i <= 5; i++) {
+      h += `<i class="${i <= rounded ? 'fas' : 'far'} fa-star text-amber-500 text-xs"></i>`;
+    }
+    return h;
+  }
 
   const pdp = document.getElementById('pdp');
   let product = null;
-  let qty = 1;
 
   function notFound(msg) {
     document.getElementById('similar-wrap').classList.add('hidden');
+    document.getElementById('reviews-wrap').classList.add('hidden');
     pdp.innerHTML = `
-<div class="grid md:grid-cols-2 gap-8 lg:gap-14">
-
-  <!-- image column (unchanged) -->
-  <div>
-    <div class="rounded-3xl overflow-hidden relative border border-black/5" style="background:var(--accent-soft)">
-      <img src="${esc(p.image)}" alt="${esc(p.name)}" class="w-full h-[300px] md:h-[460px] object-cover"/>
-      ${p.tag ? `<span class="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(p.tag)}</span>` : ''}
-      ${p.requiresPrescription ? `<span class="absolute top-4 right-4 text-[10px] font-bold text-white px-2.5 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
-    </div>
-    <div class="grid grid-cols-4 gap-3 mt-4">
-      <div class="card p-3 text-center"><i class="fas fa-shield-alt text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">100% Genuine</p></div>
-      <div class="card p-3 text-center"><i class="fas fa-certificate text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">Licensed</p></div>
-      <div class="card p-3 text-center"><i class="fas fa-truck text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">Same-day*</p></div>
-      <div class="card p-3 text-center"><i class="fas fa-undo text-sm mb-1.5" style="color:var(--accent)"></i><p class="text-[10px] font-semibold" style="color:var(--ink)">Easy Returns</p></div>
-    </div>
-  </div>
-
-  <!-- info column (UPGRADED) -->
-  <div>
-    <span class="eyebrow"><i class="fas ${cat.icon} mr-1.5"></i>${cat.label}${p.unit ? ' · ' + esc(p.unit) : ''}</span>
-    <h1 class="font-display font-semibold text-2xl md:text-[2rem] leading-tight tracking-tight mt-1 mb-2" style="color:var(--ink)">${esc(p.name)}</h1>
-    <p class="text-sm mb-4" style="color:rgba(0,0,0,.45)">${esc(p.brand)}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
-
-    <div class="flex items-center gap-3 mb-3">
-      <span class="text-3xl font-bold" style="color:var(--forest)">${inr(p.price)}</span>
-      ${off ? `<span class="text-sm line-through" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>
-               <span class="text-[10px] font-bold px-2.5 py-1 rounded-full" style="color:#166534;background:#DCFCE7">${off}% OFF</span>` : ''}
-    </div>
-
-    ${stockBadge}
-    <p class="text-xs mb-5" style="color:rgba(0,0,0,.4)"><i class="fas fa-truck mr-1.5" style="color:var(--accent)"></i>Same-day delivery in Mumbai · Order before 6 PM · <span style="color:#166534;font-weight:600">Free delivery above ₹499</span></p>
-
-    ${p.requiresPrescription ? `
-    <div class="flex items-start gap-3 p-4 rounded-2xl mb-5" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
-      <i class="fas fa-file-prescription mt-0.5" style="color:#E11D48"></i>
-      <p class="text-xs leading-relaxed" style="color:rgba(0,0,0,.6)"><strong style="color:#BE185D">Prescription required.</strong> Our pharmacist will call you to verify your prescription before dispatch.</p>
-    </div>` : ''}
-
-    <!-- qty + actions -->
-    <div class="flex flex-wrap items-center gap-4 mb-3">
-      <div class="flex items-center border rounded-xl overflow-hidden" style="border-color:rgba(0,0,0,.1)">
-        <button id="q-minus" class="w-11 h-12 flex items-center justify-center hover:bg-black/[.03]" style="color:var(--accent)"><i class="fas fa-minus text-xs"></i></button>
-        <span id="q-val" class="w-12 text-center text-sm font-bold" style="color:var(--ink)">1</span>
-        <button id="q-plus" class="w-11 h-12 flex items-center justify-center hover:bg-black/[.03]" style="color:var(--accent)"><i class="fas fa-plus text-xs"></i></button>
-      </div>
-      <button id="btn-add" class="btn btn-primary flex-1 min-w-[180px]"><i class="fas fa-shopping-bag text-xs"></i> Add to Cart</button>
-    </div>
-    <button id="btn-buy" class="btn btn-gold w-full md:w-auto"><i class="fas fa-bolt text-xs"></i> Buy Now</button>
-
-    <!-- DESCRIPTION -->
-    ${p.description ? `
-    <div class="mt-8 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
-      <h3 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--ink)">Description</h3>
-      <p class="text-sm leading-relaxed" style="color:rgba(0,0,0,.6)">${esc(p.description)}</p>
-    </div>` : ''}
-
-    <!-- HIGHLIGHTS -->
-    ${(p.highlights && p.highlights.length) ? `
-    <div class="mt-6 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
-      <h3 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--ink)">Key Highlights</h3>
-      <ul class="space-y-2">
-        ${p.highlights.map(h => `<li class="flex gap-2.5 text-sm" style="color:rgba(0,0,0,.6)"><i class="fas fa-circle-check mt-1 text-xs" style="color:var(--accent)"></i><span>${esc(h)}</span></li>`).join('')}
-      </ul>
-    </div>` : ''}
-
-    <!-- INFO TABLE -->
-    <div class="mt-6 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
-      <h3 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--ink)">Product Information</h3>
-      <div class="text-sm divide-y" style="color:rgba(0,0,0,.6);border:1px solid rgba(0,0,0,.06);border-radius:12px;overflow:hidden">
-        <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Brand</span><span class="font-semibold">${esc(p.brand || '—')}</span></div>
-        <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Pack Size</span><span class="font-semibold">${esc(p.pack || '—')}</span></div>
-        <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Category</span><span class="font-semibold">${cat.label}</span></div>
-        ${p.unit ? `<div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Sold As</span><span class="font-semibold">${esc(p.unit)}</span></div>` : ''}
-        <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Prescription</span><span class="font-semibold">${p.requiresPrescription ? 'Required' : 'Not required'}</span></div>
-      </div>
-    </div>
-  </div>
-</div>`;
+      <div class="py-20 text-center">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:var(--accent-soft)">
+          <i class="fas fa-box-open text-2xl" style="color:var(--accent)"></i>
+        </div>
+        <h1 class="text-xl font-bold mb-2" style="color:var(--ink)">${esc(msg || 'Product Not Found')}</h1>
+        <p class="text-xs muted mb-6">The product you are looking for may have been moved, removed, or has an invalid link.</p>
+        <a href="/products.html" class="btn btn-primary btn-sm">Explore All Products</a>
+      </div>`;
   }
 
   function render() {
     const p = product;
     document.title = p.name + ' — Vrinda Wellness';
-    document.body.dataset.zone = p.category;   // accent follows the product's zone
+    if (['medicines','beauty','snacks','needfuls'].includes(p.category)) {
+      document.body.dataset.zone = p.category;
+    }
 
     const cat = CAT[p.category] || { label:'Products', icon:'fa-box' };
     const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+
+    const inStock = p.stock === undefined || p.stock > 0;
+    const stockBadge = inStock
+      ? (p.stock && p.stock <= 5
+          ? `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full text-amber-800 bg-amber-100 mb-4"><i class="fas fa-clock text-[10px]"></i> Only ${p.stock} left in stock</span>`
+          : `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full text-green-800 bg-green-100 mb-4"><i class="fas fa-check text-[10px]"></i> In Stock (${p.stock || 'Available'})</span>`)
+      : `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full text-red-800 bg-red-100 mb-4"><i class="fas fa-times text-[10px]"></i> Out of Stock</span>`;
 
     document.getElementById('crumbs').innerHTML =
       `<a href="/home.html">Home</a><i class="fas fa-chevron-right"></i>` +
@@ -165,7 +181,7 @@
     pdp.innerHTML = `
     <div class="grid md:grid-cols-2 gap-8 lg:gap-14">
 
-      <!-- image -->
+      <!-- image column -->
       <div>
         <div class="rounded-3xl overflow-hidden relative border border-black/5" style="background:var(--accent-soft)">
           <img src="${esc(p.image)}" alt="${esc(p.name)}" class="w-full h-[300px] md:h-[460px] object-cover"/>
@@ -180,50 +196,241 @@
         </div>
       </div>
 
-      <!-- info -->
+      <!-- info column -->
       <div>
-        <span class="eyebrow"><i class="fas ${cat.icon} mr-1.5"></i>${cat.label}</span>
+        <span class="eyebrow"><i class="fas ${cat.icon} mr-1.5"></i>${cat.label}${p.unit ? ' · ' + esc(p.unit) : ''}</span>
         <h1 class="font-display font-semibold text-2xl md:text-[2rem] leading-tight tracking-tight mt-1 mb-2" style="color:var(--ink)">${esc(p.name)}</h1>
-        <p class="text-sm mb-5" style="color:rgba(0,0,0,.45)">${esc(p.brand)}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+        <p class="text-sm mb-3" style="color:rgba(0,0,0,.45)">${esc(p.brand)}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
 
-        <div class="flex items-center gap-3 mb-2">
+        <!-- Ratings summary pill -->
+        <div class="flex items-center gap-2 mb-4">
+          <div class="flex items-center gap-0.5">${starsHtml(p.averageRating)}</div>
+          <span class="text-xs font-bold" style="color:var(--ink)">${p.averageRating ? p.averageRating.toFixed(1) : 'New'}</span>
+          <span class="text-xs muted">(${p.reviewCount || 0} ${p.reviewCount === 1 ? 'review' : 'reviews'})</span>
+          <span class="text-gray-300">·</span>
+          <a href="#reviews-wrap" class="text-xs font-semibold hover:underline" style="color:var(--accent)">See reviews</a>
+        </div>
+
+        <div class="flex items-center gap-3 mb-3">
           <span class="text-3xl font-bold" style="color:var(--forest)">${inr(p.price)}</span>
           ${off ? `<span class="text-sm line-through" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>
                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full" style="color:#166534;background:#DCFCE7">${off}% OFF</span>` : ''}
         </div>
+
+        ${stockBadge}
         <p class="text-xs mb-5" style="color:rgba(0,0,0,.4)"><i class="fas fa-truck mr-1.5" style="color:var(--accent)"></i>Same-day delivery in Mumbai · Order before 6 PM · <span style="color:#166534;font-weight:600">Free delivery above ₹499</span></p>
 
         ${p.requiresPrescription ? `
-        <div class="flex items-start gap-3 p-4 rounded-2xl mb-6" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
+        <div class="flex items-start gap-3 p-4 rounded-2xl mb-5" style="background:rgba(225,29,72,.06);border:1px solid rgba(225,29,72,.15)">
           <i class="fas fa-file-prescription mt-0.5" style="color:#E11D48"></i>
-          <p class="text-xs leading-relaxed" style="color:rgba(0,0,0,.6)"><strong style="color:#BE185D">Prescription required.</strong> Our pharmacist will call you to verify your prescription before dispatch.</p>
+          <p class="text-xs leading-relaxed" style="color:rgba(0,0,0,.6)"><strong style="color:#BE185D">Prescription required.</strong> Our pharmacist will verify your prescription before dispatch.</p>
         </div>` : ''}
 
-        <!-- qty + actions -->
-        <div class="flex flex-wrap items-center gap-4 mb-3">
-          <div class="flex items-center border rounded-xl overflow-hidden" style="border-color:rgba(0,0,0,.1)">
-            <button id="q-minus" class="w-11 h-12 flex items-center justify-center hover:bg-black/[.03]" style="color:var(--accent)"><i class="fas fa-minus text-xs"></i></button>
-            <span id="q-val" class="w-12 text-center text-sm font-bold" style="color:var(--ink)">1</span>
-            <button id="q-plus" class="w-11 h-12 flex items-center justify-center hover:bg-black/[.03]" style="color:var(--accent)"><i class="fas fa-plus text-xs"></i></button>
+        <!-- SMART MORPHING ACTION SLOT (ADD vs Quantity Stepper) -->
+        <div id="pdp-actions-slot" class="mb-5"></div>
+
+        <!-- COMBO BUNDLE ITEMS -->
+        ${(p.bundleItems && p.bundleItems.length) ? `
+        <div class="mt-8 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
+          <div class="flex items-center gap-2 mb-3">
+            <i class="fas fa-cubes text-sm" style="color:var(--accent)"></i>
+            <h3 class="text-xs font-bold uppercase tracking-widest" style="color:var(--ink)">Included in this Combo (${p.bundleItems.length} products)</h3>
           </div>
-          <button id="btn-add" class="btn btn-primary flex-1 min-w-[180px]"><i class="fas fa-shopping-bag text-xs"></i> Add to Cart</button>
+          <div class="space-y-2.5">
+            ${p.bundleItems.map(b => {
+              const item = b.productId;
+              if (!item) return '';
+              return `
+              <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-black/5 bg-black/[.01]">
+                <div class="flex items-center gap-3 min-w-0">
+                  <img src="${esc(item.image)}" alt="" class="w-11 h-11 rounded-lg object-cover bg-white flex-shrink-0 border border-black/5"/>
+                  <div class="min-w-0">
+                    <div class="text-xs font-semibold truncate" style="color:var(--ink)">${esc(item.name)}</div>
+                    <div class="text-[10px] muted truncate">${esc(item.brand)} ${item.pack ? '· ' + esc(item.pack) : ''} · Qty: ${b.qty}</div>
+                  </div>
+                </div>
+                <div class="text-xs font-bold flex-shrink-0" style="color:var(--forest)">${inr(item.price)}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+
+        <!-- DESCRIPTION -->
+        ${p.description ? `
+        <div class="mt-8 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
+          <h3 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--ink)">Description</h3>
+          <p class="text-sm leading-relaxed" style="color:rgba(0,0,0,.6)">${esc(p.description)}</p>
+        </div>` : ''}
+
+        <!-- HIGHLIGHTS -->
+        ${(p.highlights && p.highlights.length) ? `
+        <div class="mt-6 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
+          <h3 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--ink)">Key Highlights</h3>
+          <ul class="space-y-2">
+            ${p.highlights.map(h => `<li class="flex gap-2.5 text-sm" style="color:rgba(0,0,0,.6)"><i class="fas fa-circle-check mt-1 text-xs" style="color:var(--accent)"></i><span>${esc(h)}</span></li>`).join('')}
+          </ul>
+        </div>` : ''}
+
+        <!-- INFO TABLE -->
+        <div class="mt-6 pt-6" style="border-top:1px solid rgba(0,0,0,.08)">
+          <h3 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--ink)">Product Information</h3>
+          <div class="text-sm divide-y" style="color:rgba(0,0,0,.6);border:1px solid rgba(0,0,0,.06);border-radius:12px;overflow:hidden">
+            <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Brand</span><span class="font-semibold">${esc(p.brand || '—')}</span></div>
+            <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Pack Size</span><span class="font-semibold">${esc(p.pack || '—')}</span></div>
+            <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Category</span><span class="font-semibold">${cat.label}</span></div>
+            ${p.unit ? `<div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Sold As</span><span class="font-semibold">${esc(p.unit)}</span></div>` : ''}
+            <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Prescription</span><span class="font-semibold">${p.requiresPrescription ? 'Required' : 'Not required'}</span></div>
+            <div class="flex justify-between px-4 py-3"><span style="color:rgba(0,0,0,.45)">Availability</span><span class="font-semibold">${inStock ? 'Available' : 'Out of Stock'}</span></div>
+          </div>
         </div>
-        <button id="btn-buy" class="btn btn-gold w-full md:w-auto"><i class="fas fa-bolt text-xs"></i> Buy Now</button>
+
       </div>
     </div>`;
 
-    /* qty stepper */
-    const qv = document.getElementById('q-val');
-    document.getElementById('q-minus').addEventListener('click', () => { qty = Math.max(1, qty - 1); qv.textContent = qty; });
-    document.getElementById('q-plus').addEventListener('click',  () => { qty = Math.min(99, qty + 1); qv.textContent = qty; });
-
-document.getElementById('btn-add').addEventListener('click', () => {
-  if (VrindaCart.add(p, qty)) VrindaToast(p.name + (qty > 1 ? ` (×${qty})` : '') + ' added to cart');
-});
-document.getElementById('btn-buy').addEventListener('click', () => {
-  if (VrindaCart.add(p, qty)) location.href = 'cart.html';
-});
+    renderPdpActions();
   }
+
+  /* ── Dynamic Morphing PDP Action: ADD button vs Quantity Stepper ── */
+  function renderPdpActions() {
+    const actBox = document.getElementById('pdp-actions-slot');
+    if (!actBox || !product) return;
+    const p = product;
+    const inStock = p.stock === undefined || p.stock > 0;
+    const cartItems = VrindaCart.get();
+    const inCart = cartItems.find(i => i.id === p._id);
+
+    if (!inStock) {
+      actBox.innerHTML = `
+        <div class="flex items-center gap-3">
+          <button class="btn btn-primary opacity-60 cursor-not-allowed h-12 flex-1 font-bold" disabled>
+            <i class="fas fa-times-circle text-xs"></i> Out of Stock
+          </button>
+          <button id="btn-wishlist" class="w-12 h-12 rounded-xl border border-black/10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 transition" title="Save to Wishlist">
+            <i class="far fa-heart text-base"></i>
+          </button>
+        </div>`;
+      wireWishlistButton();
+      return;
+    }
+
+    if (!inCart) {
+      // QTY = 0 initially: Only ADD TO CART button is shown! (No 1 qty preview)
+      actBox.innerHTML = `
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="pdp-add-btn" class="btn btn-primary flex-1 min-w-[180px] h-12 text-sm font-bold shadow-md">
+            <i class="fas fa-plus text-xs"></i> ADD TO CART
+          </button>
+          <button id="pdp-buy-btn" class="btn btn-gold h-12 px-6 font-bold">
+            <i class="fas fa-bolt text-xs"></i> Buy Now
+          </button>
+          <button id="btn-wishlist" class="w-12 h-12 rounded-xl border border-black/10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 transition" title="Save to Wishlist">
+            <i class="far fa-heart text-base"></i>
+          </button>
+        </div>`;
+
+      document.getElementById('pdp-add-btn')?.addEventListener('click', () => {
+        if (VrindaCart.add(p, 1)) {
+          VrindaToast(p.name + ' added to cart ✓');
+          renderPdpActions();
+        }
+      });
+
+      document.getElementById('pdp-buy-btn')?.addEventListener('click', () => {
+        if (VrindaCart.add(p, 1)) {
+          location.href = 'cart.html';
+        }
+      });
+    } else {
+      // ITEM IS IN CART (qty >= 1): Morphs into quantity stepper!
+      actBox.innerHTML = `
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="pdp-stepper h-12 shadow-md">
+            <button id="pdp-dec-btn" title="Decrease quantity"><i class="fas fa-minus text-xs"></i></button>
+            <span class="pdp-val">${inCart.qty} in cart</span>
+            <button id="pdp-inc-btn" title="Increase quantity"><i class="fas fa-plus text-xs"></i></button>
+          </div>
+          <a href="/cart.html" class="btn btn-gold h-12 px-6 font-bold flex items-center gap-2">
+            <i class="fas fa-shopping-bag text-xs"></i> View Cart (${inCart.qty}) →
+          </a>
+          <button id="btn-wishlist" class="w-12 h-12 rounded-xl border border-black/10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 transition" title="Save to Wishlist">
+            <i class="far fa-heart text-base"></i>
+          </button>
+        </div>`;
+
+      document.getElementById('pdp-inc-btn')?.addEventListener('click', () => {
+        const maxAllowed = p.stock ? Math.min(p.stock, 99) : 99;
+        if (inCart.qty >= maxAllowed) {
+          VrindaToast(`Maximum available stock is ${maxAllowed}`);
+          return;
+        }
+        VrindaCart.setQty(p._id, inCart.qty + 1);
+        renderPdpActions();
+      });
+
+      document.getElementById('pdp-dec-btn')?.addEventListener('click', () => {
+        if (inCart.qty > 1) {
+          VrindaCart.setQty(p._id, inCart.qty - 1);
+        } else {
+          VrindaCart.remove(p._id);
+          VrindaToast('Removed from cart');
+        }
+        renderPdpActions();
+      });
+    }
+
+    wireWishlistButton();
+  }
+
+  function wireWishlistButton() {
+    const p = product;
+    if (!p) return;
+    const wb = document.getElementById('btn-wishlist');
+    const token = localStorage.getItem('vrinda_token');
+    if (!wb) return;
+
+    if (token) {
+      fetch('/api/v1/user/wishlist/check/' + encodeURIComponent(p._id), {
+        headers: { Authorization: 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.inWishlist) {
+          wb.innerHTML = '<i class="fas fa-heart text-red-500 text-base"></i>';
+          wb.classList.add('border-red-200');
+        }
+      })
+      .catch(() => {});
+
+      wb.onclick = () => {
+        fetch('/api/v1/user/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ productId: p._id })
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) {
+            wb.innerHTML = '<i class="fas fa-heart text-red-500 text-base"></i>';
+            wb.classList.add('border-red-200');
+            VrindaToast(d.message || 'Saved to wishlist');
+          } else {
+            VrindaToast(d.message || 'Could not save to wishlist');
+          }
+        })
+        .catch(() => VrindaToast('Network error'));
+      };
+    } else {
+      wb.onclick = () => {
+        VrindaToast('Please log in to save items to your wishlist');
+        setTimeout(() => location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search), 1000);
+      };
+    }
+  }
+
+  // Synchronize on cart updates from anywhere
+  document.addEventListener('cart:updated', () => {
+    renderPdpActions();
+  });
 
   function miniCard(p) {
     const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
@@ -253,7 +460,149 @@ document.getElementById('btn-buy').addEventListener('click', () => {
         document.getElementById('similar').innerHTML = list.map(miniCard).join('');
         document.getElementById('similar-wrap').classList.remove('hidden');
       })
-      .catch(() => {}); // similar products are a bonus — fail silently
+      .catch(() => {});
+  }
+
+  /* ── Ratings & Reviews system ── */
+  let currentRating = 5;
+
+  function initStarPicker() {
+    const picker = document.getElementById('star-picker');
+    if (!picker) return;
+    const starIcons = picker.querySelectorAll('i');
+
+    function paint(val) {
+      starIcons.forEach(icon => {
+        const iVal = Number(icon.dataset.val);
+        if (iVal <= val) {
+          icon.className = 'fas fa-star text-amber-500 cursor-pointer';
+        } else {
+          icon.className = 'far fa-star text-amber-300 cursor-pointer';
+        }
+      });
+    }
+
+    starIcons.forEach(icon => {
+      icon.addEventListener('mouseenter', () => paint(Number(icon.dataset.val)));
+      icon.addEventListener('click', () => {
+        currentRating = Number(icon.dataset.val);
+        document.getElementById('rf-rating').value = currentRating;
+        paint(currentRating);
+      });
+    });
+
+    picker.addEventListener('mouseleave', () => paint(currentRating));
+    paint(currentRating);
+  }
+
+  function loadReviews(prodId) {
+    const listEl = document.getElementById('reviews-list');
+    const wrap = document.getElementById('reviews-wrap');
+    wrap.classList.remove('hidden');
+
+    fetch('/api/v1/products/' + encodeURIComponent(prodId) + '/reviews')
+      .then(r => r.json())
+      .then(d => {
+        const reviews = d.reviews || [];
+        const count = reviews.length;
+        const avg = count ? (reviews.reduce((s, r) => s + r.rating, 0) / count) : 0;
+
+        document.getElementById('rev-score-big').textContent = avg ? avg.toFixed(1) : '0.0';
+        document.getElementById('rev-stars-big').innerHTML = starsHtml(avg);
+        document.getElementById('rev-count-big').textContent = `Based on ${count} ${count === 1 ? 'review' : 'reviews'}`;
+        document.getElementById('reviews-header-count').textContent = `${count} verified ${count === 1 ? 'review' : 'reviews'}`;
+
+        if (!count) {
+          listEl.innerHTML = `
+            <div class="card p-8 text-center">
+              <i class="far fa-star text-2xl text-amber-400 mb-2"></i>
+              <p class="text-sm font-semibold mb-1" style="color:var(--ink)">No reviews yet</p>
+              <p class="text-xs muted">Be the first verified customer to share your experience with this item.</p>
+            </div>`;
+          return;
+        }
+
+        listEl.innerHTML = reviews.map(r => `
+          <div class="card p-5">
+            <div class="flex items-start justify-between gap-3 mb-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style="background:var(--accent)">
+                  ${esc((r.userName || 'U')[0].toUpperCase())}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold" style="color:var(--ink)">${esc(r.userName || 'Verified Customer')}</span>
+                    ${r.verifiedPurchase ? `<span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fas fa-check-circle text-[8px]"></i> Verified Purchase</span>` : ''}
+                  </div>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <div class="flex items-center gap-0.5">${starsHtml(r.rating)}</div>
+                    <span class="text-[10px] muted">· ${dateFmt(r.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs leading-relaxed" style="color:rgba(0,0,0,.7)">${esc(r.comment)}</p>
+          </div>
+        `).join('');
+      })
+      .catch(() => {
+        listEl.innerHTML = '<div class="card p-6 text-center text-xs muted">Unable to load reviews right now.</div>';
+      });
+  }
+
+  function wireReviewForm(prodId) {
+    initStarPicker();
+    const form = document.getElementById('review-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const token = localStorage.getItem('vrinda_token');
+      if (!token) {
+        VrindaToast('Please log in to submit a review');
+        setTimeout(() => location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search), 1000);
+        return;
+      }
+
+      const comment = document.getElementById('rf-comment').value.trim();
+      if (!comment) {
+        VrindaToast('Please enter your review comment');
+        return;
+      }
+
+      const btn = document.getElementById('rf-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xs"></i> Submitting...';
+
+      try {
+        const res = await fetch('/api/v1/products/' + encodeURIComponent(prodId) + '/reviews', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+          },
+          body: JSON.stringify({ rating: currentRating, comment })
+        });
+        const d = await res.json();
+        if (!res.ok || !d.success) throw new Error(d.message || 'Could not submit review');
+
+        VrindaToast('Thank you! Review posted successfully ✓');
+        document.getElementById('rf-comment').value = '';
+        loadReviews(prodId);
+
+        // Update product average if returned
+        if (d.averageRating !== undefined && product) {
+          product.averageRating = d.averageRating;
+          product.reviewCount = d.reviewCount;
+          render();
+        }
+      } catch (err) {
+        VrindaToast(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane text-[10px]"></i> Submit Review';
+      }
+    });
   }
 
   if (!id) { notFound('No product selected'); return; }
@@ -269,6 +618,8 @@ document.getElementById('btn-buy').addEventListener('click', () => {
       if (!product) { notFound('Product not found'); return; }
       render();
       loadSimilar(product);
+      loadReviews(product._id);
+      wireReviewForm(product._id);
     })
     .catch(err => {
       if (err.message === 'NOT_FOUND') notFound('Product not found');

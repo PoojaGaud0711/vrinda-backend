@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saved Wishlist — Vrinda Wellness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tw-config.js"></script>
+  <link rel="stylesheet" href="/theme.css"/>
+</head>
+<body data-page="wishlist" data-zone="medicines">
+
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+
+  <div class="crumbs mb-6"><a href="/home.html">Home</a><i class="fas fa-chevron-right"></i><span class="current">Saved Wishlist</span></div>
+
+  <div class="flex items-end justify-between mb-8 gap-4">
+    <div>
+      <span class="eyebrow">Your Favorites</span>
+      <h1 class="sec-title text-2xl md:text-3xl tracking-tight">Saved Wishlist</h1>
+    </div>
+    <div id="wishlist-count-badge" class="text-xs font-semibold px-3 py-1.5 rounded-full hidden" style="background:#F0F7F4;color:#1B4332"></div>
+  </div>
+
+  <div id="wishlist-root"></div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/layout.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const root = document.getElementById('wishlist-root');
+  const countBadge = document.getElementById('wishlist-count-badge');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+
+  const token = localStorage.getItem('vrinda_token');
+
+  if (!token) {
+    root.innerHTML = `
+      <div class="card p-10 md:p-14 text-center max-w-lg mx-auto">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:rgba(225,29,72,.1)">
+          <i class="fas fa-heart text-2xl" style="color:#E11D48"></i>
+        </div>
+        <h2 class="font-display font-semibold text-xl mb-2" style="color:var(--ink)">Save your favorites</h2>
+        <p class="text-xs muted mb-6">Log in to view saved medicines, beauty essentials, snacks, and combos across devices.</p>
+        <a href="login.html?redirect=wishlist.html" class="btn btn-primary btn-sm inline-flex">Log In / Sign Up</a>
+      </div>`;
+    return;
+  }
+
+  function cardHTML(item) {
+    const p = item.product || {};
+    const prodId = item.productId || item._id;
+    const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
+    return `
+    <div class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer flex flex-col justify-between" data-id="${prodId}">
+      <div>
+        <div class="relative h-36 md:h-44 overflow-hidden" style="background:var(--accent-soft)">
+          <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
+          ${p.tag ? `<span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:rgba(197,165,90,.15);color:#9A7B24">${esc(p.tag)}</span>` : ''}
+          ${p.requiresPrescription ? `<span class="absolute top-3 right-3 text-[10px] font-bold text-white px-2 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
+          <button class="remove-wishlist-btn absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 text-red-500 hover:bg-red-50 flex items-center justify-center text-xs shadow-sm transition" data-id="${prodId}" title="Remove from wishlist">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+        <div class="p-3 md:p-4">
+          <h3 class="text-sm font-semibold truncate mb-0.5" style="color:var(--ink)">${esc(p.name)}</h3>
+          <p class="text-[11px] truncate mb-3" style="color:rgba(0,0,0,.4)">${esc(p.brand || '')}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+        </div>
+      </div>
+      <div class="p-3 md:p-4 pt-0">
+        <div class="flex items-end justify-between gap-2">
+          <div class="leading-tight">
+            <span class="text-base font-bold" style="color:var(--forest)">${inr(p.price)}</span>
+            ${off ? `<span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>` : ''}
+          </div>
+          <div class="smart-slot" data-id="${prodId}"></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function repaintSteppers() {
+    if (!root) return;
+    root.querySelectorAll('.smart-slot').forEach(slot => {
+      const p = (window.__prodCache || {})[slot.dataset.id];
+      if (p) slot.innerHTML = VrindaCart.stepperHTML(p);
+    });
+  }
+  window.__repaintSteppers = repaintSteppers;
+
+  function load() {
+    root.innerHTML = `<div class="py-16 text-center text-sm" style="color:rgba(0,0,0,.4)">Loading your saved items...</div>`;
+
+    fetch('/api/v1/user/wishlist', {
+      headers: { Authorization: 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) throw new Error(d.message);
+      const items = d.items || [];
+
+      if (!items.length) {
+        countBadge.classList.add('hidden');
+        root.innerHTML = `
+          <div class="card p-10 md:p-14 text-center max-w-lg mx-auto">
+            <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:#F0F7F4">
+              <i class="far fa-heart text-2xl" style="color:#1B4332"></i>
+            </div>
+            <h2 class="font-display font-semibold text-xl mb-2" style="color:var(--ink)">Your wishlist is empty</h2>
+            <p class="text-xs muted mb-6">Explore medicines, beauty products, snacks, and needfuls to save your favorite items.</p>
+            <a href="products.html" class="btn btn-primary btn-sm inline-flex">Explore Catalog</a>
+          </div>`;
+        return;
+      }
+
+      countBadge.textContent = items.length + ' item' + (items.length === 1 ? '' : 's');
+      countBadge.classList.remove('hidden');
+
+      // Populate __prodCache for stepper engine
+      window.__prodCache = window.__prodCache || {};
+      items.forEach(it => {
+        const prodId = it.productId || it._id;
+        window.__prodCache[prodId] = {
+          _id: prodId,
+          ...(it.product || {})
+        };
+      });
+
+      root.innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+          ${items.map(cardHTML).join('')}
+        </div>`;
+
+      repaintSteppers();
+    })
+    .catch(err => {
+      root.innerHTML = `
+        <div class="card p-10 text-center max-w-md mx-auto">
+          <p class="text-sm mb-4" style="color:rgba(0,0,0,.45)">Could not load wishlist: ${esc(err.message || 'Error')}</p>
+          <button id="retry-btn" class="btn btn-primary btn-sm">Try Again</button>
+        </div>`;
+      document.getElementById('retry-btn')?.addEventListener('click', load);
+    });
+  }
+
+  root.addEventListener('click', e => {
+    // Handle remove from wishlist
+    const rb = e.target.closest('.remove-wishlist-btn');
+    if (rb) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prodId = rb.dataset.id;
+      fetch('/api/v1/user/wishlist/' + encodeURIComponent(prodId), {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          VrindaToast('Removed from wishlist');
+          load();
+        } else {
+          VrindaToast(d.message || 'Could not remove item');
+        }
+      })
+      .catch(() => VrindaToast('Network error'));
+      return;
+    }
+
+    if (e.target.closest('.smart-slot')) return;
+
+    const card = e.target.closest('.prod-card');
+    if (card && card.dataset.id) {
+      location.href = '/product.html?id=' + encodeURIComponent(card.dataset.id);
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

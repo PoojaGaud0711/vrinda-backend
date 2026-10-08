@@ -9,6 +9,13 @@ const orderRoutes = require('./routes/order');
 const adminRoutes = require('./routes/admin');
 const prescriptionRoutes = require('./routes/prescription');
 
+process.on('uncaughtException', (err) => {
+  console.warn('Process uncaughtException (handled):', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.warn('Process unhandledRejection (handled):', reason);
+});
+
 const app = express();
 
 app.use(express.json());

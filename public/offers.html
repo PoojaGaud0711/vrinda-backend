@@ -53,27 +53,32 @@
     const off = (p.mrp && p.mrp > p.price) ? Math.round((1 - p.price / p.mrp) * 100) : 0;
     const save = (p.mrp && p.mrp > p.price) ? (p.mrp - p.price) : 0;
     return `
-    <a href="/product.html?id=${p._id}" class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 block">
-      <div class="relative h-36 md:h-44 overflow-hidden" style="background:#FEF3C7">
-        <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
-        <span class="deal-badge text-[11px] font-bold text-white px-2.5 py-1 rounded-full" style="background:#B8952F">${off}% OFF</span>
-        ${p.requiresPrescription ? `<span class="absolute top-3 right-3 text-[10px] font-bold text-white px-2 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
+    <div class="prod-card bg-white rounded-2xl overflow-hidden border border-black/5 cursor-pointer flex flex-col justify-between" data-id="${p._id}">
+      <div>
+        <div class="relative h-36 md:h-44 overflow-hidden" style="background:#FEF3C7">
+          <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="prod-img w-full h-full object-cover"/>
+          <span class="deal-badge text-[11px] font-bold text-white px-2.5 py-1 rounded-full" style="background:#B8952F">${off}% OFF</span>
+          ${p.requiresPrescription ? `<span class="absolute top-3 right-3 text-[10px] font-bold text-white px-2 py-1 rounded-full" style="background:#E11D48"><i class="fas fa-file-prescription mr-1"></i>Rx</span>` : ''}
+          <button class="wishlist-btn absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-500 hover:text-red-500 flex items-center justify-center text-xs shadow-sm transition" data-id="${p._id}" title="Save to Wishlist">
+            <i class="far fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-3 md:p-4">
+          <h3 class="text-sm font-semibold truncate mb-0.5" style="color:var(--ink)">${esc(p.name)}</h3>
+          <p class="text-[11px] truncate mb-3" style="color:rgba(0,0,0,.4)">${esc(p.brand || '')}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+        </div>
       </div>
-      <div class="p-3 md:p-4">
-        <h3 class="text-sm font-semibold truncate mb-0.5" style="color:var(--ink)">${esc(p.name)}</h3>
-        <p class="text-[11px] truncate mb-3" style="color:rgba(0,0,0,.4)">${esc(p.brand || '')}${p.pack ? ' · ' + esc(p.pack) : ''}</p>
+      <div class="p-3 md:p-4 pt-0">
         <div class="flex items-end justify-between gap-2">
           <div class="leading-tight">
             <span class="text-base font-bold" style="color:#B8952F">${inr(p.price)}</span>
             <span class="text-xs line-through ml-1" style="color:rgba(0,0,0,.3)">${inr(p.mrp)}</span>
             <div class="text-[10px] font-semibold mt-0.5" style="color:#166534">Save ${inr(save)}</div>
           </div>
-          <button class="prod-atc flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg text-white" style="background:#B8952F" data-id="${p._id}">
-            <i class="fas fa-plus text-[10px]"></i> ADD
-          </button>
+          <div class="smart-slot" data-id="${p._id}"></div>
         </div>
       </div>
-    </a>`;
+    </div>`;
   }
 
   const skeleton = `
@@ -83,6 +88,15 @@
     </div>`;
 
   let all = [];
+
+  function repaintSteppers() {
+    if (!root) return;
+    root.querySelectorAll('.smart-slot').forEach(slot => {
+      const p = (window.__prodCache || {})[slot.dataset.id];
+      if (p) slot.innerHTML = VrindaCart.stepperHTML(p);
+    });
+  }
+  window.__repaintSteppers = repaintSteppers;
 
   function load() {
     root.innerHTML = skeleton.repeat(8);
@@ -105,8 +119,12 @@
           return;
         }
 
-        root.innerHTML = deals.map(card).join('');
         all = deals;
+        window.__prodCache = window.__prodCache || {};
+        all.forEach(p => { window.__prodCache[p._id] = p; });
+
+        root.innerHTML = deals.map(card).join('');
+        repaintSteppers();
       })
       .catch(() => {
         root.innerHTML = `
@@ -114,16 +132,47 @@
             <p class="text-sm mb-4" style="color:rgba(0,0,0,.45)">Couldn't load offers. Is the server running?</p>
             <button id="retry" class="btn btn-primary btn-sm">Try Again</button>
           </div>`;
-        document.getElementById('retry').addEventListener('click', load);
+        document.getElementById('retry')?.addEventListener('click', load);
       });
   }
 
   root.addEventListener('click', e => {
-    const btn = e.target.closest('.prod-atc');
-    if (!btn) return;
-    e.preventDefault();
-    const p = all.find(x => x._id === btn.dataset.id);
-    if (p && VrindaCart.add(p)) VrindaToast(p.name + ' added to cart');
+    // Handle Wishlist button
+    const wb = e.target.closest('.wishlist-btn');
+    if (wb) {
+      e.preventDefault();
+      e.stopPropagation();
+      const token = localStorage.getItem('vrinda_token');
+      if (!token) {
+        VrindaToast('Please log in to save items to your wishlist');
+        setTimeout(() => location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search), 1000);
+        return;
+      }
+      const prodId = wb.dataset.id;
+      fetch('/api/v1/user/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ productId: prodId })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          wb.innerHTML = '<i class="fas fa-heart text-red-500"></i>';
+          VrindaToast(d.message || 'Saved to wishlist');
+        } else {
+          VrindaToast(d.message || 'Could not save to wishlist');
+        }
+      })
+      .catch(() => VrindaToast('Network error'));
+      return;
+    }
+
+    if (e.target.closest('.smart-slot')) return;
+
+    const cardEl = e.target.closest('.prod-card');
+    if (cardEl && cardEl.dataset.id) {
+      location.href = '/product.html?id=' + encodeURIComponent(cardEl.dataset.id);
+    }
   });
 
   load();

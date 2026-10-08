@@ -8,7 +8,19 @@ const Prescription = require('../models/Prescription');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 const { isLoggedIn, adminOnly, superAdminOnly } = require('../middleware/auth');
+const { sendOrderStatusUpdate } = require('../services/emailService');
+
+// Configure Cloudinary if credentials are present in env
+const useCloudinary = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+if (useCloudinary) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 // Every route in this file sits behind both gates
 router.use(isLoggedIn, adminOnly);
@@ -25,11 +37,11 @@ async function logActivity(req, action, detail = '') {
   } catch (e) { /* logging must never fail a real action */ }
 }
 
-// ── Product image upload ──
+// ── Product image upload (supports Cloudinary with local disk fallback) ──
 const IMG_DIR = path.join(__dirname, '..', 'public', 'uploads', 'products');
 fs.mkdirSync(IMG_DIR, { recursive: true });
 
-const imgStorage = multer.diskStorage({
+const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, IMG_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -37,8 +49,10 @@ const imgStorage = multer.diskStorage({
   },
 });
 
+const storage = useCloudinary ? multer.memoryStorage() : diskStorage;
+
 const imgUpload = multer({
-  storage: imgStorage,
+  storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ok = ['.jpg', '.jpeg', '.png', '.webp'].includes(path.extname(file.originalname).toLowerCase());
@@ -47,15 +61,68 @@ const imgUpload = multer({
 });
 
 // POST /api/v1/admin/upload-image — returns { url } to store on the product
-router.post('/upload-image', imgUpload.single('image'), (req, res) => {
+router.post('/upload-image', imgUpload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please choose an image (JPG, PNG or WebP, max 5MB)' });
   }
+
+  if (useCloudinary) {
+    try {
+      const uploadStream = () => new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'vrinda/products' },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+      const result = await uploadStream();
+      return res.status(201).json({
+        success: true,
+        message: 'Image uploaded to Cloudinary',
+        url: result.secure_url,
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Cloudinary upload failed: ' + err.message });
+    }
+  }
+
   res.status(201).json({
     success: true,
     message: 'Image uploaded',
     url: '/uploads/products/' + req.file.filename,
   });
+});
+
+/* ═══ ADMIN PASSWORD CHANGE ═══ */
+router.put('/change-password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Current and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters long' });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password does not match' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+    await logActivity(req, 'admin.passwordChanged', 'Admin updated password');
+
+    res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 /* ═══ DASHBOARD ═══ */
@@ -109,7 +176,7 @@ router.get('/stats', async (req, res) => {
                todayRevenue: todayRevenueAgg[0]?.revenue || 0,
                todayUsers, todayPrescriptions },
       revenue7d, lowStock, recent,
-      activities: isSuper ? activities : [],   // the global eye is superadmin-only
+      activities: isSuper ? activities : [],
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -154,14 +221,29 @@ router.put('/prescriptions/:id/status', async (req, res) => {
 /* ═══ ORDERS ═══ */
 router.get('/orders', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 }).limit(200);
-    res.status(200).json({ success: true, orders });
+    const { page = 1, limit = 200, status, q } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (q) {
+      const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { orderNumber: new RegExp(safe, 'i') },
+        { 'customer.name': new RegExp(safe, 'i') },
+        { 'customer.phone': new RegExp(safe, 'i') },
+      ];
+    }
+    const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
+    const [orders, total] = await Promise.all([
+      Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+      Order.countDocuments(filter)
+    ]);
+    res.status(200).json({ success: true, count: orders.length, total, orders });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Accept = confirmed, Reject = cancelled, then packed → shipped → delivered
+// Update order status with stock replenishing on cancellation & status update email
 router.put('/orders/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
@@ -169,9 +251,27 @@ router.put('/orders/:id/status', async (req, res) => {
     if (!allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
-    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    const prevOrder = await Order.findById(req.params.id);
+    if (!prevOrder) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    // If order is newly cancelled, return stock back to inventory
+    if (status === 'cancelled' && prevOrder.status !== 'cancelled') {
+      for (const it of prevOrder.items) {
+        if (it.productId) {
+          await Product.findByIdAndUpdate(it.productId, { $inc: { stock: it.qty } });
+        }
+      }
+    }
+
+    prevOrder.status = status;
+    const order = await prevOrder.save();
+
     await logActivity(req, 'order.' + status, order.orderNumber + ' · ' + order.customer.name);
+
+    // Send status update email asynchronously
+    sendOrderStatusUpdate(order, status).catch(e => console.error('Status update email error:', e));
+
     res.status(200).json({ success: true, order });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -221,12 +321,29 @@ router.delete('/products/:id', async (req, res) => {
 });
 
 function whitelist(b) {
+  let hl = [];
+  if (Array.isArray(b.highlights)) {
+    hl = b.highlights.map(h => String(h).trim()).filter(Boolean);
+  } else if (typeof b.highlights === 'string') {
+    hl = b.highlights.split('\n').map(h => h.trim()).filter(Boolean);
+  }
+
   return {
-    name: b.name, brand: b.brand, pack: b.pack,
-    price: Number(b.price), mrp: b.mrp ? Number(b.mrp) : undefined,
-    image: b.image, category: b.category, subcategory: b.subcategory,
-    tag: b.tag || '', requiresPrescription: !!b.requiresPrescription,
+    name: b.name,
+    brand: b.brand,
+    pack: b.pack,
+    price: Number(b.price),
+    mrp: b.mrp ? Number(b.mrp) : undefined,
+    image: b.image,
+    category: b.category,
+    subcategory: b.subcategory,
+    tag: b.tag || '',
+    description: b.description || '',
+    highlights: hl,
+    unit: b.unit || '',
+    requiresPrescription: !!b.requiresPrescription,
     stock: b.stock !== undefined ? Math.max(0, Number(b.stock) || 0) : undefined,
+    bundleItems: Array.isArray(b.bundleItems) ? b.bundleItems : undefined,
   };
 }
 
@@ -246,8 +363,18 @@ router.put('/stock/:id', async (req, res) => {
 /* ═══ USERS (customers) ═══ */
 router.get('/users', async (req, res) => {
   try {
+    const { q } = req.query;
+    const filter = { role: 'customer' };
+    if (q) {
+      const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { name: new RegExp(safe, 'i') },
+        { email: new RegExp(safe, 'i') },
+        { phone: new RegExp(safe, 'i') },
+      ];
+    }
     const [users, orders] = await Promise.all([
-      User.find({ role: 'customer' }).sort({ createdAt: -1 }),
+      User.find(filter).sort({ createdAt: -1 }),
       Order.find({}, 'customer.phone'),
     ]);
     const countByPhone = {};
