@@ -7,6 +7,7 @@ const productSchema = new mongoose.Schema({
   price:       { type: Number, required: true, min: 0 },
   mrp:         { type: Number, min: 0 },
   image:       { type: String, default: '' },
+  images:      { type: [String], default: [] },      // up to 4 multi-angle product views (front, back, sides, packaging)
   category:    { type: String, required: true, enum: ['medicines','beauty','snacks','needfuls','combos'], index: true },
   subcategory: { type: String, required: true },
   tag:         { type: String },

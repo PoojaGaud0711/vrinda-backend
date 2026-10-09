@@ -148,7 +148,7 @@ async function autoDetectProduct(rawName = '', brand = '') {
           if (!imgs.includes(cleanUrl)) imgs.push(cleanUrl);
         }
 
-        result.images = imgs;
+        result.images = imgs.slice(0, 4);
         result.image = imgs[0] || null;
       }
     }
@@ -156,13 +156,13 @@ async function autoDetectProduct(rawName = '', brand = '') {
     // PharmEasy failed or timed out — continue to fallback
   }
 
-  // ── Step 2: Fallback to DuckDuckGo Image Search if image missing ──
-  if (!result.image) {
+  // ── Step 2: Fallback / Supplement via DuckDuckGo Image Search if < 4 images ──
+  if (!result.image || result.images.length < 2) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
 
-      const tokenRes = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(q + ' product')}&iax=images&ia=images`, {
+      const tokenRes = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(q + ' product packaging')}&iax=images&ia=images`, {
         signal: controller.signal,
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
       });
@@ -173,7 +173,7 @@ async function autoDetectProduct(rawName = '', brand = '') {
       const vqd = vqdMatch ? vqdMatch[1] : null;
 
       if (vqd) {
-        const ddgImgUrl = `https://duckduckgo.com/i.js?l=wt-wt&o=json&q=${encodeURIComponent(q + ' product')}&vqd=${vqd}&f=,,,`;
+        const ddgImgUrl = `https://duckduckgo.com/i.js?l=wt-wt&o=json&q=${encodeURIComponent(q + ' product packaging')}&vqd=${vqd}&f=,,,`;
         const ddgRes = await fetch(ddgImgUrl, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -185,8 +185,16 @@ async function autoDetectProduct(rawName = '', brand = '') {
         if (hits.length) {
           result.found = true;
           result.source = result.source || 'Web Product Search';
-          result.image = hits[0].image || hits[0].thumbnail;
-          result.images = hits.map(h => h.image || h.thumbnail).filter(Boolean);
+          
+          const moreImgs = hits.map(h => h.image || h.thumbnail).filter(Boolean);
+          for (const mi of moreImgs) {
+            if (!result.images.includes(mi) && result.images.length < 4) {
+              result.images.push(mi);
+            }
+          }
+          if (!result.image && result.images.length) {
+            result.image = result.images[0];
+          }
 
           // Extract MRP from title snippet if missing
           if (!result.mrp) {

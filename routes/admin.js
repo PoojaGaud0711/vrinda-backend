@@ -343,13 +343,39 @@ function whitelist(b) {
     hl = b.highlights.split('\n').map(h => h.trim()).filter(Boolean);
   }
 
+  // Handle up to 4 multi-angle images
+  let images = [];
+  if (Array.isArray(b.images)) {
+    images = b.images.map(img => String(img || '').trim()).filter(Boolean).slice(0, 4);
+  } else if (typeof b.images === 'string' && b.images.trim()) {
+    try {
+      const parsed = JSON.parse(b.images);
+      if (Array.isArray(parsed)) {
+        images = parsed.map(img => String(img || '').trim()).filter(Boolean).slice(0, 4);
+      } else {
+        images = [b.images.trim()];
+      }
+    } catch (e) {
+      images = [b.images.trim()];
+    }
+  }
+
+  let mainImage = b.image ? String(b.image).trim() : (images[0] || '');
+  if (!images.length && mainImage) {
+    images = [mainImage];
+  }
+  if (!mainImage && images.length) {
+    mainImage = images[0];
+  }
+
   return {
     name: b.name,
     brand: b.brand,
     pack: b.pack,
     price: Number(b.price),
     mrp: b.mrp ? Number(b.mrp) : undefined,
-    image: b.image,
+    image: mainImage,
+    images: images,
     category: b.category,
     subcategory: b.subcategory,
     tag: b.tag || '',

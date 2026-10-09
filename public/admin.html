@@ -257,30 +257,94 @@
         </div>
         <input id="pf-mrp" type="number" min="0" step="0.01" class="input" placeholder="Printed MRP"/>
       </div>
-      <div class="field col-span-2">
-        <div class="flex items-center justify-between mb-1">
-          <label class="field-label mb-0">Product Image</label>
-          <span class="text-[10px] text-gray-400">Web Auto-detected / Upload</span>
-        </div>
-        <div class="flex items-center gap-3">
-          <div id="pf-img-preview" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-black/10 shadow-xs" style="background:#F0F7F4">
-            <i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>
-          </div>
-          <div class="flex-1 flex flex-col gap-2">
-            <label for="pf-image-file" class="btn btn-outline btn-sm w-full cursor-pointer text-center" style="border-color:rgba(0,0,0,.15)">
-              <i class="fas fa-upload text-[10px]"></i> Choose Image
+      <!-- 4-IMAGE VIEW OPTIONS SECTION -->
+      <div class="field col-span-2 p-3.5 rounded-2xl border border-black/10 bg-[#FBFDFB]">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <label class="field-label mb-0 flex items-center gap-1.5 font-bold" style="color:#153628">
+              <i class="fas fa-images text-emerald-700 text-xs"></i> Product Images (4 View Options)
             </label>
-            <input type="file" id="pf-image-file" class="hidden" accept=".jpg,.jpeg,.png,.webp"/>
-            <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste image URL"/>
+            <p class="text-[10px] text-gray-500">Provide all/some sides (Front, Back, Side, Packaging) for customer 360° view</p>
+          </div>
+          <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full border border-emerald-200">Up to 4 Views</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-2">
+          <!-- Slot 1: Front (Main) -->
+          <div class="p-2.5 rounded-xl border border-black/10 bg-white flex flex-col justify-between shadow-xs">
+            <div class="flex items-center justify-between text-[10px] font-bold text-gray-700 mb-1">
+              <span>1. Front (Main) *</span>
+              <button type="button" class="pf-img-clear text-rose-500 hover:text-rose-700 hidden text-xs font-bold leading-none" data-slot="1" title="Clear image">&times;</button>
+            </div>
+            <div id="pf-slot-preview-1" class="w-full h-20 rounded-lg overflow-hidden flex items-center justify-center border border-black/5 bg-[#F4F9F6] mb-1.5 relative">
+              <i class="fas fa-image text-gray-300 text-lg"></i>
+            </div>
+            <div class="space-y-1">
+              <label for="pf-img-file-1" class="btn btn-outline btn-xs w-full cursor-pointer text-center py-1 text-[10px]" style="border-color:rgba(0,0,0,.15)">
+                <i class="fas fa-upload text-[9px]"></i> Upload
+              </label>
+              <input type="file" id="pf-img-file-1" class="hidden pf-img-upload-input" data-slot="1" accept=".jpg,.jpeg,.png,.webp"/>
+              <input id="pf-img-url-1" class="input pf-img-url-input text-[10px] px-1.5 py-0.5 h-7" data-slot="1" placeholder="…or URL"/>
+            </div>
+          </div>
+
+          <!-- Slot 2: Back View -->
+          <div class="p-2.5 rounded-xl border border-black/10 bg-white flex flex-col justify-between shadow-xs">
+            <div class="flex items-center justify-between text-[10px] font-bold text-gray-700 mb-1">
+              <span>2. Back View</span>
+              <button type="button" class="pf-img-clear text-rose-500 hover:text-rose-700 hidden text-xs font-bold leading-none" data-slot="2" title="Clear image">&times;</button>
+            </div>
+            <div id="pf-slot-preview-2" class="w-full h-20 rounded-lg overflow-hidden flex items-center justify-center border border-black/5 bg-[#F4F9F6] mb-1.5 relative">
+              <i class="fas fa-image text-gray-300 text-lg"></i>
+            </div>
+            <div class="space-y-1">
+              <label for="pf-img-file-2" class="btn btn-outline btn-xs w-full cursor-pointer text-center py-1 text-[10px]" style="border-color:rgba(0,0,0,.15)">
+                <i class="fas fa-upload text-[9px]"></i> Upload
+              </label>
+              <input type="file" id="pf-img-file-2" class="hidden pf-img-upload-input" data-slot="2" accept=".jpg,.jpeg,.png,.webp"/>
+              <input id="pf-img-url-2" class="input pf-img-url-input text-[10px] px-1.5 py-0.5 h-7" data-slot="2" placeholder="…or URL"/>
+            </div>
+          </div>
+
+          <!-- Slot 3: Side View -->
+          <div class="p-2.5 rounded-xl border border-black/10 bg-white flex flex-col justify-between shadow-xs">
+            <div class="flex items-center justify-between text-[10px] font-bold text-gray-700 mb-1">
+              <span>3. Side View</span>
+              <button type="button" class="pf-img-clear text-rose-500 hover:text-rose-700 hidden text-xs font-bold leading-none" data-slot="3" title="Clear image">&times;</button>
+            </div>
+            <div id="pf-slot-preview-3" class="w-full h-20 rounded-lg overflow-hidden flex items-center justify-center border border-black/5 bg-[#F4F9F6] mb-1.5 relative">
+              <i class="fas fa-image text-gray-300 text-lg"></i>
+            </div>
+            <div class="space-y-1">
+              <label for="pf-img-file-3" class="btn btn-outline btn-xs w-full cursor-pointer text-center py-1 text-[10px]" style="border-color:rgba(0,0,0,.15)">
+                <i class="fas fa-upload text-[9px]"></i> Upload
+              </label>
+              <input type="file" id="pf-img-file-3" class="hidden pf-img-upload-input" data-slot="3" accept=".jpg,.jpeg,.png,.webp"/>
+              <input id="pf-img-url-3" class="input pf-img-url-input text-[10px] px-1.5 py-0.5 h-7" data-slot="3" placeholder="…or URL"/>
+            </div>
+          </div>
+
+          <!-- Slot 4: Box / Packaging -->
+          <div class="p-2.5 rounded-xl border border-black/10 bg-white flex flex-col justify-between shadow-xs">
+            <div class="flex items-center justify-between text-[10px] font-bold text-gray-700 mb-1">
+              <span>4. Packaging Box</span>
+              <button type="button" class="pf-img-clear text-rose-500 hover:text-rose-700 hidden text-xs font-bold leading-none" data-slot="4" title="Clear image">&times;</button>
+            </div>
+            <div id="pf-slot-preview-4" class="w-full h-20 rounded-lg overflow-hidden flex items-center justify-center border border-black/5 bg-[#F4F9F6] mb-1.5 relative">
+              <i class="fas fa-image text-gray-300 text-lg"></i>
+            </div>
+            <div class="space-y-1">
+              <label for="pf-img-file-4" class="btn btn-outline btn-xs w-full cursor-pointer text-center py-1 text-[10px]" style="border-color:rgba(0,0,0,.15)">
+                <i class="fas fa-upload text-[9px]"></i> Upload
+              </label>
+              <input type="file" id="pf-img-file-4" class="hidden pf-img-upload-input" data-slot="4" accept=".jpg,.jpeg,.png,.webp"/>
+              <input id="pf-img-url-4" class="input pf-img-url-input text-[10px] px-1.5 py-0.5 h-7" data-slot="4" placeholder="…or URL"/>
+            </div>
           </div>
         </div>
-        <div id="pf-alt-images-wrap" class="hidden mt-2 pt-2 border-t border-black/5">
-          <div class="text-[10px] text-gray-500 mb-1 flex items-center gap-1">
-            <i class="fas fa-images text-[9px] text-emerald-700"></i> Click an alternate web view to use:
-          </div>
-          <div id="pf-alt-images-list" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1"></div>
-        </div>
-        <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — detected automatically from web or upload custom image</p>
+
+        <input type="hidden" id="pf-image"/>
+        <p class="text-[10px] text-gray-400">JPG, PNG, WebP — Auto-detected from web or upload custom shots from different sides</p>
       </div>
       <div class="field"><label class="field-label">Category *</label>
         <select id="pf-cat" class="select" required></select>
@@ -752,6 +816,36 @@
     $('pf-sub').innerHTML = '<option value="">Select</option>' + Object.entries(subs).map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
   });
 
+  function setSlotImage(slot, url) {
+    const input = $('pf-img-url-' + slot);
+    const prev = $('pf-slot-preview-' + slot);
+    const clearBtn = document.querySelector(`.pf-img-clear[data-slot="${slot}"]`);
+
+    if (input) input.value = url || '';
+    if (prev) {
+      if (url) {
+        prev.innerHTML = `<img src="${esc(url)}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image text-gray-300 text-lg\\'></i>'"/>`;
+      } else {
+        prev.innerHTML = `<i class="fas fa-image text-gray-300 text-lg"></i>`;
+      }
+    }
+    if (clearBtn) {
+      clearBtn.classList.toggle('hidden', !url);
+    }
+    if (slot === 1 && $('pf-image')) {
+      $('pf-image').value = url || '';
+    }
+  }
+
+  function getSlotImages() {
+    const arr = [];
+    for (let i = 1; i <= 4; i++) {
+      const val = $('pf-img-url-' + i)?.value.trim();
+      if (val) arr.push(val);
+    }
+    return arr;
+  }
+
   function openModal(p) {
     $('pm-title').textContent = p ? 'Edit Product' : 'Add Product';
     $('pf-id').value = p ? p._id : '';
@@ -761,19 +855,21 @@
     $('pf-price').value = p?.price ?? '';
     $('pf-mrp').value = p?.mrp ?? '';
     $('pf-image').value = p?.image || '';
-    $('pf-image-file').value = '';
     
+    // Populate 4 image view slots
+    const imgs = (p?.images && Array.isArray(p.images) && p.images.length)
+      ? p.images
+      : (p?.image ? [p.image] : []);
+
+    for (let i = 1; i <= 4; i++) {
+      setSlotImage(i, imgs[i - 1] || '');
+      const fileInp = $('pf-img-file-' + i);
+      if (fileInp) fileInp.value = '';
+    }
+
     // Reset auto-detect UI state
     $('pf-detect-status')?.classList.add('hidden');
-    $('pf-alt-images-wrap')?.classList.add('hidden');
-    if ($('pf-alt-images-list')) $('pf-alt-images-list').innerHTML = '';
 
-    const pv = $('pf-img-preview');
-    if (p?.image) {
-      pv.innerHTML = `<img src="${esc(p.image)}" class="w-full h-full object-cover" alt=""/>`;
-    } else {
-      pv.innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
-    }
     $('pf-stock').value = p?.stock ?? 0;
     $('pf-unit').value = p?.unit || '';
     $('pf-desc').value = p?.description || '';
@@ -789,14 +885,54 @@
   $('pm-close').addEventListener('click', () => $('p-modal').classList.add('hidden'));
   $('p-modal').addEventListener('click', e => { if (e.target === $('p-modal')) $('p-modal').classList.add('hidden'); });
 
-  // Update preview when manual image URL is pasted or typed
-  $('pf-image')?.addEventListener('input', () => {
-    const url = $('pf-image').value.trim();
-    if (url) {
-      $('pf-img-preview').innerHTML = `<img src="${esc(url)}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image text-lg text-gray-400\\'></i>'"/>`;
-    } else {
-      $('pf-img-preview').innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
-    }
+  // Clear button click listener
+  document.querySelectorAll('.pf-img-clear').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const slot = Number(btn.dataset.slot);
+      setSlotImage(slot, '');
+    });
+  });
+
+  // Manual URL inputs listener
+  document.querySelectorAll('.pf-img-url-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const slot = Number(inp.dataset.slot);
+      setSlotImage(slot, inp.value.trim());
+    });
+  });
+
+  // Upload inputs for all 4 slots
+  document.querySelectorAll('.pf-img-upload-input').forEach(fileInp => {
+    fileInp.addEventListener('change', async () => {
+      const slot = Number(fileInp.dataset.slot);
+      const file = fileInp.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { toast('Image too large — max 5MB'); return; }
+      if (!/\.(jpe?g|png|webp)$/i.test(file.name)) { toast('Only JPG, PNG or WebP allowed'); return; }
+
+      const prev = $('pf-slot-preview-' + slot);
+      if (prev) {
+        prev.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover"/>`;
+      }
+
+      const fd = new FormData();
+      fd.append('image', file);
+      try {
+        const res = await fetch('/api/v1/admin/upload-image', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + localStorage.getItem('vrinda_token') },
+          body: fd,
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        setSlotImage(slot, data.url);
+        toast(`View ${slot} uploaded ✓`);
+      } catch (err) {
+        toast(err.message);
+        setSlotImage(slot, $('pf-img-url-' + slot).value.trim());
+      }
+    });
   });
 
   /* ═══ Auto-Detect Product Image & MRP from Web ═══ */
@@ -835,34 +971,16 @@
 
       const d = data.data;
 
-      // 1. Auto-fill Image
-      if (d.image) {
-        $('pf-image').value = d.image;
-        $('pf-img-preview').innerHTML = `<img src="${esc(d.image)}" class="w-full h-full object-cover"/>`;
+      // 1. Auto-fill up to 4 images into the 4 view slots
+      const detectedImgs = (d.images && Array.isArray(d.images) && d.images.length)
+        ? d.images
+        : (d.image ? [d.image] : []);
+
+      for (let i = 1; i <= 4; i++) {
+        setSlotImage(i, detectedImgs[i - 1] || '');
       }
 
-      // 2. Render alternate image thumbnails if available
-      const altWrap = $('pf-alt-images-wrap');
-      const altList = $('pf-alt-images-list');
-      if (altWrap && altList && Array.isArray(d.images) && d.images.length > 1) {
-        altList.innerHTML = d.images.slice(0, 6).map(imgUrl => `
-          <button type="button" class="w-10 h-10 rounded-lg overflow-hidden border border-black/10 hover:border-emerald-600 focus:ring-2 focus:ring-emerald-500 flex-shrink-0 transition shadow-xs" data-img="${esc(imgUrl)}">
-            <img src="${esc(imgUrl)}" class="w-full h-full object-cover" alt=""/>
-          </button>
-        `).join('');
-        altWrap.classList.remove('hidden');
-
-        altList.querySelectorAll('button').forEach(b => {
-          b.addEventListener('click', () => {
-            const picked = b.dataset.img;
-            $('pf-image').value = picked;
-            $('pf-img-preview').innerHTML = `<img src="${esc(picked)}" class="w-full h-full object-cover"/>`;
-            toast('Product image view updated ✓');
-          });
-        });
-      }
-
-      // 3. Auto-fill MRP & Suggested Selling Price
+      // 2. Auto-fill MRP & Suggested Selling Price
       if (d.mrp) {
         $('pf-mrp').value = d.mrp;
       }
@@ -870,7 +988,7 @@
         $('pf-price').value = d.price;
       }
 
-      // 4. Fill auxiliary fields if currently empty (admin can always edit)
+      // 3. Fill auxiliary fields if currently empty (admin can always edit)
       if (d.brand && !$('pf-brand').value) $('pf-brand').value = d.brand;
       if (d.pack && !$('pf-pack').value) $('pf-pack').value = d.pack;
       if (d.unit && !$('pf-unit').value) $('pf-unit').value = d.unit;
@@ -878,7 +996,7 @@
         $('pf-rx').checked = !!d.requiresPrescription;
       }
 
-      // 5. Category suggestion if currently unset
+      // 4. Category suggestion if currently unset
       if (d.category && !$('pf-cat').value) {
         $('pf-cat').value = d.category;
         $('pf-cat').dispatchEvent(new Event('change'));
@@ -886,12 +1004,13 @@
       }
 
       // Show success indicator
+      const imgCount = detectedImgs.length;
       if (statusWrap && statusMsg) {
-        statusMsg.textContent = `Auto-detected Image & MRP (₹${d.mrp || d.price}) from web (${d.source || 'Online Catalog'}) ✓`;
+        statusMsg.textContent = `Auto-detected ${imgCount} view${imgCount > 1 ? 's' : ''} & MRP (₹${d.mrp || d.price}) from web (${d.source || 'Online Catalog'}) ✓`;
         statusWrap.classList.remove('hidden');
       }
 
-      toast(`✨ Auto-detected Image & MRP (₹${d.mrp || d.price}) from web!`);
+      toast(`✨ Auto-detected ${imgCount} image${imgCount > 1 ? 's' : ''} & MRP (₹${d.mrp || d.price}) from web!`);
     } catch (err) {
       if (!silent) toast('Auto-detect error: ' + err.message);
     } finally {
@@ -909,49 +1028,33 @@
   // Trigger auto-detect when admin finishes typing product name and tabs/clicks away
   $('pf-name')?.addEventListener('blur', () => {
     // Only auto-trigger if adding a new product and image/mrp are not yet filled
-    if (!$('pf-id').value && (!$('pf-image').value || !$('pf-mrp').value)) {
+    const currentImgs = getSlotImages();
+    if (!$('pf-id').value && (!currentImgs.length || !$('pf-mrp').value)) {
       if ($('pf-name').value.trim().length >= 3) {
         autoDetectProductFromWeb(true);
       }
     }
   });
 
-  $('pf-image-file').addEventListener('change', async () => {
-    const file = $('pf-image-file').files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast('Image too large — max 5MB'); return; }
-    if (!/\.(jpe?g|png|webp)$/i.test(file.name)) { toast('Only JPG, PNG or WebP'); return; }
-
-    $('pf-img-preview').innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""/>`;
-
-    const fd = new FormData();
-    fd.append('image', file);
-    try {
-      const res = await fetch('/api/v1/admin/upload-image', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + localStorage.getItem('vrinda_token') },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
-      $('pf-image').value = data.url;
-      toast('Image uploaded ✓');
-    } catch (err) {
-      toast(err.message);
-      $('pf-img-preview').innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
-    }
-  });
-
   $('p-form').addEventListener('submit', async e => {
     e.preventDefault();
     const hlRaw = $('pf-highlights').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const images = getSlotImages();
+    const mainImg = images[0] || $('pf-image').value.trim() || '';
+
+    if (!mainImg) {
+      toast('Please provide at least 1 product image (Front / Main view)');
+      return;
+    }
+
     const body = {
       name: $('pf-name').value.trim(),
       brand: $('pf-brand').value.trim(),
       pack: $('pf-pack').value.trim(),
       price: $('pf-price').value,
       mrp: $('pf-mrp').value || undefined,
-      image: $('pf-image').value.trim(),
+      image: mainImg,
+      images: images,
       category: $('pf-cat').value,
       subcategory: $('pf-sub').value,
       tag: $('pf-tag').value,
