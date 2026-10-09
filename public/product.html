@@ -32,6 +32,37 @@
     </div>
   </div>
 
+  <!-- CLINICAL MEDICINE & USAGE GUIDE (Live fetched from online medical databases) -->
+  <section id="medicine-guide-wrap" class="mt-14 md:mt-20">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="eyebrow">Clinical Pharmacy &amp; Medical Reference</span>
+          <span id="guide-live-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span> Live Online Data
+          </span>
+        </div>
+        <h2 class="sec-title text-xl md:text-2xl tracking-tight flex items-center gap-2">
+          <span>Usage, Medical Overview &amp; Safety</span>
+        </h2>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="guide-refresh-btn" class="btn btn-outline btn-sm text-xs py-2 px-3.5 flex items-center gap-1.5 hover:bg-emerald-50 transition" title="Fetch fresh clinical data from online medical sources">
+          <i class="fas fa-rotate text-[11px]" id="guide-refresh-icon"></i>
+          <span>Refresh from Web</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Guide Content Container -->
+    <div id="medicine-guide-content" class="space-y-5">
+      <div class="card p-8 text-center text-sm muted flex items-center justify-center gap-3">
+        <i class="fas fa-circle-notch fa-spin text-forest-700 text-base"></i>
+        <span>Fetching verified clinical medicine &amp; usage guide from online medical sources...</span>
+      </div>
+    </div>
+  </section>
+
   <!-- customer reviews -->
   <section id="reviews-wrap" class="hidden mt-16 md:mt-20">
     <div class="flex items-end justify-between mb-6">
@@ -143,8 +174,9 @@
   let product = null;
 
   function notFound(msg) {
-    document.getElementById('similar-wrap').classList.add('hidden');
-    document.getElementById('reviews-wrap').classList.add('hidden');
+    document.getElementById('medicine-guide-wrap')?.classList.add('hidden');
+    document.getElementById('similar-wrap')?.classList.add('hidden');
+    document.getElementById('reviews-wrap')?.classList.add('hidden');
     pdp.innerHTML = `
       <div class="py-20 text-center">
         <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:var(--accent-soft)">
@@ -605,6 +637,299 @@
     });
   }
 
+  /* ═════ CLINICAL MEDICINE & USAGE GUIDE (Live from Internet) ═════ */
+  function safetyStatusBadge(status) {
+    if (status === 'safe') {
+      return '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Safe</span>';
+    }
+    if (status === 'unsafe') {
+      return '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Unsafe</span>';
+    }
+    return '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Caution</span>';
+  }
+
+  function renderMedicineGuide(g) {
+    const content = document.getElementById('medicine-guide-content');
+    if (!content) return;
+
+    content.innerHTML = `
+      <!-- 1. Header Overview & Active Salts Card -->
+      <div class="card p-5 md:p-6 bg-gradient-to-br from-white via-white to-forest-50/40 border border-black/5 shadow-xs">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-white shadow-xs" style="background:#1B4332">
+            <i class="fas fa-prescription-bottle-alt text-[10px]"></i> Active Salt: ${esc(g.genericName)}
+          </span>
+          <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-amber-100/70 text-amber-900 border border-amber-200/50">
+            ${esc(g.therapeuticClass)}
+          </span>
+          <span class="text-[11px] text-gray-500 sm:ml-auto flex items-center gap-1.5">
+            <i class="fas fa-shield-halved text-emerald-600"></i> ${esc(g.onlineSource?.provider || 'Clinical Database')}
+          </span>
+        </div>
+        <p class="text-xs md:text-sm leading-relaxed text-gray-700 mb-3">${esc(g.clinicalOverview)}</p>
+        ${g.onlineSource?.articleUrl ? `
+          <div class="pt-2 border-t border-black/5 flex items-center justify-between flex-wrap gap-2">
+            <a href="${esc(g.onlineSource.articleUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline">
+              <span>Read Full Clinical Monograph on Medical Reference</span>
+              <i class="fas fa-external-link-alt text-[10px]"></i>
+            </a>
+            <span class="text-[10px] text-gray-400">Fetched: ${new Date(g.onlineSource.fetchedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- 2. Dual Grid: Uses & Directions of Use -->
+      <div class="grid md:grid-cols-2 gap-5">
+        <!-- Primary Uses & Indications -->
+        <div class="card p-5 md:p-6 bg-white border border-black/5 flex flex-col justify-between shadow-xs">
+          <div>
+            <div class="flex items-center gap-2 mb-3.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800 text-sm"><i class="fas fa-stethoscope"></i></div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-forest-900">What It Treats (Primary Uses)</h3>
+            </div>
+            <div class="space-y-2 mb-4">
+              ${(g.uses || []).map(u => `
+                <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-forest-50/50 border border-forest-100/50">
+                  <i class="fas fa-check-circle text-emerald-600 text-xs mt-0.5 shrink-0"></i>
+                  <span class="text-xs font-medium text-forest-950">${esc(u)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="pt-3 border-t border-black/5 text-[11px] text-gray-500 flex items-center gap-1.5">
+            <i class="fas fa-circle-info text-emerald-700"></i> Clinically verified therapeutic uses
+          </div>
+        </div>
+
+        <!-- How to Take & Administration -->
+        <div class="card p-5 md:p-6 bg-white border border-black/5 flex flex-col justify-between shadow-xs">
+          <div>
+            <div class="flex items-center gap-2 mb-3.5">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-800 text-sm"><i class="fas fa-clock-rotate-left"></i></div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-forest-900">How to Take &amp; Dosage Instructions</h3>
+            </div>
+            <p class="text-xs leading-relaxed text-gray-700 mb-3.5 bg-gray-50/80 p-3.5 rounded-xl border border-black/5">
+              ${esc(g.howToUse)}
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-[11px] mb-3.5">
+              <div class="p-2 rounded-lg bg-forest-50/50 border border-forest-100/40 text-forest-900 flex items-center gap-1.5">
+                <i class="fas fa-glass-water text-emerald-600"></i> Take with water
+              </div>
+              <div class="p-2 rounded-lg bg-forest-50/50 border border-forest-100/40 text-forest-900 flex items-center gap-1.5">
+                <i class="fas fa-utensils text-emerald-600"></i> After meals
+              </div>
+              <div class="p-2 rounded-lg bg-forest-50/50 border border-forest-100/40 text-forest-900 flex items-center gap-1.5">
+                <i class="fas fa-ban text-rose-600"></i> Do not crush
+              </div>
+              <div class="p-2 rounded-lg bg-forest-50/50 border border-forest-100/40 text-forest-900 flex items-center gap-1.5">
+                <i class="fas fa-calendar-check text-emerald-600"></i> Complete course
+              </div>
+            </div>
+            ${g.missedDose ? `
+              <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs text-amber-900 flex items-start gap-2">
+                <i class="fas fa-bell text-amber-600 mt-0.5"></i>
+                <div class="leading-relaxed"><strong>Missed Dose:</strong> ${esc(g.missedDose)}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Mechanism of Action & Common Side Effects -->
+      <div class="grid md:grid-cols-2 gap-5">
+        <!-- Mechanism of Action -->
+        <div class="card p-5 md:p-6 bg-white border border-black/5 shadow-xs">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-800 text-sm"><i class="fas fa-dna"></i></div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-forest-900">How It Works (Mechanism of Action)</h3>
+          </div>
+          <p class="text-xs leading-relaxed text-gray-700 mb-3">${esc(g.howItWorks)}</p>
+          <div class="p-3 rounded-xl bg-purple-50/50 border border-purple-100 text-[11px] text-purple-900 flex items-center gap-2">
+            <i class="fas fa-microscope text-purple-700"></i> Pharmacological action targeting cellular pathways for quick symptom relief.
+          </div>
+        </div>
+
+        <!-- Side Effects -->
+        <div class="card p-5 md:p-6 bg-white border border-black/5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-800 text-sm"><i class="fas fa-triangle-exclamation"></i></div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-forest-900">Common Side Effects</h3>
+            </div>
+            <div class="space-y-2 mb-3">
+              ${(g.sideEffects || []).map(s => `
+                <div class="flex items-center justify-between p-2.5 rounded-xl border border-black/5 bg-gray-50/70 text-xs">
+                  <span class="font-medium text-gray-800">${esc(s.symptom)}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-md font-bold ${s.severity.includes('Mild') || s.severity.includes('Harmless') ? 'bg-emerald-100 text-emerald-800' : (s.severity.includes('Rare') ? 'bg-blue-100 text-blue-800' : 'bg-rose-100 text-rose-800')}">${esc(s.severity)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-400 italic">Most side effects are mild and fade as your body adjusts to the medication.</p>
+        </div>
+      </div>
+
+      <!-- 4. Safety Advice & Precautions Matrix (Interactive 6-Grid) -->
+      <div class="card p-5 md:p-6 bg-white border border-black/5 shadow-xs">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-800 text-sm"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-forest-900">Safety Advice &amp; Warnings</h3>
+            <p class="text-[11px] text-gray-400">Clinical precautions across daily situations &amp; organ health</p>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <!-- Alcohol -->
+          <div class="p-3.5 rounded-2xl border border-black/5 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5"><i class="fas fa-wine-glass-empty text-rose-600"></i> Alcohol</span>
+              ${safetyStatusBadge(g.safetyAdvice?.alcohol?.status)}
+            </div>
+            <p class="text-[11px] leading-relaxed text-gray-600">${esc(g.safetyAdvice?.alcohol?.text)}</p>
+          </div>
+          <!-- Pregnancy -->
+          <div class="p-3.5 rounded-2xl border border-black/5 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5"><i class="fas fa-person-pregnant text-amber-600"></i> Pregnancy</span>
+              ${safetyStatusBadge(g.safetyAdvice?.pregnancy?.status)}
+            </div>
+            <p class="text-[11px] leading-relaxed text-gray-600">${esc(g.safetyAdvice?.pregnancy?.text)}</p>
+          </div>
+          <!-- Breastfeeding -->
+          <div class="p-3.5 rounded-2xl border border-black/5 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5"><i class="fas fa-baby text-blue-600"></i> Breastfeeding</span>
+              ${safetyStatusBadge(g.safetyAdvice?.breastfeeding?.status)}
+            </div>
+            <p class="text-[11px] leading-relaxed text-gray-600">${esc(g.safetyAdvice?.breastfeeding?.text)}</p>
+          </div>
+          <!-- Driving -->
+          <div class="p-3.5 rounded-2xl border border-black/5 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5"><i class="fas fa-car text-emerald-600"></i> Driving</span>
+              ${safetyStatusBadge(g.safetyAdvice?.driving?.status)}
+            </div>
+            <p class="text-[11px] leading-relaxed text-gray-600">${esc(g.safetyAdvice?.driving?.text)}</p>
+          </div>
+          <!-- Kidney -->
+          <div class="p-3.5 rounded-2xl border border-black/5 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5"><i class="fas fa-vial text-purple-600"></i> Kidney</span>
+              ${safetyStatusBadge(g.safetyAdvice?.kidney?.status)}
+            </div>
+            <p class="text-[11px] leading-relaxed text-gray-600">${esc(g.safetyAdvice?.kidney?.text)}</p>
+          </div>
+          <!-- Liver -->
+          <div class="p-3.5 rounded-2xl border border-black/5 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5"><i class="fas fa-heartbeat text-rose-600"></i> Liver</span>
+              ${safetyStatusBadge(g.safetyAdvice?.liver?.status)}
+            </div>
+            <p class="text-[11px] leading-relaxed text-gray-600">${esc(g.safetyAdvice?.liver?.text)}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Expert Pharmacist Tips -->
+      <div class="p-5 md:p-6 text-white rounded-2xl border shadow-md" style="background:#1B4332;border-color:#153628">
+        <div class="flex items-center gap-2.5 mb-3" style="color:#C5A55A">
+          <i class="fas fa-user-doctor text-base"></i>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-white">Registered Pharmacist Clinical Tips</h3>
+        </div>
+        <ul class="space-y-2 mb-3">
+          ${(g.expertTips || []).map(tip => `
+            <li class="flex items-start gap-2.5 text-xs text-white/90 leading-relaxed">
+              <i class="fas fa-check mt-1 text-[10px] shrink-0" style="color:#C5A55A"></i>
+              <span>${esc(tip)}</span>
+            </li>
+          `).join('')}
+        </ul>
+        <p class="text-[11px] text-white/50 pt-3 border-t border-white/10">
+          Dispensed by Vrinda Wellness Licensed Pharmacy under Maharashtra State Pharmacy Council regulations.
+        </p>
+      </div>
+
+      <!-- 6. Frequently Asked Questions (Accordion) -->
+      ${(g.faqs && g.faqs.length) ? `
+        <div class="card p-5 md:p-6 bg-white border border-black/5 shadow-xs">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-forest-900 mb-3 flex items-center gap-2">
+            <i class="fas fa-circle-question text-emerald-700"></i> Frequently Asked Questions
+          </h3>
+          <div class="divide-y divide-black/5 space-y-2">
+            ${g.faqs.map((faq, idx) => `
+              <details class="group py-2 cursor-pointer" ${idx === 0 ? 'open' : ''}>
+                <summary class="flex items-center justify-between text-xs font-semibold text-gray-800 hover:text-emerald-800 list-none">
+                  <span>${esc(faq.q)}</span>
+                  <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform group-open:rotate-180"></i>
+                </summary>
+                <p class="mt-2 text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-emerald-600">${esc(faq.a)}</p>
+              </details>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 7. Clinical Disclaimer -->
+      <div class="p-4 rounded-xl bg-gray-50 border border-black/5 text-[11px] text-gray-500 leading-relaxed">
+        <strong class="text-gray-700">Medical Disclaimer:</strong> This clinical usage guide is compiled from global public pharmaceutical references (US FDA / OpenFDA and Wikipedia Medical Database). It is provided strictly for educational purposes and is not a substitute for qualified medical judgment. Always consult a licensed medical professional before taking any medication.
+      </div>
+    `;
+  }
+
+  function loadMedicineGuide(prodId, forceRefresh = false) {
+    const wrap = document.getElementById('medicine-guide-wrap');
+    const content = document.getElementById('medicine-guide-content');
+    const liveBadge = document.getElementById('guide-live-badge');
+    const refreshBtn = document.getElementById('guide-refresh-btn');
+    const refreshIcon = document.getElementById('guide-refresh-icon');
+
+    if (!wrap || !content) return;
+    wrap.classList.remove('hidden');
+
+    if (forceRefresh) {
+      if (refreshIcon) refreshIcon.classList.add('fa-spin');
+      if (refreshBtn) refreshBtn.disabled = true;
+    } else {
+      content.innerHTML = `
+        <div class="card p-8 text-center text-sm muted flex items-center justify-center gap-3">
+          <i class="fas fa-circle-notch fa-spin text-forest-700 text-base"></i>
+          <span>Fetching verified clinical medicine &amp; usage guide from online medical sources...</span>
+        </div>`;
+    }
+
+    fetch(`/api/v1/products/${encodeURIComponent(prodId)}/guide${forceRefresh ? '?refresh=true' : ''}`)
+      .then(res => res.json())
+      .then(d => {
+        if (!d.success || !d.guide) throw new Error('Guide unavailable');
+        renderMedicineGuide(d.guide);
+        if (liveBadge && d.guide.onlineSource?.liveFetched) {
+          liveBadge.classList.remove('hidden');
+        }
+        if (forceRefresh) {
+          VrindaToast('Clinical guide refreshed from online medical database ✓');
+        }
+      })
+      .catch(err => {
+        content.innerHTML = `
+          <div class="card p-6 text-center text-xs text-gray-500">
+            <p class="mb-2">Clinical usage guide could not be fetched from the medical database at this moment.</p>
+            <button id="guide-retry-btn" class="btn btn-primary btn-sm">Try Again</button>
+          </div>`;
+        document.getElementById('guide-retry-btn')?.addEventListener('click', () => loadMedicineGuide(prodId, true));
+      })
+      .finally(() => {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        if (refreshBtn) refreshBtn.disabled = false;
+      });
+  }
+
+  // Refresh button listener
+  document.getElementById('guide-refresh-btn')?.addEventListener('click', () => {
+    if (product && product._id) {
+      loadMedicineGuide(product._id, true);
+    }
+  });
+
   if (!id) { notFound('No product selected'); return; }
 
   fetch('/api/v1/products/' + encodeURIComponent(id))
@@ -620,6 +945,7 @@
       loadSimilar(product);
       loadReviews(product._id);
       wireReviewForm(product._id);
+      loadMedicineGuide(product._id);
     })
     .catch(err => {
       if (err.message === 'NOT_FOUND') notFound('Product not found');

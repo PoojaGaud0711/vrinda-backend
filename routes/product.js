@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Review = require('../models/Review');
 const Order = require('../models/Order');
 const { isLoggedIn } = require('../middleware/auth');
+const { getMedicineGuide } = require('../services/medicineGuideService');
 
 // POST /api/v1/product/new
 router.post('/product/new', async (req, res) => {
@@ -57,6 +58,19 @@ router.get('/products/:id', async (req, res) => {
     res.status(200).json({ success: true, product });
   } catch (error) {
     res.status(404).json({ success: false, message: 'Invalid product id' });
+  }
+});
+
+// GET /api/v1/products/:id/guide — clinical medicine and usage guide fetched directly from internet
+router.get('/products/:id/guide', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    const forceRefresh = req.query.refresh === 'true';
+    const guide = await getMedicineGuide(product, forceRefresh);
+    res.status(200).json({ success: true, guide });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
