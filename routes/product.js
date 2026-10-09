@@ -23,8 +23,18 @@ router.get('/products', async (req, res) => {
     if (category) filter.category = category;
     if (sub) filter.subcategory = sub;
     if (q) {
-      const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape regex chars
-      filter.$or = [{ name: new RegExp(safe, 'i') }, { brand: new RegExp(safe, 'i') }];
+      const safe = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape regex chars
+      const rx = new RegExp(safe, 'i');
+      filter.$or = [
+        { name: rx },
+        { brand: rx },
+        { description: rx },
+        { highlights: rx },
+        { category: rx },
+        { subcategory: rx },
+        { tag: rx },
+        { pack: rx }
+      ];
     }
     const sortOption =
       sort === 'price-asc'  ? { price: 1 }  :

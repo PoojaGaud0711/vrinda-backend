@@ -164,17 +164,23 @@
             <div class="text-[10px] font-medium tracking-widest uppercase -mt-0.5" style="color:#2D8A5E">Wellness</div>
           </div>
         </a>
-        <div class="hidden md:flex flex-1 max-w-xl mx-8 relative">
-          <div class="search-box flex items-center w-full border rounded-xl px-4 h-11" style="border-color:rgba(0,0,0,.1);background:rgba(253,248,240,.6)">
-            <i class="fas fa-search mr-3 text-sm" style="color:rgba(0,0,0,.25)"></i>
-            <input id="site-search" type="text" placeholder="Search medicines, beauty, snacks... (Ctrl+K)" class="flex-1 bg-transparent text-sm focus:outline-none" style="color:#153628" autocomplete="off"/>
-            <kbd class="hidden xl:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded border border-black/10 text-black/40">Ctrl K</kbd>
-          </div>
+        <div class="hidden md:flex flex-1 max-w-xl mx-4 lg:mx-8 relative">
+          <form id="search-form" action="/products.html" method="GET" class="search-box flex items-center w-full border rounded-xl px-2.5 h-11 transition focus-within:ring-2 focus-within:ring-emerald-700/30 focus-within:border-emerald-700" style="border-color:rgba(0,0,0,.1);background:rgba(253,248,240,.6)">
+            <button type="submit" id="site-search-btn" class="w-8 h-8 rounded-lg flex items-center justify-center text-forest-700 hover:bg-forest-100/50 transition active:scale-95 shrink-0" aria-label="Search" title="Search">
+              <i class="fas fa-search text-sm" style="color:#1B4332"></i>
+            </button>
+            <input id="site-search" name="q" type="search" placeholder="Search medicines, beauty, snacks... (Ctrl+K)" class="flex-1 bg-transparent text-sm focus:outline-none px-2" style="color:#153628" autocomplete="off"/>
+            <button type="button" id="site-search-clear" class="hidden w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 transition mr-1" aria-label="Clear search" title="Clear">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+            <kbd class="hidden xl:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded border border-black/10 text-black/40 shrink-0">Ctrl K</kbd>
+            <button type="submit" id="site-search-submit-btn" class="hidden sm:inline-flex ml-2 h-8 px-3.5 rounded-lg text-xs font-semibold text-white items-center justify-center shrink-0 shadow-xs hover:opacity-90 active:scale-95 transition" style="background:#1B4332">Search</button>
+          </form>
           <!-- Live search suggestions dropdown -->
           <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-black/5 p-2 hidden z-[100] max-h-96 overflow-y-auto"></div>
         </div>
         <div class="flex items-center gap-1 md:gap-2">
-          <a href="/products.html" class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center" style="color:#1B4332"><i class="fas fa-search"></i></a>
+          <button type="button" id="mob-search-toggle" class="md:hidden nav-icon-btn w-10 h-10 rounded-xl flex items-center justify-center transition active:scale-95" style="color:#1B4332" aria-label="Search" title="Search"><i class="fas fa-search"></i></button>
           <a href="wishlist.html" title="Saved Wishlist" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-heart text-sm"></i></a>
           <a href="${accountHref}" title="Account" class="nav-icon-btn hidden sm:flex w-10 h-10 rounded-xl items-center justify-center" style="color:#1B6B47"><i class="fas fa-user text-sm"></i></a>
           <a href="cart.html" class="nav-icon-btn flex w-10 h-10 md:w-auto md:h-11 rounded-xl items-center justify-center md:px-4 gap-2 relative" style="color:#1B4332;background:rgba(27,67,50,.05)">
@@ -183,6 +189,27 @@
             <span id="cart-count" class="absolute -top-1 -right-1 md:top-0 md:right-0 w-[18px] h-[18px] text-white text-[10px] font-bold rounded-full flex items-center justify-center" style="background:#C5A55A">0</span>
           </a>
         </div>
+      </div>
+
+      <!-- Responsive Mobile Search Row (phones and small screens < md) -->
+      <div id="mob-search-bar" class="md:hidden pb-3 pt-0.5 relative">
+        <form id="mob-search-form" action="/products.html" method="GET" class="flex items-center gap-2">
+          <div class="search-box flex-1 flex items-center border rounded-xl px-2.5 h-10 transition focus-within:ring-2 focus-within:ring-emerald-700/30 focus-within:border-emerald-700" style="border-color:rgba(0,0,0,.12);background:rgba(253,248,240,.75)">
+            <button type="submit" id="mob-search-icon-btn" class="w-7 h-7 flex items-center justify-center text-forest-700 shrink-0" aria-label="Search">
+              <i class="fas fa-search text-xs" style="color:#1B4332"></i>
+            </button>
+            <input id="mob-site-search" name="q" type="search" placeholder="Search medicines, beauty, snacks..." class="flex-1 bg-transparent text-xs focus:outline-none px-1" style="color:#153628" autocomplete="off"/>
+            <button type="button" id="mob-search-clear" class="hidden w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 shrink-0" aria-label="Clear search" title="Clear">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+          <button type="submit" id="mob-search-btn" class="h-10 px-3.5 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition shrink-0" style="background:#1B4332">
+            <i class="fas fa-search text-xs"></i>
+            <span>Search</span>
+          </button>
+        </form>
+        <!-- Mobile live search suggestions dropdown -->
+        <div id="mob-search-suggestions" class="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl shadow-2xl border border-black/5 p-2 hidden z-[100] max-h-80 overflow-y-auto"></div>
       </div>
       <nav class="hidden lg:flex items-center gap-1 pb-3 -mt-1 overflow-x-auto no-scrollbar">
         <div class="mega-trigger relative">
@@ -206,6 +233,7 @@
         ${homeLink}
         ${navLinks}
         <a href="offers.html" class="text-xs font-semibold px-3 py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap" style="color:#B8952F">Offers</a>
+        ${isStaff ? '<a href="admin.html" class="text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap" style="color:#C5A55A;background:rgba(197,165,90,.12)"><i class="fas fa-shield-halved text-[10px] mr-1"></i>Admin Panel</a>' : ''}
       </nav>
     </div>
   </header>
@@ -220,7 +248,18 @@
         </div>
         <button id="mob-close" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100" style="color:rgba(0,0,0,.4)"><i class="fas fa-times"></i></button>
       </div>
-      <div class="mb-6">${drawerWelcome}</div>
+      <div class="mb-5">${drawerWelcome}</div>
+      <div class="mb-4">
+        <form id="drawer-search-form" action="/products.html" method="GET" class="flex items-center gap-1.5">
+          <div class="flex-1 flex items-center border rounded-xl px-2.5 h-10 transition focus-within:ring-2 focus-within:ring-emerald-700/30 focus-within:border-emerald-700" style="border-color:rgba(0,0,0,.1);background:rgba(253,248,240,.6)">
+            <input id="drawer-site-search" name="q" type="search" placeholder="Search medicines..." class="flex-1 bg-transparent text-xs focus:outline-none px-1" style="color:#153628" autocomplete="off"/>
+            <button type="button" id="drawer-search-clear" class="hidden text-gray-400 hover:text-gray-600 px-1"><i class="fas fa-times text-xs"></i></button>
+          </div>
+          <button type="submit" id="drawer-search-btn" class="h-10 px-3 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-1 shadow-sm shrink-0 active:scale-95 transition" style="background:#1B4332" title="Search">
+            <i class="fas fa-search text-xs"></i>
+          </button>
+        </form>
+      </div>
       <nav class="space-y-1">
         ${drawerLinks}
         <div class="my-3" style="border-top:1px solid rgba(0,0,0,.06)"></div>
@@ -334,82 +373,196 @@
     location.href = 'login.html';
   });
 
-  /* ═══ LIVE SEARCH & CTRL+K SHORTCUT ═══ */
-  const search = document.getElementById('site-search');
-  const suggestionsBox = document.getElementById('search-suggestions');
-  let searchTimer = null;
+  /* ═══ UNIFIED SEARCH ENGINE (Desktop, Tablet & Mobile) ═══ */
+  function executeSearch(query) {
+    const q = (query || '').trim();
+    window.location.href = '/products.html' + (q ? '?q=' + encodeURIComponent(q) : '');
+  }
 
-  // Ctrl+K / Cmd+K global shortcut
+  function renderSuggestions(list, q, targetBox) {
+    if (!targetBox) return;
+    if (!list || !list.length) {
+      targetBox.innerHTML = `
+        <div class="p-3 text-center text-xs" style="color:rgba(0,0,0,.4)">
+          No products found for "<strong>${esc(q)}</strong>"
+        </div>`;
+      targetBox.classList.remove('hidden');
+      return;
+    }
+    targetBox.innerHTML = `
+      <div class="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 flex items-center justify-between" style="color:#2D8A5E">
+        <span>Products (${list.length})</span>
+        <span class="text-[9px] lowercase opacity-60">tap or enter</span>
+      </div>
+      <div class="divide-y divide-black/5">
+        ${list.map(p => `
+          <a href="/product.html?id=${p._id}" class="suggestion-item flex items-center gap-3 p-2.5 rounded-xl hover:bg-green-50 transition block">
+            <img src="${esc(p.image)}" alt="" class="w-10 h-10 rounded-lg object-cover bg-gray-50 flex-shrink-0" onerror="this.src='https://picsum.photos/seed/placeholder/100/100'"/>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold truncate" style="color:#153628">${esc(p.name)}</div>
+              <div class="text-[10px] truncate" style="color:rgba(0,0,0,.4)">${esc(p.brand || '')}${p.pack ? ' · ' + esc(p.pack) : ''}${p.requiresPrescription ? ' · <span class="text-red-500 font-bold">Rx</span>' : ''}</div>
+            </div>
+            <div class="text-xs font-bold shrink-0" style="color:#1B4332">${inr(p.price)}</div>
+          </a>`).join('')}
+      </div>
+      <button type="button" class="view-all-search block w-full text-center text-xs font-semibold py-2.5 mt-1 rounded-lg hover:bg-green-50 transition cursor-pointer" style="color:#2D8A5E">
+        View all results for "${esc(q)}" →
+      </button>`;
+
+    targetBox.querySelector('.view-all-search')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      executeSearch(q);
+    });
+    targetBox.classList.remove('hidden');
+  }
+
+  function bindSearchInstance({ formId, inputId, btnIds = [], clearId, suggestionsId }) {
+    const form = document.getElementById(formId);
+    const input = document.getElementById(inputId);
+    const clearBtn = clearId ? document.getElementById(clearId) : null;
+    const suggestionsBox = suggestionsId ? document.getElementById(suggestionsId) : null;
+    let timer = null;
+
+    if (!input) return;
+
+    // Prefill if URL has ?q=
+    const currentQ = new URLSearchParams(window.location.search).get('q') || '';
+    if (currentQ && !input.value) {
+      input.value = currentQ;
+      if (clearBtn) clearBtn.classList.remove('hidden');
+    }
+
+    const updateClearBtn = () => {
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', !input.value.trim());
+      }
+    };
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        input.value = '';
+        updateClearBtn();
+        input.focus();
+        if (suggestionsBox) suggestionsBox.classList.add('hidden');
+      });
+    }
+
+    const handleSearchSubmit = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const q = input.value.trim();
+      executeSearch(q);
+    };
+
+    if (form) {
+      form.addEventListener('submit', handleSearchSubmit);
+    }
+
+    btnIds.forEach(bid => {
+      const b = document.getElementById(bid);
+      if (b) {
+        b.addEventListener('click', handleSearchSubmit);
+      }
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSearchSubmit();
+      } else if (e.key === 'Escape') {
+        if (suggestionsBox) suggestionsBox.classList.add('hidden');
+      }
+    });
+
+    if (suggestionsBox) {
+      input.addEventListener('input', () => {
+        const q = input.value.trim();
+        updateClearBtn();
+        clearTimeout(timer);
+        if (q.length < 2) {
+          suggestionsBox.classList.add('hidden');
+          suggestionsBox.innerHTML = '';
+          return;
+        }
+        timer = setTimeout(() => {
+          fetch('/api/v1/products?q=' + encodeURIComponent(q))
+            .then(res => res.json())
+            .then(data => {
+              const list = (data.products || []).slice(0, 6);
+              renderSuggestions(list, q, suggestionsBox);
+            })
+            .catch(() => { suggestionsBox.classList.add('hidden'); });
+        }, 220);
+      });
+    }
+  }
+
+  // Bind desktop search
+  bindSearchInstance({
+    formId: 'search-form',
+    inputId: 'site-search',
+    btnIds: ['site-search-btn', 'site-search-submit-btn'],
+    clearId: 'site-search-clear',
+    suggestionsId: 'search-suggestions'
+  });
+
+  // Bind mobile search row
+  bindSearchInstance({
+    formId: 'mob-search-form',
+    inputId: 'mob-site-search',
+    btnIds: ['mob-search-btn', 'mob-search-icon-btn'],
+    clearId: 'mob-search-clear',
+    suggestionsId: 'mob-search-suggestions'
+  });
+
+  // Bind mobile drawer search
+  bindSearchInstance({
+    formId: 'drawer-search-form',
+    inputId: 'drawer-site-search',
+    btnIds: ['drawer-search-btn'],
+    clearId: 'drawer-search-clear'
+  });
+
+  // Mobile search toggle button in top header row
+  const mobToggleBtn = document.getElementById('mob-search-toggle');
+  const mobSearchInput = document.getElementById('mob-site-search');
+  if (mobToggleBtn && mobSearchInput) {
+    mobToggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        mobSearchInput.focus();
+        mobSearchInput.select();
+      }, 100);
+    });
+  }
+
+  // Ctrl+K / Cmd+K global keyboard shortcut
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      if (search) {
-        search.focus();
-        search.select();
+      const targetInput = (window.innerWidth < 768)
+        ? (document.getElementById('mob-site-search') || document.getElementById('site-search'))
+        : (document.getElementById('site-search') || document.getElementById('mob-site-search'));
+      if (targetInput) {
+        targetInput.focus();
+        targetInput.select();
       }
     }
   });
 
-  if (search && suggestionsBox) {
-    search.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        const q = search.value.trim();
-        window.location.href = '/products.html' + (q ? '?q=' + encodeURIComponent(q) : '');
-      } else if (e.key === 'Escape') {
-        suggestionsBox.classList.add('hidden');
-      }
-    });
-
-    search.addEventListener('input', () => {
-      const q = search.value.trim();
-      clearTimeout(searchTimer);
-      if (q.length < 2) {
-        suggestionsBox.classList.add('hidden');
-        suggestionsBox.innerHTML = '';
-        return;
-      }
-      searchTimer = setTimeout(() => {
-        fetch('/api/v1/products?q=' + encodeURIComponent(q))
-          .then(res => res.json())
-          .then(data => {
-            const list = (data.products || []).slice(0, 6);
-            if (!list.length) {
-              suggestionsBox.innerHTML = `
-                <div class="p-3 text-center text-xs" style="color:rgba(0,0,0,.4)">
-                  No products found for "<strong>${esc(q)}</strong>"
-                </div>`;
-              suggestionsBox.classList.remove('hidden');
-              return;
-            }
-            suggestionsBox.innerHTML = `
-              <div class="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5" style="color:#2D8A5E">Products</div>
-              <div class="divide-y divide-black/5">
-                ${list.map(p => `
-                  <a href="/product.html?id=${p._id}" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-green-50 transition block">
-                    <img src="${esc(p.image)}" alt="" class="w-10 h-10 rounded-lg object-cover bg-gray-50 flex-shrink-0"/>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-xs font-semibold truncate" style="color:#153628">${esc(p.name)}</div>
-                      <div class="text-[10px] truncate" style="color:rgba(0,0,0,.4)">${esc(p.brand)}${p.pack ? ' · ' + esc(p.pack) : ''}</div>
-                    </div>
-                    <div class="text-xs font-bold" style="color:#1B4332">${inr(p.price)}</div>
-                  </a>`).join('')}
-              </div>
-              <a href="/products.html?q=${encodeURIComponent(q)}" class="block text-center text-xs font-semibold py-2 mt-1 rounded-lg hover:bg-green-50" style="color:#2D8A5E">
-                View all results for "${esc(q)}" →
-              </a>`;
-            suggestionsBox.classList.remove('hidden');
-          })
-          .catch(() => { suggestionsBox.classList.add('hidden'); });
-      }, 250);
-    });
-
-    // Close suggestions on outside click
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.search-box') && !e.target.closest('#search-suggestions')) {
-        suggestionsBox.classList.add('hidden');
-      }
-    });
-  }
+  // Close suggestions dropdowns on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#search-form') && !e.target.closest('#search-suggestions')) {
+      document.getElementById('search-suggestions')?.classList.add('hidden');
+    }
+    if (!e.target.closest('#mob-search-form') && !e.target.closest('#mob-search-suggestions')) {
+      document.getElementById('mob-search-suggestions')?.classList.add('hidden');
+    }
+  });
 
   /* ── Smart ADD/stepper engine — works on any page via delegation ── */
   document.addEventListener('click', async e => {

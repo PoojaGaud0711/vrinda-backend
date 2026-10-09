@@ -44,7 +44,40 @@
     </select>
   </div>
 
-  <p class="text-sm muted mb-6 max-w-xl" id="zone-desc">Everything we carry, in one place.</p>
+  <p class="text-sm muted mb-5 max-w-xl" id="zone-desc">Everything we carry, in one place.</p>
+
+  <!-- In-page responsive search toolbar -->
+  <div class="bg-white p-3.5 md:p-4 rounded-2xl border border-black/5 shadow-xs mb-6">
+    <form id="inpage-search-form" class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+      <div class="search-box flex-1 flex items-center border rounded-xl px-3.5 h-11 transition focus-within:ring-2 focus-within:ring-emerald-700/30 focus-within:border-emerald-700" style="border-color:rgba(0,0,0,.12);background:rgba(253,248,240,.6)">
+        <i class="fas fa-search text-sm mr-2.5" style="color:#1B4332"></i>
+        <input id="inpage-search-input" type="search" placeholder="Search medicines, symptoms, brands, categories..." class="flex-1 bg-transparent text-sm focus:outline-none" style="color:#153628" autocomplete="off"/>
+        <button type="button" id="inpage-search-clear" class="hidden w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700" title="Clear text">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="submit" id="inpage-search-btn" class="flex-1 sm:flex-none h-11 px-5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 shadow-sm active:scale-95 transition" style="background:#1B4332">
+          <i class="fas fa-search text-xs"></i>
+          <span>Search</span>
+        </button>
+        <button type="button" id="inpage-search-reset" class="hidden h-11 px-4 rounded-xl text-xs font-semibold border border-black/10 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1.5 transition">
+          <i class="fas fa-rotate-left text-xs"></i>
+          <span>Clear</span>
+        </button>
+      </div>
+    </form>
+    <div id="search-active-pill" class="hidden mt-3 pt-3 border-t border-black/5 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="font-medium text-gray-500">Active Search:</span>
+        <span id="search-active-text" class="px-2.5 py-1 rounded-full font-semibold text-xs" style="background:rgba(27,67,50,.1);color:#1B4332"></span>
+        <span id="search-results-count" class="text-gray-400"></span>
+      </div>
+      <button type="button" id="search-clear-pill-btn" class="text-xs font-semibold hover:underline text-red-600 flex items-center gap-1 cursor-pointer">
+        <i class="fas fa-times text-[10px]"></i> Clear search
+      </button>
+    </div>
+  </div>
 
   <div id="sub-chips" class="flex gap-2 mb-7 overflow-x-auto no-scrollbar"></div>
 
@@ -63,7 +96,7 @@
   let category = params.get('category') || '';
   let sub      = params.get('sub') || '';
   let sort     = params.get('sort') || '';
-  const q      = params.get('q') || '';
+  let q        = params.get('q') || '';
 
   let all = [];
   const grid = document.getElementById('product-grid');
@@ -186,6 +219,21 @@
                <a href="/products.html" class="btn btn-outline btn-sm">View all products</a>
              </div>`;
 
+        if (q) {
+          const pill = document.getElementById('search-active-pill');
+          const pillText = document.getElementById('search-active-text');
+          const countSpan = document.getElementById('search-results-count');
+          if (pill && pillText) {
+            pill.classList.remove('hidden');
+            pillText.textContent = '“' + q + '”';
+            if (countSpan) countSpan.textContent = `(${all.length} item${all.length === 1 ? '' : 's'})`;
+          }
+          document.getElementById('inpage-search-reset')?.classList.remove('hidden');
+        } else {
+          document.getElementById('search-active-pill')?.classList.add('hidden');
+          document.getElementById('inpage-search-reset')?.classList.add('hidden');
+        }
+
         repaintSteppers();
       })
       .catch(() => {
@@ -253,17 +301,82 @@
   sortSel.value = sort;
   sortSel.addEventListener('change', () => { sort = sortSel.value; updateURL(); load(); });
 
-  // prefill the header search box with current query
-  const siteSearch = document.getElementById('site-search');
-  if (siteSearch && q) siteSearch.value = q;
-
   function updateURL() {
     const u = new URL(location);
     if (category) u.searchParams.set('category', category); else u.searchParams.delete('category');
     if (sub)      u.searchParams.set('sub', sub);           else u.searchParams.delete('sub');
     if (sort)     u.searchParams.set('sort', sort);         else u.searchParams.delete('sort');
+    if (q)        u.searchParams.set('q', q);               else u.searchParams.delete('q');
     history.replaceState(null, '', u);
   }
+
+  /* ── In-page search wiring (Desktop, Tablet, Mobile) ── */
+  const inpageForm    = document.getElementById('inpage-search-form');
+  const inpageInput   = document.getElementById('inpage-search-input');
+  const inpageBtn     = document.getElementById('inpage-search-btn');
+  const inpageClear   = document.getElementById('inpage-search-clear');
+  const inpageReset   = document.getElementById('inpage-search-reset');
+  const clearPillBtn  = document.getElementById('search-clear-pill-btn');
+
+  function syncAllSearchInputs(val) {
+    const inputs = [
+      inpageInput,
+      document.getElementById('site-search'),
+      document.getElementById('mob-site-search'),
+      document.getElementById('drawer-site-search')
+    ];
+    inputs.forEach(inp => {
+      if (inp) {
+        inp.value = val;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+  function applyInpageSearch(query) {
+    q = (query || '').trim();
+    syncAllSearchInputs(q);
+    if (inpageClear) inpageClear.classList.toggle('hidden', !q);
+    updateURL();
+    paintHead();
+    load();
+  }
+
+  if (inpageInput) {
+    if (q) {
+      inpageInput.value = q;
+      if (inpageClear) inpageClear.classList.remove('hidden');
+    }
+    inpageInput.addEventListener('input', () => {
+      if (inpageClear) inpageClear.classList.toggle('hidden', !inpageInput.value.trim());
+    });
+    inpageClear?.addEventListener('click', () => {
+      inpageInput.value = '';
+      if (inpageClear) inpageClear.classList.add('hidden');
+      inpageInput.focus();
+    });
+  }
+
+  inpageForm?.addEventListener('submit', e => {
+    e.preventDefault();
+    applyInpageSearch(inpageInput ? inpageInput.value : '');
+  });
+
+  inpageBtn?.addEventListener('click', e => {
+    e.preventDefault();
+    applyInpageSearch(inpageInput ? inpageInput.value : '');
+  });
+
+  const clearAllSearchHandler = e => {
+    if (e) e.preventDefault();
+    applyInpageSearch('');
+    if (inpageClear) inpageClear.classList.add('hidden');
+  };
+  inpageReset?.addEventListener('click', clearAllSearchHandler);
+  clearPillBtn?.addEventListener('click', clearAllSearchHandler);
+
+  // prefill header search inputs with current query
+  syncAllSearchInputs(q);
 
   paintHead();
   load();
