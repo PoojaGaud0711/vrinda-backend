@@ -11,6 +11,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const { isLoggedIn, adminOnly, superAdminOnly } = require('../middleware/auth');
 const { sendOrderStatusUpdate } = require('../services/emailService');
+const { autoDetectProduct } = require('../services/productAutoDetectService');
 
 // Configure Cloudinary if credentials are present in env
 const useCloudinary = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
@@ -273,6 +274,20 @@ router.put('/orders/:id/status', async (req, res) => {
     sendOrderStatusUpdate(order, status).catch(e => console.error('Status update email error:', e));
 
     res.status(200).json({ success: true, order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* ═══ AUTO-DETECT PRODUCT FROM WEB (Image & MRP) ═══ */
+router.get('/product/auto-detect', async (req, res) => {
+  try {
+    const { name, brand } = req.query;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Product name is required' });
+    }
+    const result = await autoDetectProduct(name.trim(), (brand || '').trim());
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

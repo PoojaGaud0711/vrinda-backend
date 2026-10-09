@@ -225,14 +225,45 @@
     </div>
     <form id="p-form" class="grid grid-cols-2 gap-4">
       <input type="hidden" id="pf-id"/>
-      <div class="field col-span-2"><label class="field-label">Name *</label><input id="pf-name" class="input" required/></div>
-      <div class="field"><label class="field-label">Brand</label><input id="pf-brand" class="input"/></div>
-      <div class="field"><label class="field-label">Pack (e.g. 15 tablets)</label><input id="pf-pack" class="input"/></div>
-      <div class="field"><label class="field-label">Price (₹) *</label><input id="pf-price" type="number" min="0" step="0.01" class="input" required/></div>
-      <div class="field"><label class="field-label">MRP (₹)</label><input id="pf-mrp" type="number" min="0" step="0.01" class="input"/></div>
-      <div class="field col-span-2"><label class="field-label">Product Image</label>
+      <div class="field col-span-2">
+        <div class="flex items-center justify-between mb-1">
+          <label class="field-label mb-0">Name *</label>
+          <button type="button" id="pf-autodetect-btn" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition shadow-xs hover:opacity-90" style="background:#1B4332;color:#C5A55A;border:1px solid rgba(197,165,90,.3)">
+            <i id="pf-detect-btn-icon" class="fas fa-wand-magic-sparkles text-[10px]"></i>
+            <span id="pf-detect-btn-txt">Auto-Detect Image &amp; MRP</span>
+          </button>
+        </div>
+        <div class="relative">
+          <input id="pf-name" class="input pr-8" required placeholder="e.g. Pan 40, Dolo 650, Augmentin, Cetaphil Cleanser..."/>
+          <span id="pf-detect-spinner" class="hidden absolute right-3 top-2.5 text-xs text-emerald-800">
+            <i class="fas fa-circle-notch fa-spin"></i>
+          </span>
+        </div>
+        <div id="pf-detect-status" class="hidden mt-1.5 p-2 rounded-lg text-[11px] flex items-center justify-between bg-emerald-50 text-emerald-900 border border-emerald-200">
+          <span class="flex items-center gap-1.5">
+            <i class="fas fa-check-circle text-emerald-600"></i>
+            <span id="pf-detect-msg">Auto-detected Image &amp; MRP from web</span>
+          </span>
+          <span class="text-[10px] text-emerald-700 font-medium">Editable below</span>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">Brand</label><input id="pf-brand" class="input" placeholder="e.g. Alkem, Micro Labs"/></div>
+      <div class="field"><label class="field-label">Pack (e.g. 15 tablets)</label><input id="pf-pack" class="input" placeholder="e.g. Strip of 15 Tablets"/></div>
+      <div class="field"><label class="field-label">Price (₹) *</label><input id="pf-price" type="number" min="0" step="0.01" class="input" required placeholder="Selling price"/></div>
+      <div class="field">
+        <div class="flex items-center justify-between">
+          <label class="field-label mb-0">MRP (₹)</label>
+          <span class="text-[10px] text-gray-400">Web Auto-detected</span>
+        </div>
+        <input id="pf-mrp" type="number" min="0" step="0.01" class="input" placeholder="Printed MRP"/>
+      </div>
+      <div class="field col-span-2">
+        <div class="flex items-center justify-between mb-1">
+          <label class="field-label mb-0">Product Image</label>
+          <span class="text-[10px] text-gray-400">Web Auto-detected / Upload</span>
+        </div>
         <div class="flex items-center gap-3">
-          <div id="pf-img-preview" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-black/10" style="background:#F0F7F4">
+          <div id="pf-img-preview" class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-black/10 shadow-xs" style="background:#F0F7F4">
             <i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>
           </div>
           <div class="flex-1 flex flex-col gap-2">
@@ -240,10 +271,16 @@
               <i class="fas fa-upload text-[10px]"></i> Choose Image
             </label>
             <input type="file" id="pf-image-file" class="hidden" accept=".jpg,.jpeg,.png,.webp"/>
-            <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste an image URL"/>
+            <input id="pf-image" class="input" style="height:36px;font-size:11px" placeholder="…or paste image URL"/>
           </div>
         </div>
-        <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — max 5MB (automatically saved to Cloudinary / storage)</p>
+        <div id="pf-alt-images-wrap" class="hidden mt-2 pt-2 border-t border-black/5">
+          <div class="text-[10px] text-gray-500 mb-1 flex items-center gap-1">
+            <i class="fas fa-images text-[9px] text-emerald-700"></i> Click an alternate web view to use:
+          </div>
+          <div id="pf-alt-images-list" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1"></div>
+        </div>
+        <p class="text-[10px] mt-1" style="color:rgba(0,0,0,.35)">JPG · PNG · WebP — detected automatically from web or upload custom image</p>
       </div>
       <div class="field"><label class="field-label">Category *</label>
         <select id="pf-cat" class="select" required></select>
@@ -725,6 +762,12 @@
     $('pf-mrp').value = p?.mrp ?? '';
     $('pf-image').value = p?.image || '';
     $('pf-image-file').value = '';
+    
+    // Reset auto-detect UI state
+    $('pf-detect-status')?.classList.add('hidden');
+    $('pf-alt-images-wrap')?.classList.add('hidden');
+    if ($('pf-alt-images-list')) $('pf-alt-images-list').innerHTML = '';
+
     const pv = $('pf-img-preview');
     if (p?.image) {
       pv.innerHTML = `<img src="${esc(p.image)}" class="w-full h-full object-cover" alt=""/>`;
@@ -745,6 +788,133 @@
   $('btn-add-product').addEventListener('click', () => openModal(null));
   $('pm-close').addEventListener('click', () => $('p-modal').classList.add('hidden'));
   $('p-modal').addEventListener('click', e => { if (e.target === $('p-modal')) $('p-modal').classList.add('hidden'); });
+
+  // Update preview when manual image URL is pasted or typed
+  $('pf-image')?.addEventListener('input', () => {
+    const url = $('pf-image').value.trim();
+    if (url) {
+      $('pf-img-preview').innerHTML = `<img src="${esc(url)}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image text-lg text-gray-400\\'></i>'"/>`;
+    } else {
+      $('pf-img-preview').innerHTML = `<i class="fas fa-image text-lg" style="color:rgba(0,0,0,.25)"></i>`;
+    }
+  });
+
+  /* ═══ Auto-Detect Product Image & MRP from Web ═══ */
+  let isDetecting = false;
+  async function autoDetectProductFromWeb(silent = false) {
+    const rawName = $('pf-name')?.value.trim();
+    if (!rawName || rawName.length < 2) {
+      if (!silent) toast('Please enter a product name first');
+      return;
+    }
+    if (isDetecting) return;
+    isDetecting = true;
+
+    const btn = $('pf-autodetect-btn');
+    const btnTxt = $('pf-detect-btn-txt');
+    const btnIcon = $('pf-detect-btn-icon');
+    const spinner = $('pf-detect-spinner');
+    const statusWrap = $('pf-detect-status');
+    const statusMsg = $('pf-detect-msg');
+    const brand = $('pf-brand')?.value.trim() || '';
+
+    if (btn) btn.disabled = true;
+    if (btnTxt) btnTxt.textContent = 'Detecting...';
+    if (btnIcon) btnIcon.className = 'fas fa-circle-notch fa-spin text-[10px]';
+    if (spinner) spinner.classList.remove('hidden');
+
+    try {
+      const url = '/api/v1/admin/product/auto-detect?name=' + encodeURIComponent(rawName) + (brand ? '&brand=' + encodeURIComponent(brand) : '');
+      const res = await fetch(url, { headers: H });
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.data || !data.found) {
+        if (!silent) toast('Could not auto-detect image/MRP for this item. You can fill manually.');
+        return;
+      }
+
+      const d = data.data;
+
+      // 1. Auto-fill Image
+      if (d.image) {
+        $('pf-image').value = d.image;
+        $('pf-img-preview').innerHTML = `<img src="${esc(d.image)}" class="w-full h-full object-cover"/>`;
+      }
+
+      // 2. Render alternate image thumbnails if available
+      const altWrap = $('pf-alt-images-wrap');
+      const altList = $('pf-alt-images-list');
+      if (altWrap && altList && Array.isArray(d.images) && d.images.length > 1) {
+        altList.innerHTML = d.images.slice(0, 6).map(imgUrl => `
+          <button type="button" class="w-10 h-10 rounded-lg overflow-hidden border border-black/10 hover:border-emerald-600 focus:ring-2 focus:ring-emerald-500 flex-shrink-0 transition shadow-xs" data-img="${esc(imgUrl)}">
+            <img src="${esc(imgUrl)}" class="w-full h-full object-cover" alt=""/>
+          </button>
+        `).join('');
+        altWrap.classList.remove('hidden');
+
+        altList.querySelectorAll('button').forEach(b => {
+          b.addEventListener('click', () => {
+            const picked = b.dataset.img;
+            $('pf-image').value = picked;
+            $('pf-img-preview').innerHTML = `<img src="${esc(picked)}" class="w-full h-full object-cover"/>`;
+            toast('Product image view updated ✓');
+          });
+        });
+      }
+
+      // 3. Auto-fill MRP & Suggested Selling Price
+      if (d.mrp) {
+        $('pf-mrp').value = d.mrp;
+      }
+      if (d.price && (!$('pf-price').value || $('pf-price').value === '0')) {
+        $('pf-price').value = d.price;
+      }
+
+      // 4. Fill auxiliary fields if currently empty (admin can always edit)
+      if (d.brand && !$('pf-brand').value) $('pf-brand').value = d.brand;
+      if (d.pack && !$('pf-pack').value) $('pf-pack').value = d.pack;
+      if (d.unit && !$('pf-unit').value) $('pf-unit').value = d.unit;
+      if (d.requiresPrescription !== undefined && !$('pf-id').value) {
+        $('pf-rx').checked = !!d.requiresPrescription;
+      }
+
+      // 5. Category suggestion if currently unset
+      if (d.category && !$('pf-cat').value) {
+        $('pf-cat').value = d.category;
+        $('pf-cat').dispatchEvent(new Event('change'));
+        if (d.subcategory) $('pf-sub').value = d.subcategory;
+      }
+
+      // Show success indicator
+      if (statusWrap && statusMsg) {
+        statusMsg.textContent = `Auto-detected Image & MRP (₹${d.mrp || d.price}) from web (${d.source || 'Online Catalog'}) ✓`;
+        statusWrap.classList.remove('hidden');
+      }
+
+      toast(`✨ Auto-detected Image & MRP (₹${d.mrp || d.price}) from web!`);
+    } catch (err) {
+      if (!silent) toast('Auto-detect error: ' + err.message);
+    } finally {
+      isDetecting = false;
+      if (btn) btn.disabled = false;
+      if (btnTxt) btnTxt.textContent = 'Auto-Detect Image & MRP';
+      if (btnIcon) btnIcon.className = 'fas fa-wand-magic-sparkles text-[10px]';
+      if (spinner) spinner.classList.add('hidden');
+    }
+  }
+
+  // Trigger auto-detect button click
+  $('pf-autodetect-btn')?.addEventListener('click', () => autoDetectProductFromWeb(false));
+
+  // Trigger auto-detect when admin finishes typing product name and tabs/clicks away
+  $('pf-name')?.addEventListener('blur', () => {
+    // Only auto-trigger if adding a new product and image/mrp are not yet filled
+    if (!$('pf-id').value && (!$('pf-image').value || !$('pf-mrp').value)) {
+      if ($('pf-name').value.trim().length >= 3) {
+        autoDetectProductFromWeb(true);
+      }
+    }
+  });
 
   $('pf-image-file').addEventListener('change', async () => {
     const file = $('pf-image-file').files[0];
